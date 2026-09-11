@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum VideoStatus {
+  UPLOADING
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum AdType {
+  PRE_ROLL
+  MID_ROLL
+  BANNER_OVERLAY
+}
+
+enum PlaybackEventType {
+  VIDEO_STARTED
+  VIDEO_FINISHED
+  AD_SHOWN
+  AD_SKIPPED
+  AD_COMPLETED
+  AD_CLICKED
+}
+
+/// Owns videos and advertisements; isolated per admin.
+model Admin {
+  id             String          @id @default(uuid(7))
+  email          String          @unique
+  passwordHash   String
+  firstName      String
+  lastName       String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  videos         Video[]
+  advertisements Advertisement[]
+}
+
+/// Metadata only - the actual file lives with the hosting service.
+model Video {
+  id          String      @id @default(uuid(7))
+  title       String
+  description String?
+  status      VideoStatus @default(UPLOADING)
+  externalId  String? // null until hosting service assigns one
+  playbackUrl String? // null until status is READY
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  authorId String
+  author   Admin  @relation(fields: [authorId], references: [id])
+
+  adPlacements   AdPlacement[]
+  playbackEvents PlaybackEvent[]
+}
+
+/// A reusable ad asset - placeable on multiple videos via AdPlacement.
+model Advertisement {
+  id              String   @id @default(uuid(7))
+  title           String
+  description     String?
+  adType          AdType
+  assetUrl        String
+  clickThroughUrl String? // nullable - not every ad has a destination link
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  authorId String
+  author   Admin  @relation(fields: [authorId], references: [id])
+
+  adPlacements AdPlacement[]
+}
+
+/// One placement of an Advertisement on a Video, at one position.
+model AdPlacement {
+  id                 String   @id @default(uuid(7))
+  startOffsetSeconds Int
+  durationSeconds    Int? // banner-only; video ads use their own length
+  skipAfterSeconds   Int? // null = not skippable
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  videoId         String
+  video           Video         @relation(fields: [videoId], references: [id])
+  advertisementId String
+  advertisement   Advertisement @relation(fields: [advertisementId], references: [id])
+
+  playbackEvents PlaybackEvent[]
+}
+
+/// Raw, append-only event log - source of truth for all dashboard numbers.
+model PlaybackEvent {
+  id String @id @default(uuid(7))
+
+  videoId String
+  video   Video  @relation(fields: [videoId], references: [id])
+
+  adPlacementId String? // null for VIDEO_STARTED/VIDEO_FINISHED
+  adPlacement   AdPlacement? @relation(fields: [adPlacementId], references: [id])
+
+  sessionId String // identifies one viewing attempt; used for dedup
+  eventType PlaybackEventType
+
+  occurredAt DateTime // client-reported time
+  receivedAt DateTime @default(now()) // server timestamp, set on insert
+}
