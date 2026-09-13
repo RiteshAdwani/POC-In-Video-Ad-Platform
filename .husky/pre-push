@@ -1,1 +1,2 @@
 npm run typecheck --workspace=backend
+npm run typecheck --workspace=frontend

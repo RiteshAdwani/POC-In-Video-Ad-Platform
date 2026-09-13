@@ -1,0 +1,24 @@
+server {
+    listen 80;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Same two prefixes the Vite dev server proxies - keeps browser requests same-origin in
+    # both environments, so the frontend never needs to know the backend's real address.
+    location /api/ {
+        proxy_pass http://backend:${BACKEND_PORT}/api/;
+        proxy_set_header Host $host;
+    }
+
+    location /public/ {
+        proxy_pass http://backend:${BACKEND_PORT}/public/;
+        proxy_set_header Host $host;
+    }
+
+    # SPA fallback - a hard refresh on any client-side route (e.g. /videos) still serves
+    # index.html so React Router can take over, instead of nginx 404ing on a path it doesn't have.
+    location / {
+        try_files $uri /index.html;
+    }
+}
