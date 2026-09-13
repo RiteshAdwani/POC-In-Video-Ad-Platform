@@ -20,11 +20,6 @@
     "lint-staged": "^15.2.10",
     "prettier": "^3.3.3"
   },
-  "overrides": {
-    "typescript-eslint": {
-      "typescript": "6.0.3"
-    }
-  },
   "lint-staged": {
     "backend/**/*.{ts,tsx}": [
       "eslint --fix --config backend/eslint.config.js",
