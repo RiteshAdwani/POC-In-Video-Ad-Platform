@@ -13,8 +13,19 @@ dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(8000),
-  CORS_ORIGIN: z.string().default('http://localhost:5173'),
+  // Comma-separated - split into a list so both a local dev origin and a deployed frontend
+  // origin can be allowed at once. The `cors` package accepts an array for `origin` directly.
+  CORS_ORIGIN: z
+    .string()
+    .default('http://localhost:5173')
+    .transform((value) =>
+      value
+        .split(',')
+        .map((origin) => origin.trim())
+        .filter(Boolean),
+    ),
   DATABASE_URL: z.string().min(1),
+  JWT_SECRET: z.string().min(1),
 });
 
 const parsed = envSchema.safeParse(process.env);
