@@ -1,6 +1,7 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["partialIndexes"]
 }
 
 datasource db {
@@ -109,4 +110,9 @@ model PlaybackEvent {
 
   occurredAt DateTime // client-reported time
   receivedAt DateTime @default(now()) // server timestamp, set on insert
+
+  // Same ad placement, same session, same event type = one fact (ad-scoped events).
+  @@unique([sessionId, eventType, adPlacementId], where: raw("\"adPlacementId\" IS NOT NULL"), map: "PlaybackEvent_session_ad_event_dedup")
+  // Same session, same event type, no ad = one fact (video-level events: STARTED/FINISHED).
+  @@unique([sessionId, eventType], where: raw("\"adPlacementId\" IS NULL"), map: "PlaybackEvent_session_video_event_dedup")
 }
