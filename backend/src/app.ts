@@ -7,6 +7,7 @@ import { env } from './config/env';
 import { logger } from './lib/logger';
 import { errorHandler } from './middleware/errorHandler';
 import { authRouter } from './modules/auth/auth.routes';
+import { videosRouter } from './modules/videos/videos.routes';
 
 export const app = express();
 
@@ -24,6 +25,7 @@ app.get('/health', (_req, res) => {
 });
 
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/videos', videosRouter);
 
 // Routes go above this line - anything thrown (or rejected) in them ends up here.
 app.use(errorHandler);
