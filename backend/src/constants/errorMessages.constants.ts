@@ -6,4 +6,10 @@ export const ErrorMessages = {
   INVALID_REQUEST_BODY: 'Invalid request body',
   MISSING_VIDEO_FILE: 'No video file was provided',
   VIDEO_UPLOAD_FAILED: 'Failed to upload video to the hosting service',
+  RESOURCE_NOT_FOUND: 'Resource not found',
+  ADVERTISEMENT_NOT_FOUND: 'Advertisement not found',
+  ADVERTISEMENT_IN_USE: 'Cannot delete an advertisement that is still placed on one or more videos',
+  PLACEMENT_IN_USE: 'Cannot delete a placement that has recorded playback events',
+  INVALID_PREROLL_OFFSET: 'Pre-roll placements must have startOffsetSeconds = 0',
+  MISSING_BANNER_DURATION: 'Banner placements require durationSeconds',
 } as const;
