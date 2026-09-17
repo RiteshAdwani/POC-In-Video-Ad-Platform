@@ -29,6 +29,20 @@ const envSchema = z.object({
   CLOUDINARY_CLOUD_NAME: z.string().min(1),
   CLOUDINARY_API_KEY: z.string().min(1),
   CLOUDINARY_API_SECRET: z.string().min(1),
+  // Optional, comma-separated DNS server IPs - only needed on a machine
+  // whose configured DNS resolver is broken/unreliable for Node specifically (see
+  // lib/cloudinary.ts). Unset by default; most environments don't need this at all.
+  DNS_FALLBACK_SERVERS: z
+    .string()
+    .optional()
+    .transform((value) =>
+      value
+        ? value
+            .split(',')
+            .map((server) => server.trim())
+            .filter(Boolean)
+        : undefined,
+    ),
 });
 
 const parsed = envSchema.safeParse(process.env);

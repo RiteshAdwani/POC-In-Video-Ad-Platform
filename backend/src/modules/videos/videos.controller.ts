@@ -2,11 +2,13 @@ import type { RequestHandler } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { prisma } from '../../lib/prisma';
 import { initiateVideoUpload } from '../../lib/cloudinary';
+import type { Video } from '../../generated/prisma/client.js';
 import { VideoStatus } from '../../generated/prisma/client.js';
 import { UpstreamServiceError, ValidationError } from '../../errors/AppError';
 import { ErrorMessages } from '../../constants/errorMessages.constants';
 import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants';
 import { createVideoSchema } from './videos.schema';
+import { checkAndUpdateVideoStatus } from './videos.service';
 
 /**
  * @description Uploads a video: streams it to Cloudinary and persists the resulting row.
@@ -47,4 +49,18 @@ export const uploadVideo: RequestHandler = async (req, res) => {
   res
     .status(StatusCodes.CREATED)
     .json({ data: { video }, message: ApiSuccessMessages.VIDEO_UPLOADED });
+};
+
+/**
+ * @description Checks a video's Cloudinary processing status and updates the DB row if it changed.
+ * requireVideoOwnership already fetched the row and verified ownership - it's on req.resource.
+ */
+export const getVideoStatus: RequestHandler = async (req, res) => {
+  // externalId is always set by the time a row is reachable here - uploadVideo only creates a
+  // row without one on the FAILED path, which has no Cloudinary asset to check.
+  const video = await checkAndUpdateVideoStatus(req.resource as Video);
+
+  res
+    .status(StatusCodes.OK)
+    .json({ data: { video }, message: ApiSuccessMessages.VIDEO_STATUS_FETCHED });
 };
