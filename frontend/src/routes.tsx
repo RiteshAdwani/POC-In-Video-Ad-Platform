@@ -1,10 +1,10 @@
 import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom';
-import { Layout } from './components/Layout';
-import { LoginPage } from './pages/LoginPage';
+import { Layout } from './components/Layout/Layout';
+import { LoginPage } from './pages/login/LoginPage';
 import { VideosPage } from './pages/VideosPage';
-import { AdManagementPage } from './pages/AdManagementPage';
-import { DashboardPage } from './pages/DashboardPage';
-import { PublicPlayerPage } from './pages/PublicPlayerPage';
+import { AdManagementPage } from './pages/adManagement/AdManagementPage';
+import { DashboardPage } from './pages/dashboard/DashboardPage';
+import { Routes } from './constants/routes.constants';
 
 // `private` is our own flag, not a RouteObject field - once AuthContext/RequireAuth exist, a
 // guard can walk this array and wrap every `private: true` route's element, instead of every
@@ -12,16 +12,15 @@ import { PublicPlayerPage } from './pages/PublicPlayerPage';
 type AppRoute = RouteObject & { private?: boolean };
 
 const adminRoutes: AppRoute[] = [
-  { path: '/videos', element: <VideosPage />, private: true },
-  { path: '/ads', element: <AdManagementPage />, private: true },
-  { path: '/dashboard', element: <DashboardPage />, private: true },
+  { path: Routes.VIDEOS, element: <VideosPage />, private: true },
+  { path: Routes.ADS, element: <AdManagementPage />, private: true },
+  { path: Routes.DASHBOARD, element: <DashboardPage />, private: true },
 ];
 
 const routes: AppRoute[] = [
-  { path: '/login', element: <LoginPage /> },
-  { path: '/play/:videoId', element: <PublicPlayerPage /> },
+  { path: Routes.LOGIN, element: <LoginPage /> },
   { element: <Layout />, children: adminRoutes },
-  { path: '/', element: <Navigate to="/videos" replace /> },
+  { path: '/', element: <Navigate to={Routes.VIDEOS} replace /> },
 ];
 
 export const router = createBrowserRouter(routes);

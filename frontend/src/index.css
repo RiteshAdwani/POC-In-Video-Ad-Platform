@@ -1,0 +1,26 @@
+/* antd's fontFamily token (theme/antdTheme.ts) only styles antd's own components - this covers
+   plain HTML too, so raw text doesn't fall back to the browser's default serif. `margin: 0`
+   removes the browser's default body margin, which otherwise insets full-height layouts like the
+   admin sidebar from the edge of the viewport. */
+body {
+  margin: 0;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+/* This overrides the heading role to Lexend, since antd has no token for "a different font per
+   element," and adds a mono utility for tabular data. `!important` is needed because antd's
+   Typography component sets font-family via its own generated class, which outweighs a plain
+   element selector. */
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  font-family: 'Lexend', sans-serif !important;
+}
+
+.mono {
+  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
