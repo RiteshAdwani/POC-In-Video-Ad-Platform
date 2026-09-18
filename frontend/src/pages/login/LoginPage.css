@@ -1,0 +1,27 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #f8fafc;
+}
+
+.login-page__card {
+  width: 100%;
+  max-width: 380px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 40px 32px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.login-page__brand {
+  margin-bottom: 32px;
+}
+
+.login-page__title.ant-typography {
+  margin: 0;
+  color: #0369a1;
+}
