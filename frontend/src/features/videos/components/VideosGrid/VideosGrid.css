@@ -1,0 +1,84 @@
+.videos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.videos-grid__card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.videos-grid__link {
+  display: flex;
+  flex-direction: column;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.videos-grid__thumb {
+  position: relative;
+  height: 168px;
+  background: linear-gradient(135deg, #0f172a, #0369a1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.videos-grid__thumb .video-status-tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+
+.videos-grid__ad-count {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(15, 23, 42, 0.55);
+  color: #ffffff;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.videos-grid__play {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 34px;
+}
+
+.videos-grid__body {
+  padding: 14px 16px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.videos-grid__title {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.videos-grid__description {
+  font-size: 13px;
+}
+
+.videos-grid__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding: 0 16px 14px;
+}
+
+.videos-grid__actions {
+  display: inline-flex;
+  gap: 2px;
+}

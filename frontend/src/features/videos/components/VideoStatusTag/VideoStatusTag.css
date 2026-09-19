@@ -1,0 +1,24 @@
+.video-status-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.video-status-tag[data-status='UPLOADING'] {
+  background: #475569;
+}
+
+.video-status-tag[data-status='PROCESSING'] {
+  background: #0369a1;
+}
+
+.video-status-tag[data-status='READY'] {
+  background: #16a34a;
+}
+
+.video-status-tag[data-status='FAILED'] {
+  background: #dc2626;
+}

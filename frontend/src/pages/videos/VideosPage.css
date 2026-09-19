@@ -1,0 +1,5 @@
+/* No outer padding here - the admin Layout's content area (Layout.css) already provides it. */
+
+.videos-page__header {
+  margin-bottom: 24px;
+}
