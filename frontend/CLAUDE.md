@@ -18,9 +18,6 @@ Vite + React 19 + TypeScript (strict) + React Router v7 + antd for UI components
 Tailwind, no CSS-in-JS). The dev server proxies `/api/v1/...` to the backend on port 8000
 (`vite.config.ts`) — call relative paths, never hardcode the backend origin.
 
-`src/lib/playbackApi.ts` predates this convention (plain `fetch`, no Query wrapper) — treat it as
-legacy to migrate the next time it's touched, not as a pattern to copy.
-
 ## Folder structure
 
 Organize by layer for cross-cutting concerns, by feature for everything page-specific:
@@ -117,11 +114,19 @@ memoization adds noise without a measurable benefit.
 
 - One `axios` instance in `api/`, reused everywhere — no ad hoc `fetch`/`axios.create()` calls
   scattered through feature code.
-- Query keys are typed factory functions in `constants/queryKeys.constants.ts`
-  (e.g. `playbackConfigKey(videoId)`), never inline arrays repeated at each call site.
+- Query keys are a flat `QueryKeys` const object in `constants/queryKeys.constants.ts` holding just
+  the base segments (e.g. `QueryKeys.PLAYBACK_CONFIG`) — a hook builds the full key inline
+  (`[QueryKeys.PLAYBACK_CONFIG, videoId]`), not a factory function per key.
 - After a mutation succeeds, invalidate the query keys it affects via
   `queryClient.invalidateQueries` in `onSuccess` — don't manually patch cached data or duplicate
   server state into local component state.
+- Errors: every mutation's `onError` calls `handleAxiosError(error)` (`lib/axiosError.ts`) to toast
+  the backend's message — deliberately explicit per mutation, not a global axios interceptor,
+  since TanStack Query mutations don't retry by default (unlike queries' default 3 retries), so
+  there's no "toast fires mid-retry for a failure that self-resolves" risk here the way there would
+  be for queries. Queries surface their own `isError`/`error` state for inline UI (`Result`/`Spin`,
+  see `PlaybackStatusScreen`) instead of a toast — a background poll shouldn't interrupt the page
+  with a toast for a retry that might still succeed.
 
 ## Design patterns
 

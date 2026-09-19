@@ -1,0 +1,2 @@
+export const VIDEO_TITLE_MAX_LENGTH = 150;
+export const VIDEO_DESCRIPTION_MAX_LENGTH = 500;

@@ -1,0 +1,49 @@
+.video-details-page__header {
+  margin: 16px 0 32px;
+}
+
+.video-details-page__title {
+  margin: 0 !important;
+}
+
+.video-details-page__player {
+  flex: 0 0 400px;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+.video-details-page__player video {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.video-details-page__player-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 32px;
+}
+
+.video-details-page__player-placeholder .ant-typography {
+  font-size: 14px;
+  color: inherit;
+}
+
+.video-details-page__meta {
+  flex-grow: 1;
+  align-self: stretch;
+}
+
+.video-details-page__placements {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
