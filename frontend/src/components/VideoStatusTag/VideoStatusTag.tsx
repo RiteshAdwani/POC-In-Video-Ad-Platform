@@ -1,4 +1,4 @@
-import { VideoStatus, VIDEO_STATUS_LABEL } from '../../../../constants/video.constants';
+import { VideoStatus, VIDEO_STATUS_LABEL } from '../../constants/video.constants';
 import './VideoStatusTag.css';
 
 /**

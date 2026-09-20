@@ -1,0 +1,41 @@
+.ad-details-page__header {
+  margin: 16px 0 32px;
+}
+
+.ad-details-page__title {
+  margin: 0 !important;
+}
+
+.ad-details-page__asset {
+  flex: 0 0 400px;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ad-details-page__asset img,
+.ad-details-page__asset video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.ad-details-page__meta {
+  flex-grow: 1;
+  align-self: stretch;
+}
+
+.ad-details-page__click-through {
+  color: #0369a1;
+}
+
+.ad-details-page__placements {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}

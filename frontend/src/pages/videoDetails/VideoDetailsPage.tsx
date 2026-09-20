@@ -10,9 +10,9 @@ import { Routes } from '../../constants/routes.constants';
 import { VideoStatus, VIDEO_STATUS_LABEL } from '../../constants/video.constants';
 import { AdPlacementsList } from '../../features/videos/components/AdPlacementsList/AdPlacementsList';
 import { CreateEditVideoModal } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal';
-import { ModalMode } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal.constants';
+import { ModalMode } from '../../constants/modalMode.constants';
 import type { VideoFormType } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal.types';
-import { VideoStatusTag } from '../../features/videos/components/VideoStatusTag/VideoStatusTag';
+import { VideoStatusTag } from '../../components/VideoStatusTag/VideoStatusTag';
 import { MOCK_AD_PLACEMENTS } from '../../features/videos/mocks/adPlacements.mock';
 import { MOCK_VIDEOS } from '../../features/videos/mocks/videos.mock';
 import { useModalState } from '../../hooks/useModalState';
@@ -79,7 +79,7 @@ export const VideoDetailsPage = () => {
         <Flex vertical gap={8} className="video-details-page__meta">
           <Flex justify="space-between" align="flex-start" gap={16}>
             <Flex vertical gap={8}>
-              <Flex align="center" gap={12}>
+              <Flex align="flex-start" gap={12}>
                 <Title level={2} className="video-details-page__title">
                   {video.title}
                 </Title>

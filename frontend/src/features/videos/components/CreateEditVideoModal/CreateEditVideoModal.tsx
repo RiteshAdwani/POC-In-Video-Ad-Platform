@@ -1,11 +1,11 @@
 import { Form, Input, Modal, Upload, type UploadFile } from 'antd';
 import { InboxOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import { ModalMode } from '../../../../constants/modalMode.constants';
 import { ValidationMessages } from '../../../../constants/validationMessages.constants';
 import { useFilePreview } from '../../../../hooks/useFilePreview';
 import { createFileTypeValidator } from '../../../../lib/createFileTypeValidator';
 import type { Video } from '../../../../types/video.types';
 import {
-  ModalMode,
   VIDEO_DESCRIPTION_MAX_LENGTH,
   VIDEO_TITLE_MAX_LENGTH,
   VideoFormFields,

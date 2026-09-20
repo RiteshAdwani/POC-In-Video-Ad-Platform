@@ -1,0 +1,20 @@
+.ad-type-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.ad-type-tag[data-ad-type='PRE_ROLL'] {
+  background: #1d4ed8;
+}
+
+.ad-type-tag[data-ad-type='MID_ROLL'] {
+  background: #7e22ce;
+}
+
+.ad-type-tag[data-ad-type='BANNER_OVERLAY'] {
+  background: #b45309;
+}

@@ -3,7 +3,8 @@ import { Layout } from './components/Layout/Layout';
 import { LoginPage } from './pages/login/LoginPage';
 import { VideosPage } from './pages/videos/VideosPage';
 import { VideoDetailsPage } from './pages/videoDetails/VideoDetailsPage';
-import { AdManagementPage } from './pages/adManagement/AdManagementPage';
+import { AdsPage } from './pages/ads/AdsPage';
+import { AdDetailsPage } from './pages/adDetails/AdDetailsPage';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { Routes } from './constants/routes.constants';
 
@@ -15,7 +16,8 @@ type AppRoute = RouteObject & { private?: boolean };
 const adminRoutes: AppRoute[] = [
   { path: Routes.VIDEOS, element: <VideosPage />, private: true },
   { path: Routes.VIDEO_DETAILS, element: <VideoDetailsPage />, private: true },
-  { path: Routes.ADS, element: <AdManagementPage />, private: true },
+  { path: Routes.ADS, element: <AdsPage />, private: true },
+  { path: Routes.AD_DETAILS, element: <AdDetailsPage />, private: true },
   { path: Routes.DASHBOARD, element: <DashboardPage />, private: true },
 ];
 
