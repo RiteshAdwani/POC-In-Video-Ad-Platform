@@ -1,0 +1,113 @@
+.ads-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.ads-grid__card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.ads-grid__link {
+  display: flex;
+  flex-direction: column;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ads-grid__thumb {
+  position: relative;
+  height: 168px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.ads-grid__thumb[data-ad-type='PRE_ROLL'] {
+  background: linear-gradient(135deg, #1d4ed8, #1e293b);
+}
+
+.ads-grid__thumb[data-ad-type='MID_ROLL'] {
+  background: linear-gradient(135deg, #7e22ce, #1e293b);
+}
+
+.ads-grid__thumb[data-ad-type='BANNER_OVERLAY'] {
+  background: #0f172a;
+}
+
+.ads-grid__thumb-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ads-grid__play {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 34px;
+}
+
+.ads-grid__thumb .ad-type-tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+
+.ads-grid__placement-count {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(15, 23, 42, 0.55);
+  color: #ffffff;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.ads-grid__click-through {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(15, 23, 42, 0.55);
+  color: #ffffff;
+  font-size: 12px;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.ads-grid__body {
+  padding: 14px 16px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ads-grid__title {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.ads-grid__description {
+  font-size: 13px;
+}
+
+.ads-grid__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding: 0 16px 14px;
+}
+
+.ads-grid__actions {
+  display: inline-flex;
+  gap: 2px;
+}

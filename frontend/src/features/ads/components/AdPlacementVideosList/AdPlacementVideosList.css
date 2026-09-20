@@ -1,0 +1,59 @@
+.ad-placement-videos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ad-placement-videos-list__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.ad-placement-videos-list__row:hover {
+  background: #f1f5f9;
+}
+
+.ad-placement-videos-list__thumb {
+  position: relative;
+  flex: 0 0 120px;
+  height: 68px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 22px;
+  background: linear-gradient(135deg, #0f172a, #0369a1);
+}
+
+.ad-placement-videos-list__offset {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: rgba(15, 23, 42, 0.75);
+  color: #ffffff;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.ad-placement-videos-list__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ad-placement-videos-list__title {
+  font-size: 14px;
+}
+
+.ad-placement-videos-list__meta {
+  font-size: 12px;
+}

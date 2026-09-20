@@ -5,7 +5,7 @@ import { Routes } from '../../../../constants/routes.constants';
 import { VideoStatus } from '../../../../constants/video.constants';
 import { formatDate } from '../../../../lib/formatDate';
 import type { Video } from '../../../../types/video.types';
-import { VideoStatusTag } from '../VideoStatusTag/VideoStatusTag';
+import { VideoStatusTag } from '../../../../components/VideoStatusTag/VideoStatusTag';
 import './VideosGrid.css';
 
 const { Text } = Typography;

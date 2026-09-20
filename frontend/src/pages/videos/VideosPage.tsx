@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button, Flex, Typography } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import { CreateEditVideoModal } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal';
-import { ModalMode } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal.constants';
+import { ModalMode } from '../../constants/modalMode.constants';
 import type { VideoFormType } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal.types';
 import { VideosGrid } from '../../features/videos/components/VideosGrid/VideosGrid';
 import { MOCK_VIDEOS } from '../../features/videos/mocks/videos.mock';
