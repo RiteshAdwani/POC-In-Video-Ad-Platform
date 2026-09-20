@@ -30,16 +30,8 @@
   overflow: hidden;
 }
 
-.ads-grid__thumb[data-ad-type='PRE_ROLL'] {
+.ads-grid__thumb[data-asset-type='VIDEO'] {
   background: linear-gradient(135deg, #1d4ed8, #1e293b);
-}
-
-.ads-grid__thumb[data-ad-type='MID_ROLL'] {
-  background: linear-gradient(135deg, #7e22ce, #1e293b);
-}
-
-.ads-grid__thumb[data-ad-type='BANNER_OVERLAY'] {
-  background: #0f172a;
 }
 
 .ads-grid__thumb-image {
@@ -53,7 +45,7 @@
   font-size: 34px;
 }
 
-.ads-grid__thumb .ad-type-tag {
+.ads-grid__thumb .asset-type-tag {
   position: absolute;
   top: 10px;
   left: 10px;

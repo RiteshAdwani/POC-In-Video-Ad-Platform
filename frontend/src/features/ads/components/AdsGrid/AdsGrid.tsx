@@ -1,11 +1,11 @@
 import { generatePath, Link } from 'react-router-dom';
 import { Button, Tooltip, Typography } from 'antd';
 import { DeleteOutlined, EditOutlined, LinkOutlined, PlayCircleFilled } from '@ant-design/icons';
-import { AdType } from '../../../../constants/ad.constants';
+import { AssetType } from '../../../../constants/ad.constants';
 import { Routes } from '../../../../constants/routes.constants';
 import { formatDate } from '../../../../lib/formatDate';
 import type { Advertisement } from '../../../../types/advertisement.types';
-import { AdTypeTag } from '../AdTypeTag/AdTypeTag';
+import { AssetTypeTag } from '../AssetTypeTag/AssetTypeTag';
 import './AdsGrid.css';
 
 const { Text } = Typography;
@@ -16,23 +16,22 @@ type AdsGridProps = {
 };
 
 /**
- * @description Card-grid listing of ads - a banner's real creative renders as its own thumbnail
- * (assetUrl is a plain image URL), while a video ad (pre-roll/mid-roll) gets a colored tile since
- * previewing the whole video isn't worth it here. The thumbnail and title/description link to
- * that ad's details page.
+ * @description Card-grid listing of ads - an image ad's real creative renders as its own
+ * thumbnail, while a video ad gets a colored tile since previewing the whole video isn't worth it
+ * here. The thumbnail and title/description link to that ad's details page.
  */
 export const AdsGrid = ({ ads, onEdit }: AdsGridProps) => (
   <div className="ads-grid">
     {ads.map((ad) => (
       <div className="ads-grid__card" key={ad.id}>
         <Link to={generatePath(Routes.AD_DETAILS, { adId: ad.id })} className="ads-grid__link">
-          <div className="ads-grid__thumb" data-ad-type={ad.adType}>
-            {ad.adType === AdType.BANNER_OVERLAY ? (
+          <div className="ads-grid__thumb" data-asset-type={ad.assetType}>
+            {ad.assetType === AssetType.IMAGE ? (
               <img src={ad.assetUrl} alt={ad.title} className="ads-grid__thumb-image" />
             ) : (
               <PlayCircleFilled className="ads-grid__play" />
             )}
-            <AdTypeTag adType={ad.adType} />
+            <AssetTypeTag assetType={ad.assetType} />
             <span className="ads-grid__placement-count">
               {ad.placementCount} {ad.placementCount === 1 ? 'video' : 'videos'}
             </span>

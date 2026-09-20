@@ -19,8 +19,8 @@ const requireVideoOwnership = requireOwnership(
 );
 
 // Ownership of an Ad placement derives from its parent video, not a field on AdPlacement itself.
-// advertisement is included too so updatePlacement can re-validate the pre-roll/banner
-// constraints (which depend on adType) without a second query.
+// advertisement is included too so updatePlacement can re-validate the placement constraints
+// (which depend on the advertisement's assetType) without a second query.
 const requireAdPlacementOwnership = requireOwnership(async (id) => {
   const adPlacement = await prisma.adPlacement.findUnique({
     where: { id },

@@ -46,10 +46,7 @@ export const recordPlaybackEvent: RequestHandler = async (req, res) => {
   // An adId from a different video is invalid, same as a missing one - one check, one error.
   let outOfOrder = false;
   if (adId) {
-    const adPlacement = await prisma.adPlacement.findUnique({
-      where: { id: adId },
-      include: { advertisement: true },
-    });
+    const adPlacement = await prisma.adPlacement.findUnique({ where: { id: adId } });
 
     if (adPlacement?.videoId !== videoId) {
       req.log.warn(
@@ -62,7 +59,7 @@ export const recordPlaybackEvent: RequestHandler = async (req, res) => {
     // Banners have no skip button - there's nothing to skip out of.
     if (
       eventType === PlaybackEventType.AD_SKIPPED &&
-      adPlacement.advertisement.adType === AdType.BANNER_OVERLAY
+      adPlacement.adType === AdType.BANNER_OVERLAY
     ) {
       req.log.warn(
         { ...logContext, outcome: 'rejected' },

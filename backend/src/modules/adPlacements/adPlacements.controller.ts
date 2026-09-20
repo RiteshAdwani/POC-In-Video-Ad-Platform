@@ -29,7 +29,7 @@ export const createAdPlacement: RequestHandler = async (req, res) => {
   }
 
   // Validation for Ad placement
-  validatePlacementConstraints(advertisement.adType, placementData);
+  validatePlacementConstraints(advertisement.assetType, placementData);
 
   // Create Ad placement
   const adPlacement = await prisma.adPlacement.create({
@@ -60,11 +60,11 @@ export const listAdPlacements: RequestHandler = async (req, res) => {
 };
 
 /**
- * @description Updates an Ad placement's position/timing. requireOwnership already fetched and
- * verified it (ownership derives from the parent video's authorId), and it comes with its
- * advertisement attached so the pre-roll/banner constraints can be re-checked against the
- * resulting state - a partial patch could otherwise leave a pre-roll at a nonzero offset just by
- * not touching the field a naive per-field check would have looked at.
+ * @description Updates an Ad placement's type/position/timing. requireOwnership already fetched
+ * and verified it (ownership derives from the parent video's authorId), and it comes with its
+ * advertisement attached so the placement constraints can be re-checked against the resulting
+ * state - a partial patch could otherwise leave a pre-roll at a nonzero offset just by not
+ * touching the field a naive per-field check would have looked at.
  */
 export const updateAdPlacement: RequestHandler = async (req, res) => {
   // Extract resource and parse data
@@ -72,7 +72,8 @@ export const updateAdPlacement: RequestHandler = async (req, res) => {
   const data = updateAdPlacementSchema.parse(req.body);
 
   // Validate placement constraints
-  validatePlacementConstraints(existing.advertisement.adType, {
+  validatePlacementConstraints(existing.advertisement.assetType, {
+    adType: data.adType ?? existing.adType,
     startOffsetSeconds: data.startOffsetSeconds ?? existing.startOffsetSeconds,
     durationSeconds: data.durationSeconds ?? existing.durationSeconds,
   });

@@ -21,6 +21,14 @@ enum AdType {
   BANNER_OVERLAY
 }
 
+// What kind of file an ad's creative actually is - fixed for the asset's lifetime, unlike AdType
+// (which is a per-placement choice: the same video creative can run as a pre-roll on one video and
+// a mid-roll on another, but a banner is always an image and a pre/mid-roll is always a video).
+enum AssetType {
+  IMAGE
+  VIDEO
+}
+
 enum PlaybackEventType {
   VIDEO_STARTED
   VIDEO_FINISHED
@@ -63,14 +71,14 @@ model Video {
 
 /// A reusable ad asset - placeable on multiple videos via AdPlacement.
 model Advertisement {
-  id              String   @id @default(uuid(7))
+  id              String    @id @default(uuid(7))
   title           String
   description     String?
-  adType          AdType
+  assetType       AssetType
   assetUrl        String
   clickThroughUrl String? // nullable - not every ad has a destination link
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   authorId String
   author   Admin  @relation(fields: [authorId], references: [id])
@@ -81,6 +89,7 @@ model Advertisement {
 /// One placement of an Advertisement on a Video, at one position.
 model AdPlacement {
   id                 String   @id @default(uuid(7))
+  adType             AdType // this placement's role - the same Advertisement can be PRE_ROLL here and MID_ROLL elsewhere
   startOffsetSeconds Int
   durationSeconds    Int? // banner-only; video ads use their own length
   skipAfterSeconds   Int? // null = not skippable

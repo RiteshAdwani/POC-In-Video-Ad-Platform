@@ -14,10 +14,10 @@ export const videoUpload = multer({
 });
 
 /**
- * @description Multer instance for ad creative uploads - an ad asset is either an image (banner
- * overlay) or a video (pre-roll/mid-roll), so both mime prefixes are accepted here; the controller
- * cross-checks the actual file type against the ad's adType. Reuses the video size cap since
- * creatives are never larger than a full video.
+ * @description Multer instance for ad creative uploads - an ad asset is either an image or a
+ * video (its assetType is derived from whichever it turns out to be, see
+ * advertisements.controller.ts), so both mime prefixes are accepted here. Reuses the video size
+ * cap since creatives are never larger than a full video.
  */
 export const adAssetUpload = multer({
   storage: multer.memoryStorage(),
