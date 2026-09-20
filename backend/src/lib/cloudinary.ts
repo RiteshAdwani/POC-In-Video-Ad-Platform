@@ -96,6 +96,32 @@ export const initiateVideoUpload = (fileBuffer: Buffer): Promise<{ publicId: str
   });
 
 /**
+ * @description Uploads an ad creative (image or video) straight through, no eager transformation -
+ * unlike videos, an ad asset doesn't need a processing/polling window, so the returned secure_url
+ * is playable/renderable immediately.
+ */
+export const uploadAdAsset = (
+  fileBuffer: Buffer,
+  resourceType: 'image' | 'video',
+): Promise<{ secureUrl: string }> =>
+  new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { resource_type: resourceType, agent: dnsSafeAgent },
+      (error, result) => {
+        if (error || !result) {
+          reject(
+            new Error(error?.message ?? 'Cloudinary upload returned no result', { cause: error }),
+          );
+          return;
+        }
+        resolve({ secureUrl: result.secure_url });
+      },
+    );
+
+    uploadStream.end(fileBuffer);
+  });
+
+/**
  * @description Fetches a video resource's raw Admin API details, for the poller to interpret.
  * `resource()` is typed `Promise<any>` by the SDK - the exact shape of its `derived`/`eager` data
  * mid-transformation isn't clearly documented, so parsing it into a ready/processing/failed
