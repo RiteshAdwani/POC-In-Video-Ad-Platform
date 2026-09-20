@@ -1,5 +1,10 @@
-import { Typography } from 'antd';
-import { PictureOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import { Button, Tooltip, Typography } from 'antd';
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PictureOutlined,
+  PlayCircleOutlined,
+} from '@ant-design/icons';
 import { AdType, AD_TYPE_LABEL } from '../../../../constants/ad.constants';
 import { formatDuration } from '../../../../lib/formatDuration';
 import type { AdPlacement } from '../../../../types/adPlacement.types';
@@ -23,6 +28,7 @@ const formatDurationOrSkip = (placement: AdPlacement) => {
 
 type AdPlacementsListProps = {
   placements: AdPlacement[];
+  onEdit: (placement: AdPlacement) => void;
 };
 
 /**
@@ -30,12 +36,12 @@ type AdPlacementsListProps = {
  * result) - a colored tile standing in for a real ad creative, with the start offset overlaid
  * the way a video thumbnail shows its own duration.
  */
-export const AdPlacementsList = ({ placements }: AdPlacementsListProps) => (
+export const AdPlacementsList = ({ placements, onEdit }: AdPlacementsListProps) => (
   <div className="ad-placements-list">
     {placements.map((placement) => (
       <div className="ad-placements-list__row" key={placement.id}>
-        <div className="ad-placements-list__thumb" data-ad-type={placement.advertisement.adType}>
-          {placement.advertisement.adType === AdType.BANNER_OVERLAY ? (
+        <div className="ad-placements-list__thumb" data-ad-type={placement.adType}>
+          {placement.adType === AdType.BANNER_OVERLAY ? (
             <PictureOutlined />
           ) : (
             <PlayCircleOutlined />
@@ -50,9 +56,30 @@ export const AdPlacementsList = ({ placements }: AdPlacementsListProps) => (
             {placement.advertisement.title}
           </Text>
           <Text type="secondary" className="ad-placements-list__meta">
-            {AD_TYPE_LABEL[placement.advertisement.adType]} · {formatDurationOrSkip(placement)}
+            {AD_TYPE_LABEL[placement.adType]} · {formatDurationOrSkip(placement)}
           </Text>
         </div>
+
+        <span className="ad-placements-list__actions">
+          <Tooltip title="Edit placement">
+            <Button
+              type="text"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => onEdit(placement)}
+              aria-label="Edit placement"
+            />
+          </Tooltip>
+          <Tooltip title="Remove placement">
+            <Button
+              type="text"
+              size="small"
+              danger
+              icon={<DeleteOutlined />}
+              aria-label="Remove placement"
+            />
+          </Tooltip>
+        </span>
       </div>
     ))}
   </div>

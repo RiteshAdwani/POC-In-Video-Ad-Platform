@@ -1,6 +1,5 @@
-import { Form, Input, Modal, Select, Upload, type UploadFile } from 'antd';
+import { Form, Input, Modal, Upload, type UploadFile } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
-import { AdType } from '../../../../constants/ad.constants';
 import { ModalMode } from '../../../../constants/modalMode.constants';
 import { ValidationMessages } from '../../../../constants/validationMessages.constants';
 import { useFilePreview } from '../../../../hooks/useFilePreview';
@@ -9,7 +8,6 @@ import type { Advertisement } from '../../../../types/advertisement.types';
 import {
   AD_DESCRIPTION_MAX_LENGTH,
   AD_TITLE_MAX_LENGTH,
-  AD_TYPE_OPTIONS,
   AdFormFields,
 } from './CreateEditAdModal.constants';
 import type { AdFormType } from './CreateEditAdModal.types';
@@ -21,6 +19,11 @@ import './CreateEditAdModal.css';
  * the Form.Item stores just that, not the whole event object.
  */
 const normalizeUploadEvent = (event: { fileList: UploadFile[] }) => event.fileList;
+
+const beforeUploadAsset = createFileTypeValidator(
+  ['image/', 'video/'],
+  ValidationMessages.invalidFileType('image or video'),
+);
 
 type CreateEditAdModalProps = {
   open: boolean;
@@ -35,7 +38,9 @@ type CreateEditAdModalProps = {
  * @description Shared create/edit form for an advertisement - visual only for now, since wiring
  * needs auth this app doesn't have yet, and the backend still takes a plain asset URL rather than
  * a file upload (a follow-up change). `onSubmit` is a stub the caller controls; this component
- * owns only the form itself.
+ * owns only the form itself. There's no "ad type" to pick here - whether the upload is an image or
+ * a video is read straight from the file itself, and how it's *used* (pre-roll/mid-roll/banner) is
+ * decided per-placement, not on the ad.
  */
 export const CreateEditAdModal = ({
   open,
@@ -47,16 +52,8 @@ export const CreateEditAdModal = ({
 }: CreateEditAdModalProps) => {
   const [form] = Form.useForm<AdFormType>();
 
-  const adType = Form.useWatch(AdFormFields.AdType, form);
   const selectedFile = Form.useWatch(AdFormFields.AssetFile, form)?.[0]?.originFileObj;
   const previewUrl = useFilePreview(selectedFile);
-
-  const isBannerAd = adType === AdType.BANNER_OVERLAY;
-  const assetLabel = isBannerAd ? 'image' : 'video';
-  const beforeUploadAsset = createFileTypeValidator(
-    [isBannerAd ? 'image/' : 'video/'],
-    ValidationMessages.invalidFileType(assetLabel),
-  );
 
   return (
     <Modal
@@ -75,7 +72,6 @@ export const CreateEditAdModal = ({
         initialValues={{
           [AdFormFields.Title]: ad?.title,
           [AdFormFields.Description]: ad?.description ?? undefined,
-          [AdFormFields.AdType]: ad?.adType,
           [AdFormFields.ClickThroughUrl]: ad?.clickThroughUrl ?? undefined,
         }}
       >
@@ -104,15 +100,7 @@ export const CreateEditAdModal = ({
           />
         </Form.Item>
 
-        <Form.Item<AdFormType>
-          label="Ad type"
-          name={AdFormFields.AdType}
-          rules={adFormRules[AdFormFields.AdType]}
-        >
-          <Select placeholder="Select an ad type" options={AD_TYPE_OPTIONS} />
-        </Form.Item>
-
-        {mode === ModalMode.CREATE && adType && (
+        {mode === ModalMode.CREATE && (
           <>
             <Form.Item<AdFormType>
               label="Asset file"
@@ -122,7 +110,7 @@ export const CreateEditAdModal = ({
               rules={adFormRules[AdFormFields.AssetFile]}
             >
               <Upload.Dragger
-                accept={isBannerAd ? 'image/*' : 'video/*'}
+                accept="image/*,video/*"
                 maxCount={1}
                 multiple={false}
                 beforeUpload={beforeUploadAsset}
@@ -130,9 +118,7 @@ export const CreateEditAdModal = ({
                 <p className="ant-upload-drag-icon">
                   <InboxOutlined />
                 </p>
-                <p className="ant-upload-text">
-                  Click or drag {isBannerAd ? 'an image' : 'a video'} file to upload
-                </p>
+                <p className="ant-upload-text">Click or drag an image or video file to upload</p>
               </Upload.Dragger>
             </Form.Item>
 

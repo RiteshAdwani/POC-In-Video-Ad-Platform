@@ -1,11 +1,11 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Empty, Flex, Result, Typography } from 'antd';
 import { ArrowLeftOutlined, DeleteOutlined, EditOutlined, LinkOutlined } from '@ant-design/icons';
-import { AdType } from '../../constants/ad.constants';
+import { AssetType } from '../../constants/ad.constants';
 import { ModalMode } from '../../constants/modalMode.constants';
 import { Routes } from '../../constants/routes.constants';
 import { AdPlacementVideosList } from '../../features/ads/components/AdPlacementVideosList/AdPlacementVideosList';
-import { AdTypeTag } from '../../features/ads/components/AdTypeTag/AdTypeTag';
+import { AssetTypeTag } from '../../features/ads/components/AssetTypeTag/AssetTypeTag';
 import { CreateEditAdModal } from '../../features/ads/components/CreateEditAdModal/CreateEditAdModal';
 import type { AdFormType } from '../../features/ads/components/CreateEditAdModal/CreateEditAdModal.types';
 import { MOCK_ADS } from '../../features/ads/mocks/ads.mock';
@@ -68,7 +68,7 @@ export const AdDetailsPage = () => {
 
       <Flex gap={24} align="flex-start" className="ad-details-page__header">
         <div className="ad-details-page__asset">
-          {ad.adType === AdType.BANNER_OVERLAY ? (
+          {ad.assetType === AssetType.IMAGE ? (
             <img src={ad.assetUrl} alt={ad.title} />
           ) : (
             <video src={ad.assetUrl} controls />
@@ -82,7 +82,7 @@ export const AdDetailsPage = () => {
                 <Title level={2} className="ad-details-page__title">
                   {ad.title}
                 </Title>
-                <AdTypeTag adType={ad.adType} />
+                <AssetTypeTag assetType={ad.assetType} />
               </Flex>
               <Text type="secondary">Created {formatDate(ad.createdAt)}</Text>
             </Flex>

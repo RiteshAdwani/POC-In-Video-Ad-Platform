@@ -37,7 +37,7 @@ export const getPlaybackConfig: RequestHandler = async (req, res) => {
             // The AdPlacement id, not the Advertisement id - the player echoes this back as
             // `adId` when it later posts playback events for this ad.
             id: placement.id,
-            type: placement.advertisement.adType,
+            type: placement.adType,
             assetUrl: placement.advertisement.assetUrl,
             clickThroughUrl: placement.advertisement.clickThroughUrl,
             startOffsetSeconds: placement.startOffsetSeconds,

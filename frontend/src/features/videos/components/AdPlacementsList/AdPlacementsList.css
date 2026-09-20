@@ -57,6 +57,13 @@
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  flex: 1;
+}
+
+.ad-placements-list__actions {
+  display: inline-flex;
+  gap: 2px;
+  flex-shrink: 0;
 }
 
 .ad-placements-list__title {

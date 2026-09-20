@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import { prisma } from '../../lib/prisma';
 import { uploadAdAsset } from '../../lib/cloudinary';
 import { Prisma, type Advertisement } from '../../generated/prisma/client.js';
-import { AdType } from '../../generated/prisma/enums';
+import { AssetType } from '../../generated/prisma/enums';
 import { ConflictError, UpstreamServiceError, ValidationError } from '../../errors/AppError';
 import { ErrorMessages } from '../../constants/errorMessages.constants';
 import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants';
@@ -11,8 +11,9 @@ import { createAdvertisementSchema, updateAdvertisementSchema } from './advertis
 
 /**
  * @description Creates an advertisement owned by the calling admin: uploads the creative to
- * Cloudinary and persists the resulting URL. A banner ad's file must be an image, a pre/mid-roll
- * ad's file must be a video - checked against the file's real mimetype, not the client's say-so.
+ * Cloudinary and persists the resulting URL. assetType is derived from the file's real mimetype,
+ * not chosen by the client - the multer middleware (adAssetUpload) already restricts uploads to
+ * image/video files, so anything reaching here is one or the other.
  */
 export const createAdvertisement: RequestHandler = async (req, res) => {
   const data = createAdvertisementSchema.parse(req.body);
@@ -23,12 +24,7 @@ export const createAdvertisement: RequestHandler = async (req, res) => {
   }
 
   const isImage = req.file.mimetype.startsWith('image/');
-  const expectsImage = data.adType === AdType.BANNER_OVERLAY;
-  const isVideo = req.file.mimetype.startsWith('video/');
-
-  if ((expectsImage && !isImage) || (!expectsImage && !isVideo)) {
-    throw new ValidationError(ErrorMessages.AD_ASSET_TYPE_MISMATCH);
-  }
+  const assetType = isImage ? AssetType.IMAGE : AssetType.VIDEO;
 
   let assetUrl: string;
   try {
@@ -39,7 +35,7 @@ export const createAdvertisement: RequestHandler = async (req, res) => {
   }
 
   const advertisement = await prisma.advertisement.create({
-    data: { ...data, assetUrl, authorId },
+    data: { ...data, assetUrl, assetType, authorId },
   });
 
   res

@@ -1,4 +1,4 @@
-.ad-type-tag {
+.asset-type-tag {
   display: inline-block;
   padding: 3px 10px;
   border-radius: 100px;
@@ -7,14 +7,10 @@
   color: #ffffff;
 }
 
-.ad-type-tag[data-ad-type='PRE_ROLL'] {
+.asset-type-tag[data-asset-type='VIDEO'] {
   background: #1d4ed8;
 }
 
-.ad-type-tag[data-ad-type='MID_ROLL'] {
-  background: #7e22ce;
-}
-
-.ad-type-tag[data-ad-type='BANNER_OVERLAY'] {
+.asset-type-tag[data-asset-type='IMAGE'] {
   background: #b45309;
 }

@@ -25,7 +25,6 @@ export const adFormRules: Record<AdFormFields, FormRule[]> = {
       message: ValidationMessages.maxLength('Description', AD_DESCRIPTION_MAX_LENGTH),
     },
   ],
-  [AdFormFields.AdType]: [{ required: true, message: ValidationMessages.required('an ad type') }],
   [AdFormFields.AssetFile]: [
     { required: true, message: ValidationMessages.required('an asset file') },
   ],
