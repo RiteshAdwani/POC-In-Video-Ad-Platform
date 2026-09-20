@@ -1,22 +1,46 @@
 import type { RequestHandler } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { prisma } from '../../lib/prisma';
+import { uploadAdAsset } from '../../lib/cloudinary';
 import { Prisma, type Advertisement } from '../../generated/prisma/client.js';
-import { ConflictError } from '../../errors/AppError';
+import { AdType } from '../../generated/prisma/enums';
+import { ConflictError, UpstreamServiceError, ValidationError } from '../../errors/AppError';
 import { ErrorMessages } from '../../constants/errorMessages.constants';
 import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants';
 import { createAdvertisementSchema, updateAdvertisementSchema } from './advertisements.schema';
 
 /**
- * @description Creates an advertisement owned by the calling admin.
+ * @description Creates an advertisement owned by the calling admin: uploads the creative to
+ * Cloudinary and persists the resulting URL. A banner ad's file must be an image, a pre/mid-roll
+ * ad's file must be a video - checked against the file's real mimetype, not the client's say-so.
  */
 export const createAdvertisement: RequestHandler = async (req, res) => {
-  // Parse data from the req and extract authorId
   const data = createAdvertisementSchema.parse(req.body);
   const authorId = req.admin!.id;
 
-  // Create advertisement
-  const advertisement = await prisma.advertisement.create({ data: { ...data, authorId } });
+  if (!req.file) {
+    throw new ValidationError(ErrorMessages.MISSING_AD_ASSET_FILE);
+  }
+
+  const isImage = req.file.mimetype.startsWith('image/');
+  const expectsImage = data.adType === AdType.BANNER_OVERLAY;
+  const isVideo = req.file.mimetype.startsWith('video/');
+
+  if ((expectsImage && !isImage) || (!expectsImage && !isVideo)) {
+    throw new ValidationError(ErrorMessages.AD_ASSET_TYPE_MISMATCH);
+  }
+
+  let assetUrl: string;
+  try {
+    ({ secureUrl: assetUrl } = await uploadAdAsset(req.file.buffer, isImage ? 'image' : 'video'));
+  } catch (error) {
+    req.log.error(error, 'Cloudinary ad asset upload failed');
+    throw new UpstreamServiceError(ErrorMessages.AD_ASSET_UPLOAD_FAILED);
+  }
+
+  const advertisement = await prisma.advertisement.create({
+    data: { ...data, assetUrl, authorId },
+  });
 
   res
     .status(StatusCodes.CREATED)

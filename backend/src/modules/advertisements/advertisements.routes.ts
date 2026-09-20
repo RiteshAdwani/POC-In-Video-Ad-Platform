@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAuth } from '../../middleware/requireAuth';
 import { requireOwnership } from '../../middleware/requireOwnership';
+import { adAssetUpload } from '../../middleware/upload';
 import { prisma } from '../../lib/prisma';
 import {
   createAdvertisement,
@@ -16,7 +17,7 @@ const requireAdvertisementOwnership = requireOwnership((id) =>
   prisma.advertisement.findUnique({ where: { id } }),
 );
 
-advertisementsRouter.post('/', requireAuth, createAdvertisement);
+advertisementsRouter.post('/', requireAuth, adAssetUpload.single('assetFile'), createAdvertisement);
 advertisementsRouter.get('/', requireAuth, listAdvertisements);
 advertisementsRouter.get('/:id', requireAuth, requireAdvertisementOwnership, getAdvertisement);
 advertisementsRouter.patch('/:id', requireAuth, requireAdvertisementOwnership, updateAdvertisement);
