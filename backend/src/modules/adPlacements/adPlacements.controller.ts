@@ -60,6 +60,24 @@ export const listAdPlacements: RequestHandler = async (req, res) => {
 };
 
 /**
+ * @description Lists every placement of one advertisement, across all the videos it's on - the
+ * mirror of listAdPlacements. requireOwnership already verified the advertisement.
+ */
+export const listAdPlacementsForAdvertisement: RequestHandler = async (req, res) => {
+  const advertisement = req.resource as Advertisement;
+
+  const adPlacements = await prisma.adPlacement.findMany({
+    where: { advertisementId: advertisement.id },
+    include: { video: true },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  res
+    .status(StatusCodes.OK)
+    .json({ data: { adPlacements }, message: ApiSuccessMessages.AD_PLACEMENTS_FETCHED });
+};
+
+/**
  * @description Updates an Ad placement's type/position/timing. requireOwnership already fetched
  * and verified it (ownership derives from the parent video's authorId), and it comes with its
  * advertisement attached so the placement constraints can be re-checked against the resulting

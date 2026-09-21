@@ -10,4 +10,9 @@ export const ApiRoutes = {
   getAdById: (id: string) => `/advertisements/${id}`,
   updateAd: (id: string) => `/advertisements/${id}`,
   deleteAd: (id: string) => `/advertisements/${id}`,
+  getAdPlacements: (videoId: string) => `/videos/${videoId}/placements`,
+  getAdPlacementsForAd: (adId: string) => `/advertisements/${adId}/placements`,
+  createAdPlacement: (videoId: string) => `/videos/${videoId}/placements`,
+  updateAdPlacement: (videoId: string, id: string) => `/videos/${videoId}/placements/${id}`,
+  deleteAdPlacement: (videoId: string, id: string) => `/videos/${videoId}/placements/${id}`,
 } as const;

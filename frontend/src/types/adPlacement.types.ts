@@ -1,4 +1,5 @@
 import type { AdType, AssetType } from '../constants/ad.constants';
+import type { Video } from './video.types';
 
 export type AdPlacement = {
   id: string;
@@ -13,3 +14,12 @@ export type AdPlacement = {
     assetType: AssetType;
   };
 };
+
+/**
+ * @description One placement as returned by the ad-scoped placements endpoint - the video it's on
+ * instead of the advertisement it already belongs to, for an ad's "Placed on" list.
+ */
+export type AdPlacementWithVideo = Pick<
+  AdPlacement,
+  'id' | 'adType' | 'startOffsetSeconds' | 'durationSeconds' | 'skipAfterSeconds'
+> & { video: Video };
