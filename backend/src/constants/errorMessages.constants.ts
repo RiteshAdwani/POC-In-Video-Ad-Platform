@@ -18,5 +18,6 @@ export const ErrorMessages = {
   VIDEO_IN_USE: 'Cannot delete a video that still has ad placements or recorded playback events',
   PLACEMENT_IN_USE: 'Cannot delete a placement that has recorded playback events',
   INVALID_PREROLL_OFFSET: 'Pre-roll placements must have startOffsetSeconds = 0',
+  INVALID_MIDROLL_OFFSET: 'Mid-roll placements must have startOffsetSeconds > 0',
   MISSING_BANNER_DURATION: 'Banner placements require durationSeconds',
 } as const;

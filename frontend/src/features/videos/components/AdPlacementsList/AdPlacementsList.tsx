@@ -29,6 +29,7 @@ const formatDurationOrSkip = (placement: AdPlacement) => {
 type AdPlacementsListProps = {
   placements: AdPlacement[];
   onEdit: (placement: AdPlacement) => void;
+  onDelete: (placement: AdPlacement) => void;
 };
 
 /**
@@ -36,7 +37,7 @@ type AdPlacementsListProps = {
  * result) - a colored tile standing in for a real ad creative, with the start offset overlaid
  * the way a video thumbnail shows its own duration.
  */
-export const AdPlacementsList = ({ placements, onEdit }: AdPlacementsListProps) => (
+export const AdPlacementsList = ({ placements, onEdit, onDelete }: AdPlacementsListProps) => (
   <div className="ad-placements-list">
     {placements.map((placement) => (
       <div className="ad-placements-list__row" key={placement.id}>
@@ -76,6 +77,7 @@ export const AdPlacementsList = ({ placements, onEdit }: AdPlacementsListProps) 
               size="small"
               danger
               icon={<DeleteOutlined />}
+              onClick={() => onDelete(placement)}
               aria-label="Remove placement"
             />
           </Tooltip>

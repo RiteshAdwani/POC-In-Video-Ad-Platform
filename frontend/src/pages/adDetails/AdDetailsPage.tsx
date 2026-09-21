@@ -11,9 +11,8 @@ import { CreateEditAdModal } from '../../features/ads/components/CreateEditAdMod
 import { AdFormFields } from '../../features/ads/components/CreateEditAdModal/CreateEditAdModal.constants';
 import type { AdFormType } from '../../features/ads/components/CreateEditAdModal/CreateEditAdModal.types';
 import { PageSpinner } from '../../components/PageSpinner/PageSpinner';
-import { MOCK_AD_PLACEMENTS } from '../../features/videos/mocks/adPlacements.mock';
-import { MOCK_VIDEOS } from '../../features/videos/mocks/videos.mock';
 import { useAdQuery } from '../../features/ads/hooks/useAdQuery';
+import { useAdPlacementsByAdQuery } from '../../features/ads/hooks/useAdPlacementsByAdQuery';
 import { useUpdateAdMutation } from '../../features/ads/hooks/useUpdateAdMutation';
 import { useDeleteAdModal } from '../../features/ads/hooks/useDeleteAdModal';
 import { useModalState } from '../../hooks/useModalState';
@@ -25,8 +24,7 @@ const { Title, Text } = Typography;
 
 /**
  * @description One ad's full detail view - a plain asset preview, metadata, edit/delete actions,
- * and every video it's placed on. The placements list is still mock data for now - that's a
- * separate API integration pass, same as VideoDetailsPage's own placements section.
+ * and every video it's placed on.
  */
 export const AdDetailsPage = () => {
   const { adId } = useParams<{ adId: string }>();
@@ -36,16 +34,7 @@ export const AdDetailsPage = () => {
   const { data: ad, isLoading, isError, error } = useAdQuery(adId);
   const { mutate: updateAdMutation, isPending: isUpdateAdMutationPending } = useUpdateAdMutation();
   const confirmDeleteAd = useDeleteAdModal();
-
-  const placementVideos = MOCK_AD_PLACEMENTS.filter(
-    (placement) => placement.advertisement.id === adId,
-  )
-    .map((placement) => {
-      const video = MOCK_VIDEOS.find((mockVideo) => mockVideo.id === placement.videoId);
-      return video ? { placement, video } : null;
-    })
-    .filter((item) => item !== null)
-    .sort((a, b) => a.video.title.localeCompare(b.video.title));
+  const { data: placementVideos } = useAdPlacementsByAdQuery(adId);
 
   /**
    * @description Editing an ad only ever touches title/description/click-through URL.
@@ -139,9 +128,9 @@ export const AdDetailsPage = () => {
       </Flex>
 
       <div className="ad-details-page__placements">
-        <Title level={4}>Placed on ({placementVideos.length})</Title>
+        <Title level={4}>Placed on ({placementVideos?.length ?? 0})</Title>
 
-        {placementVideos.length === 0 ? (
+        {!placementVideos || placementVideos.length === 0 ? (
           <Empty description="Not placed on any video yet" />
         ) : (
           <AdPlacementVideosList items={placementVideos} />

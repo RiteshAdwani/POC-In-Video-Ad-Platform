@@ -67,8 +67,16 @@ export const CreateEditPlacementModal = ({
   const selectedAdType = Form.useWatch(PlacementFormFields.AdType, form);
 
   const isPreRoll = selectedAdType === AdType.PRE_ROLL;
+  const isMidRoll = selectedAdType === AdType.MID_ROLL;
   const isBanner = selectedAdType === AdType.BANNER_OVERLAY;
   const rules = getPlacementFormRules(selectedAdType);
+
+  let startOffsetHelpText: string | undefined;
+  if (isPreRoll) {
+    startOffsetHelpText = "Pre-roll ads always play at the video's start";
+  } else if (isMidRoll) {
+    startOffsetHelpText = 'Mid-roll ads must start after the video begins';
+  }
 
   /**
    * @description Keeps the placement-type field and its dependents in sync in one pass: picks the
@@ -155,9 +163,13 @@ export const CreateEditPlacementModal = ({
                   label="Start offset (seconds)"
                   name={PlacementFormFields.StartOffsetSeconds}
                   rules={rules[PlacementFormFields.StartOffsetSeconds]}
-                  extra={isPreRoll ? "Pre-roll ads always play at the video's start" : undefined}
+                  extra={startOffsetHelpText}
                 >
-                  <InputNumber min={0} disabled={isPreRoll} style={{ width: '100%' }} />
+                  <InputNumber
+                    min={isMidRoll ? 1 : 0}
+                    disabled={isPreRoll}
+                    style={{ width: '100%' }}
+                  />
                 </Form.Item>
 
                 {isBanner ? (

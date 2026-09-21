@@ -12,6 +12,7 @@ import { Routes } from '../../constants/routes.constants';
 import { VideoStatus, VIDEO_STATUS_LABEL } from '../../constants/video.constants';
 import { AdPlacementsList } from '../../features/videos/components/AdPlacementsList/AdPlacementsList';
 import { CreateEditPlacementModal } from '../../features/videos/components/CreateEditPlacementModal/CreateEditPlacementModal';
+import { PlacementFormFields } from '../../features/videos/components/CreateEditPlacementModal/CreateEditPlacementModal.constants';
 import type { PlacementFormType } from '../../features/videos/components/CreateEditPlacementModal/CreateEditPlacementModal.types';
 import { CreateEditVideoModal } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal';
 import { ModalMode } from '../../constants/modalMode.constants';
@@ -19,23 +20,29 @@ import type { VideoFormType } from '../../features/videos/components/CreateEditV
 import { VideoFormFields } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal.constants';
 import { VideoStatusTag } from '../../components/VideoStatusTag/VideoStatusTag';
 import { PageSpinner } from '../../components/PageSpinner/PageSpinner';
-import { MOCK_ADS } from '../../features/ads/mocks/ads.mock';
-import { MOCK_AD_PLACEMENTS } from '../../features/videos/mocks/adPlacements.mock';
+import { useAdsQuery } from '../../features/ads/hooks/useAdsQuery';
 import { useVideoQuery } from '../../features/videos/hooks/useVideoQuery';
 import { useUpdateVideoMutation } from '../../features/videos/hooks/useUpdateVideoMutation';
 import { useDeleteVideoModal } from '../../features/videos/hooks/useDeleteVideoModal';
+import { useAdPlacementsQuery } from '../../features/videos/hooks/useAdPlacementsQuery';
+import { useCreateAdPlacementMutation } from '../../features/videos/hooks/useCreateAdPlacementMutation';
+import { useUpdateAdPlacementMutation } from '../../features/videos/hooks/useUpdateAdPlacementMutation';
+import { useDeleteAdPlacementModal } from '../../features/videos/hooks/useDeleteAdPlacementModal';
 import { useModalState } from '../../hooks/useModalState';
 import { formatDate } from '../../lib/formatDate';
-import type { AdPlacement } from '../../types/adPlacement.types';
 import type { UpdateVideoRequestDto } from '../../dtos/video.dto';
+import type {
+  CreateAdPlacementRequestDto,
+  UpdateAdPlacementRequestDto,
+} from '../../dtos/adPlacement.dto';
+import type { AdPlacement } from '../../types/adPlacement.types';
 import './VideoDetailsPage.css';
 
 const { Title, Text } = Typography;
 
 /**
  * @description One video's full detail view - a plain preview player (no ad injection, unlike
- * the public playback page), metadata, edit/delete actions, and its ad placements. Ad placements
- * are still mock data for now - that's a separate API integration pass.
+ * the public playback page), metadata, edit/delete actions, and its ad placements.
  */
 export const VideoDetailsPage = () => {
   const { videoId } = useParams<{ videoId: string }>();
@@ -54,9 +61,13 @@ export const VideoDetailsPage = () => {
     useUpdateVideoMutation();
   const confirmDeleteVideo = useDeleteVideoModal();
 
-  const placements = MOCK_AD_PLACEMENTS.filter((placement) => placement.videoId === videoId).sort(
-    (a, b) => a.startOffsetSeconds - b.startOffsetSeconds,
-  );
+  const { data: ads } = useAdsQuery();
+  const { data: placements } = useAdPlacementsQuery(videoId);
+  const { mutate: createPlacementMutation, isPending: isCreatePlacementMutationPending } =
+    useCreateAdPlacementMutation(videoId!);
+  const { mutate: updatePlacementMutation, isPending: isUpdatePlacementMutationPending } =
+    useUpdateAdPlacementMutation(videoId!);
+  const confirmDeletePlacement = useDeleteAdPlacementModal(videoId!);
 
   /**
    * @description Editing a video only ever touches title/description.
@@ -105,11 +116,35 @@ export const VideoDetailsPage = () => {
   };
 
   /**
-   * @description Visual only for now - placements have no backend wiring on the frontend yet.
+   * @description Creating attaches a new ad to this video; editing only ever touches an existing
+   * placement's type/position/timing - which ad is placed can't change (the Form.Item for it is
+   * disabled in edit mode).
    */
   const handlePlacementSubmit = (values: PlacementFormType) => {
-    console.log(values);
-    handleClosePlacementModal();
+    const durationSeconds = values[PlacementFormFields.DurationSeconds] ?? undefined;
+    const skipAfterSeconds = values[PlacementFormFields.SkipAfterSeconds] ?? undefined;
+
+    if (placementModalMode === ModalMode.CREATE) {
+      const reqBody: CreateAdPlacementRequestDto = {
+        advertisementId: values[PlacementFormFields.AdvertisementId],
+        adType: values[PlacementFormFields.AdType],
+        startOffsetSeconds: values[PlacementFormFields.StartOffsetSeconds],
+        durationSeconds,
+        skipAfterSeconds,
+      };
+      createPlacementMutation(reqBody, { onSuccess: handleClosePlacementModal });
+    } else {
+      const reqBody: UpdateAdPlacementRequestDto = {
+        adType: values[PlacementFormFields.AdType],
+        startOffsetSeconds: values[PlacementFormFields.StartOffsetSeconds],
+        durationSeconds,
+        skipAfterSeconds,
+      };
+      updatePlacementMutation(
+        { id: editingPlacement!.id, data: reqBody },
+        { onSuccess: handleClosePlacementModal },
+      );
+    }
   };
 
   if (isLoading) {
@@ -177,7 +212,7 @@ export const VideoDetailsPage = () => {
 
       <div className="video-details-page__placements">
         <Flex justify="space-between" align="center">
-          <Title level={4}>Ad placements ({placements.length})</Title>
+          <Title level={4}>Ad placements ({placements?.length ?? 0})</Title>
           <Tooltip title="Manage ad placements">
             <Button disabled={video.status !== VideoStatus.READY} onClick={handleAddPlacement}>
               Manage ad placements
@@ -185,10 +220,14 @@ export const VideoDetailsPage = () => {
           </Tooltip>
         </Flex>
 
-        {placements.length === 0 ? (
+        {!placements || placements.length === 0 ? (
           <Empty description="No ad placements yet" />
         ) : (
-          <AdPlacementsList placements={placements} onEdit={handleEditPlacement} />
+          <AdPlacementsList
+            placements={placements}
+            onEdit={handleEditPlacement}
+            onDelete={confirmDeletePlacement}
+          />
         )}
       </div>
 
@@ -207,8 +246,9 @@ export const VideoDetailsPage = () => {
         <CreateEditPlacementModal
           open
           mode={placementModalMode}
-          ads={MOCK_ADS}
+          ads={ads ?? []}
           placement={editingPlacement}
+          submitting={isCreatePlacementMutationPending || isUpdatePlacementMutationPending}
           onCancel={handleClosePlacementModal}
           onSubmit={handlePlacementSubmit}
         />

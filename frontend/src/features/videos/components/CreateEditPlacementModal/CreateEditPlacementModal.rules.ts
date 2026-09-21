@@ -7,7 +7,8 @@ import { PlacementFormFields } from './CreateEditPlacementModal.constants';
  * @description Field-level validation for the create/edit placement form - depends on the
  * selected ad's type, mirroring the backend's own per-adType placement rules
  * (adPlacements.validators.ts): a banner overlay needs a duration since it has no natural end,
- * everything else doesn't use one.
+ * everything else doesn't use one, and a mid-roll must start after 0 (offset 0 is reserved for
+ * pre-roll - the field is otherwise disabled and locked to 0 there).
  */
 export const getPlacementFormRules = (
   adType: AdType | undefined,
@@ -18,10 +19,16 @@ export const getPlacementFormRules = (
   [PlacementFormFields.AdType]: [
     { required: true, message: ValidationMessages.required('a placement type') },
   ],
-  [PlacementFormFields.StartOffsetSeconds]: [
-    { required: true, message: ValidationMessages.required('a start offset') },
-    { type: 'number', min: 0, message: ValidationMessages.min('Start offset', 0) },
-  ],
+  [PlacementFormFields.StartOffsetSeconds]:
+    adType === AdType.MID_ROLL
+      ? [
+          { required: true, message: ValidationMessages.required('a start offset') },
+          { type: 'number', min: 1, message: ValidationMessages.min('Start offset', 1) },
+        ]
+      : [
+          { required: true, message: ValidationMessages.required('a start offset') },
+          { type: 'number', min: 0, message: ValidationMessages.min('Start offset', 0) },
+        ],
   [PlacementFormFields.DurationSeconds]:
     adType === AdType.BANNER_OVERLAY
       ? [

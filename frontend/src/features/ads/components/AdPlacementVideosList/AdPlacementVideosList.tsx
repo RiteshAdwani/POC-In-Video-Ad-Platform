@@ -4,8 +4,7 @@ import { VideoCameraOutlined } from '@ant-design/icons';
 import { VideoStatusTag } from '../../../../components/VideoStatusTag/VideoStatusTag';
 import { Routes } from '../../../../constants/routes.constants';
 import { formatDuration } from '../../../../lib/formatDuration';
-import type { AdPlacement } from '../../../../types/adPlacement.types';
-import type { Video } from '../../../../types/video.types';
+import type { AdPlacementWithVideo } from '../../../../types/adPlacement.types';
 import './AdPlacementVideosList.css';
 
 const { Text } = Typography;
@@ -14,7 +13,7 @@ const { Text } = Typography;
  * @description One placement has either a duration (banners) or a skip-after point (skippable
  * video ads) or neither (non-skippable video ads) - never both, per the backend's own model.
  */
-const formatDurationOrSkip = (placement: AdPlacement) => {
+const formatDurationOrSkip = (placement: AdPlacementWithVideo) => {
   if (placement.durationSeconds !== null) {
     return `${formatDuration(placement.durationSeconds)} long`;
   }
@@ -25,7 +24,7 @@ const formatDurationOrSkip = (placement: AdPlacement) => {
 };
 
 type AdPlacementVideosListProps = {
-  items: { placement: AdPlacement; video: Video }[];
+  items: AdPlacementWithVideo[];
 };
 
 /**
@@ -35,9 +34,9 @@ type AdPlacementVideosListProps = {
  */
 export const AdPlacementVideosList = ({ items }: AdPlacementVideosListProps) => (
   <div className="ad-placement-videos-list">
-    {items.map(({ placement, video }) => (
+    {items.map((placement) => (
       <Link
-        to={generatePath(Routes.VIDEO_DETAILS, { videoId: video.id })}
+        to={generatePath(Routes.VIDEO_DETAILS, { videoId: placement.video.id })}
         className="ad-placement-videos-list__row"
         key={placement.id}
       >
@@ -51,9 +50,9 @@ export const AdPlacementVideosList = ({ items }: AdPlacementVideosListProps) => 
         <div className="ad-placement-videos-list__info">
           <Flex align="center" gap={8}>
             <Text strong ellipsis className="ad-placement-videos-list__title">
-              {video.title}
+              {placement.video.title}
             </Text>
-            <VideoStatusTag status={video.status} />
+            <VideoStatusTag status={placement.video.status} />
           </Flex>
           <Text type="secondary" className="ad-placement-videos-list__meta">
             {formatDurationOrSkip(placement)}
