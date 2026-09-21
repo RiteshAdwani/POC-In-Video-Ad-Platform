@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 import { Button, Empty, Flex, Result, Typography } from 'antd';
 import { ArrowLeftOutlined, DeleteOutlined, EditOutlined, LinkOutlined } from '@ant-design/icons';
 import { AssetType } from '../../constants/ad.constants';
@@ -7,27 +8,35 @@ import { Routes } from '../../constants/routes.constants';
 import { AdPlacementVideosList } from '../../features/ads/components/AdPlacementVideosList/AdPlacementVideosList';
 import { AssetTypeTag } from '../../features/ads/components/AssetTypeTag/AssetTypeTag';
 import { CreateEditAdModal } from '../../features/ads/components/CreateEditAdModal/CreateEditAdModal';
+import { AdFormFields } from '../../features/ads/components/CreateEditAdModal/CreateEditAdModal.constants';
 import type { AdFormType } from '../../features/ads/components/CreateEditAdModal/CreateEditAdModal.types';
-import { MOCK_ADS } from '../../features/ads/mocks/ads.mock';
+import { PageSpinner } from '../../components/PageSpinner/PageSpinner';
 import { MOCK_AD_PLACEMENTS } from '../../features/videos/mocks/adPlacements.mock';
 import { MOCK_VIDEOS } from '../../features/videos/mocks/videos.mock';
+import { useAdQuery } from '../../features/ads/hooks/useAdQuery';
+import { useUpdateAdMutation } from '../../features/ads/hooks/useUpdateAdMutation';
+import { useDeleteAdModal } from '../../features/ads/hooks/useDeleteAdModal';
 import { useModalState } from '../../hooks/useModalState';
 import { formatDate } from '../../lib/formatDate';
+import type { UpdateAdvertisementRequestDto } from '../../dtos/advertisement.dto';
 import './AdDetailsPage.css';
 
 const { Title, Text } = Typography;
 
 /**
  * @description One ad's full detail view - a plain asset preview, metadata, edit/delete actions,
- * and every video it's placed on. Backed by mock data for now, since there's no get-single-ad
- * wiring on the frontend yet.
+ * and every video it's placed on. The placements list is still mock data for now - that's a
+ * separate API integration pass, same as VideoDetailsPage's own placements section.
  */
 export const AdDetailsPage = () => {
   const { adId } = useParams<{ adId: string }>();
   const navigate = useNavigate();
   const { open, handleOpen, handleClose } = useModalState();
 
-  const ad = MOCK_ADS.find((mockAd) => mockAd.id === adId);
+  const { data: ad, isLoading, isError, error } = useAdQuery(adId);
+  const { mutate: updateAdMutation, isPending: isUpdateAdMutationPending } = useUpdateAdMutation();
+  const confirmDeleteAd = useDeleteAdModal();
+
   const placementVideos = MOCK_AD_PLACEMENTS.filter(
     (placement) => placement.advertisement.id === adId,
   )
@@ -39,18 +48,35 @@ export const AdDetailsPage = () => {
     .sort((a, b) => a.video.title.localeCompare(b.video.title));
 
   /**
-   * @description Visual only for now - wiring this up needs auth this app doesn't have yet.
+   * @description Editing an ad only ever touches title/description/click-through URL.
    */
   const handleSubmit = (values: AdFormType) => {
-    console.log(values);
-    handleClose();
+    const reqBody: UpdateAdvertisementRequestDto = {
+      title: values[AdFormFields.Title],
+      description: values[AdFormFields.Description],
+      clickThroughUrl: values[AdFormFields.ClickThroughUrl],
+    };
+    updateAdMutation({ id: ad!.id, data: reqBody }, { onSuccess: handleClose });
   };
 
-  if (!ad) {
+  /**
+   * @description Confirms before permanently deleting this ad and its uploaded creative -
+   * rejected by the backend if it's still placed on any video.
+   */
+  const handleDelete = () => {
+    confirmDeleteAd(ad!, { onSuccess: () => navigate(Routes.ADS) });
+  };
+
+  if (isLoading) {
+    return <PageSpinner />;
+  }
+
+  if (isError || !ad) {
+    const isNotFound = axios.isAxiosError(error) && error.response?.status === 404;
     return (
       <Result
-        status="404"
-        title="Ad not found"
+        status={isNotFound ? '404' : 'error'}
+        title={isNotFound ? 'Ad not found' : "Couldn't load this ad"}
         extra={
           <Button type="primary" onClick={() => navigate(Routes.ADS)}>
             Back to ads
@@ -91,7 +117,7 @@ export const AdDetailsPage = () => {
               <Button icon={<EditOutlined />} onClick={handleOpen}>
                 Edit ad
               </Button>
-              <Button danger icon={<DeleteOutlined />}>
+              <Button danger icon={<DeleteOutlined />} onClick={handleDelete}>
                 Delete
               </Button>
             </Flex>
@@ -127,6 +153,7 @@ export const AdDetailsPage = () => {
           open
           mode={ModalMode.EDIT}
           ad={ad}
+          submitting={isUpdateAdMutationPending}
           onCancel={handleClose}
           onSubmit={handleSubmit}
         />

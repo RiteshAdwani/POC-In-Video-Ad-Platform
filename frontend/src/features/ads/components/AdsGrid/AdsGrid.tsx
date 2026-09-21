@@ -13,6 +13,7 @@ const { Text } = Typography;
 type AdsGridProps = {
   ads: Advertisement[];
   onEdit: (ad: Advertisement) => void;
+  onDelete: (ad: Advertisement) => void;
 };
 
 /**
@@ -20,7 +21,7 @@ type AdsGridProps = {
  * thumbnail, while a video ad gets a colored tile since previewing the whole video isn't worth it
  * here. The thumbnail and title/description link to that ad's details page.
  */
-export const AdsGrid = ({ ads, onEdit }: AdsGridProps) => (
+export const AdsGrid = ({ ads, onEdit, onDelete }: AdsGridProps) => (
   <div className="ads-grid">
     {ads.map((ad) => (
       <div className="ads-grid__card" key={ad.id}>
@@ -70,6 +71,7 @@ export const AdsGrid = ({ ads, onEdit }: AdsGridProps) => (
                 size="small"
                 danger
                 icon={<DeleteOutlined />}
+                onClick={() => onDelete(ad)}
                 aria-label="Delete ad"
               />
             </Tooltip>
