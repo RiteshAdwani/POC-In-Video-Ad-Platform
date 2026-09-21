@@ -8,6 +8,9 @@ import { ConflictError, UpstreamServiceError, ValidationError } from '../../erro
 import { ErrorMessages } from '../../constants/errorMessages.constants';
 import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants';
 import { createAdvertisementSchema, updateAdvertisementSchema } from './advertisements.schema';
+import { toAdvertisementDto } from './advertisements.service';
+
+const WITH_PLACEMENT_COUNT = { include: { _count: { select: { adPlacements: true } } } } as const;
 
 /**
  * @description Creates an advertisement owned by the calling admin: uploads the creative to
@@ -51,22 +54,31 @@ export const listAdvertisements: RequestHandler = async (req, res) => {
   const advertisements = await prisma.advertisement.findMany({
     where: { authorId: req.admin!.id },
     orderBy: { createdAt: 'desc' },
+    ...WITH_PLACEMENT_COUNT,
   });
 
-  res
-    .status(StatusCodes.OK)
-    .json({ data: { advertisements }, message: ApiSuccessMessages.ADVERTISEMENTS_FETCHED });
+  res.status(StatusCodes.OK).json({
+    data: { advertisements: advertisements.map(toAdvertisementDto) },
+    message: ApiSuccessMessages.ADVERTISEMENTS_FETCHED,
+  });
 };
 
 /**
- * @description Fetches one advertisement. requireOwnership already fetched and verified it.
+ * @description Fetches one advertisement. requireOwnership already verified it belongs to the
+ * caller - it's re-fetched here (rather than reused from req.resource) just to bring in the
+ * placement count, which the ownership check itself doesn't need.
  */
 export const getAdvertisement: RequestHandler = async (req, res) => {
-  const advertisement = req.resource as Advertisement;
+  const existing = req.resource as Advertisement;
+  const advertisement = await prisma.advertisement.findUniqueOrThrow({
+    where: { id: existing.id },
+    ...WITH_PLACEMENT_COUNT,
+  });
 
-  res
-    .status(StatusCodes.OK)
-    .json({ data: { advertisement }, message: ApiSuccessMessages.ADVERTISEMENT_FETCHED });
+  res.status(StatusCodes.OK).json({
+    data: { advertisement: toAdvertisementDto(advertisement) },
+    message: ApiSuccessMessages.ADVERTISEMENT_FETCHED,
+  });
 };
 
 /**
@@ -76,11 +88,16 @@ export const updateAdvertisement: RequestHandler = async (req, res) => {
   const existing = req.resource as Advertisement;
   const data = updateAdvertisementSchema.parse(req.body);
 
-  const advertisement = await prisma.advertisement.update({ where: { id: existing.id }, data });
+  const advertisement = await prisma.advertisement.update({
+    where: { id: existing.id },
+    data,
+    ...WITH_PLACEMENT_COUNT,
+  });
 
-  res
-    .status(StatusCodes.OK)
-    .json({ data: { advertisement }, message: ApiSuccessMessages.ADVERTISEMENT_UPDATED });
+  res.status(StatusCodes.OK).json({
+    data: { advertisement: toAdvertisementDto(advertisement) },
+    message: ApiSuccessMessages.ADVERTISEMENT_UPDATED,
+  });
 };
 
 /**

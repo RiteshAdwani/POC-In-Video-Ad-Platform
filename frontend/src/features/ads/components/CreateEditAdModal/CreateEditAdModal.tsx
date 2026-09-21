@@ -35,12 +35,10 @@ type CreateEditAdModalProps = {
 };
 
 /**
- * @description Shared create/edit form for an advertisement - visual only for now, since wiring
- * needs auth this app doesn't have yet, and the backend still takes a plain asset URL rather than
- * a file upload (a follow-up change). `onSubmit` is a stub the caller controls; this component
- * owns only the form itself. There's no "ad type" to pick here - whether the upload is an image or
- * a video is read straight from the file itself, and how it's *used* (pre-roll/mid-roll/banner) is
- * decided per-placement, not on the ad.
+ * @description Shared create/edit form for an advertisement - `onSubmit` is caller-controlled;
+ * this component owns only the form itself. There's no "ad type" to pick here - whether the
+ * upload is an image or a video is read straight from the file itself, and how it's *used*
+ * (pre-roll/mid-roll/banner) is decided per-placement, not on the ad.
  */
 export const CreateEditAdModal = ({
   open,
