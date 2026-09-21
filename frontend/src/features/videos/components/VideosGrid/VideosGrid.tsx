@@ -13,6 +13,7 @@ const { Text } = Typography;
 type VideosGridProps = {
   videos: Video[];
   onEdit: (video: Video) => void;
+  onDelete: (video: Video) => void;
 };
 
 /**
@@ -21,7 +22,7 @@ type VideosGridProps = {
  * title/description link to that video's details page; the action buttons stay outside that link
  * so a <button> is never nested inside an <a>.
  */
-export const VideosGrid = ({ videos, onEdit }: VideosGridProps) => (
+export const VideosGrid = ({ videos, onEdit, onDelete }: VideosGridProps) => (
   <div className="videos-grid">
     {videos.map((video) => (
       <div className="videos-grid__card" key={video.id}>
@@ -74,6 +75,7 @@ export const VideosGrid = ({ videos, onEdit }: VideosGridProps) => (
                 size="small"
                 danger
                 icon={<DeleteOutlined />}
+                onClick={() => onDelete(video)}
                 aria-label="Delete video"
               />
             </Tooltip>

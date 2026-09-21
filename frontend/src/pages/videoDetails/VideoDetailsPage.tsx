@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 import { Button, Empty, Flex, Result, Tooltip, Typography } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -15,21 +16,26 @@ import type { PlacementFormType } from '../../features/videos/components/CreateE
 import { CreateEditVideoModal } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal';
 import { ModalMode } from '../../constants/modalMode.constants';
 import type { VideoFormType } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal.types';
+import { VideoFormFields } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal.constants';
 import { VideoStatusTag } from '../../components/VideoStatusTag/VideoStatusTag';
+import { PageSpinner } from '../../components/PageSpinner/PageSpinner';
 import { MOCK_ADS } from '../../features/ads/mocks/ads.mock';
 import { MOCK_AD_PLACEMENTS } from '../../features/videos/mocks/adPlacements.mock';
-import { MOCK_VIDEOS } from '../../features/videos/mocks/videos.mock';
+import { useVideoQuery } from '../../features/videos/hooks/useVideoQuery';
+import { useUpdateVideoMutation } from '../../features/videos/hooks/useUpdateVideoMutation';
+import { useDeleteVideoModal } from '../../features/videos/hooks/useDeleteVideoModal';
 import { useModalState } from '../../hooks/useModalState';
 import { formatDate } from '../../lib/formatDate';
 import type { AdPlacement } from '../../types/adPlacement.types';
+import type { UpdateVideoRequestDto } from '../../dtos/video.dto';
 import './VideoDetailsPage.css';
 
 const { Title, Text } = Typography;
 
 /**
  * @description One video's full detail view - a plain preview player (no ad injection, unlike
- * the public playback page), metadata, edit/delete actions, and its ad placements. Backed by mock
- * data for now, since there's no get-single-video endpoint yet.
+ * the public playback page), metadata, edit/delete actions, and its ad placements. Ad placements
+ * are still mock data for now - that's a separate API integration pass.
  */
 export const VideoDetailsPage = () => {
   const { videoId } = useParams<{ videoId: string }>();
@@ -43,17 +49,32 @@ export const VideoDetailsPage = () => {
   const [placementModalMode, setPlacementModalMode] = useState<ModalMode>(ModalMode.CREATE);
   const [editingPlacement, setEditingPlacement] = useState<AdPlacement | undefined>(undefined);
 
-  const video = MOCK_VIDEOS.find((mockVideo) => mockVideo.id === videoId);
+  const { data: video, isLoading, isError, error } = useVideoQuery(videoId);
+  const { mutate: updateVideoMutation, isPending: isUpdateVideoMutationPending } =
+    useUpdateVideoMutation();
+  const confirmDeleteVideo = useDeleteVideoModal();
+
   const placements = MOCK_AD_PLACEMENTS.filter((placement) => placement.videoId === videoId).sort(
     (a, b) => a.startOffsetSeconds - b.startOffsetSeconds,
   );
 
   /**
-   * @description Visual only for now - editing has no backend endpoint yet.
+   * @description Editing a video only ever touches title/description.
    */
   const handleSubmit = (values: VideoFormType) => {
-    console.log(values);
-    handleClose();
+    const reqBody: UpdateVideoRequestDto = {
+      title: values[VideoFormFields.Title],
+      description: values[VideoFormFields.Description],
+    };
+    updateVideoMutation({ id: video!.id, data: reqBody }, { onSuccess: handleClose });
+  };
+
+  /**
+   * @description Confirms before permanently deleting this video and its Cloudinary asset -
+   * rejected by the backend if it still has ad placements or recorded playback events.
+   */
+  const handleDelete = () => {
+    confirmDeleteVideo(video!, { onSuccess: () => navigate(Routes.VIDEOS) });
   };
 
   /**
@@ -91,11 +112,16 @@ export const VideoDetailsPage = () => {
     handleClosePlacementModal();
   };
 
-  if (!video) {
+  if (isLoading) {
+    return <PageSpinner />;
+  }
+
+  if (isError || !video) {
+    const isNotFound = axios.isAxiosError(error) && error.response?.status === 404;
     return (
       <Result
-        status="404"
-        title="Video not found"
+        status={isNotFound ? '404' : 'error'}
+        title={isNotFound ? 'Video not found' : "Couldn't load this video"}
         extra={
           <Button type="primary" onClick={() => navigate(Routes.VIDEOS)}>
             Back to videos
@@ -139,7 +165,7 @@ export const VideoDetailsPage = () => {
               <Button icon={<EditOutlined />} onClick={handleOpen}>
                 Edit video
               </Button>
-              <Button danger icon={<DeleteOutlined />}>
+              <Button danger icon={<DeleteOutlined />} onClick={handleDelete}>
                 Delete
               </Button>
             </Flex>
@@ -171,6 +197,7 @@ export const VideoDetailsPage = () => {
           open
           mode={ModalMode.EDIT}
           video={video}
+          submitting={isUpdateVideoMutationPending}
           onCancel={handleClose}
           onSubmit={handleSubmit}
         />
