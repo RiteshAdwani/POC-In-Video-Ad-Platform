@@ -6,11 +6,13 @@ import { VideoDetailsPage } from './pages/videoDetails/VideoDetailsPage';
 import { AdsPage } from './pages/ads/AdsPage';
 import { AdDetailsPage } from './pages/adDetails/AdDetailsPage';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
+import { RequireAuth } from './features/auth/components/RequireAuth/RequireAuth';
+import { RequireGuest } from './features/auth/components/RequireGuest/RequireGuest';
 import { Routes } from './constants/routes.constants';
 
-// `private` is our own flag, not a RouteObject field - once AuthContext/RequireAuth exist, a
-// guard can walk this array and wrap every `private: true` route's element, instead of every
-// route needing to remember to wrap itself individually.
+// `private` is our own flag, not a RouteObject field - a guard below walks this array and wraps
+// every `private: true` route's element, instead of every route needing to remember to wrap
+// itself individually.
 type AppRoute = RouteObject & { private?: boolean };
 
 const adminRoutes: AppRoute[] = [
@@ -21,9 +23,21 @@ const adminRoutes: AppRoute[] = [
   { path: Routes.DASHBOARD, element: <DashboardPage />, private: true },
 ];
 
+const guardedAdminRoutes: RouteObject[] = adminRoutes.map((route) => ({
+  ...route,
+  element: route.private ? <RequireAuth>{route.element}</RequireAuth> : route.element,
+}));
+
 const routes: AppRoute[] = [
-  { path: Routes.LOGIN, element: <LoginPage /> },
-  { element: <Layout />, children: adminRoutes },
+  {
+    path: Routes.LOGIN,
+    element: (
+      <RequireGuest>
+        <LoginPage />
+      </RequireGuest>
+    ),
+  },
+  { element: <Layout />, children: guardedAdminRoutes },
   { path: '/', element: <Navigate to={Routes.VIDEOS} replace /> },
 ];
 
