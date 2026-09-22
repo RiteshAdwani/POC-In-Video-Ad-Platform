@@ -29,7 +29,6 @@ src/
     routes.constants.ts       # frontend route paths (react-router)
     apiRoutes.constants.ts    # backend endpoint paths
     queryKeys.constants.ts    # TanStack Query key factories
-  enums/                  # shared enums, mirroring backend Prisma enums where applicable
   types/                  # shared domain types
   dtos/                   # request/response shapes, one file per feature
   features/
@@ -131,8 +130,9 @@ memoization adds noise without a measurable benefit.
 ## Design patterns
 
 Reach for a custom hook first to pull non-trivial logic out of a component. Reserve HOCs for
-genuine cross-cutting concerns applied uniformly across many components — e.g. the eventual
-private-route guard for `routes.tsx`'s `private` flag, which isn't implemented yet.
+genuine cross-cutting concerns applied uniformly across many components — e.g. `RequireAuth`/
+`RequireGuest` (`features/auth/components/`), which wrap every route `routes.tsx` marks `private`
+instead of each page guarding itself.
 
 ## Component size
 

@@ -1,0 +1,55 @@
+.public-videos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.public-videos-grid__card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.public-videos-grid__thumb {
+  position: relative;
+  height: 168px;
+  background: linear-gradient(135deg, #0f172a, #0369a1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 34px;
+}
+
+.public-videos-grid__play {
+  position: absolute;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 34px;
+}
+
+.public-videos-grid__body {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.public-videos-grid__title {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.public-videos-grid__description {
+  font-size: 13px;
+}
+
+.public-videos-grid__date {
+  font-size: 12px;
+}

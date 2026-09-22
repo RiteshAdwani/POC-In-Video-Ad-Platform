@@ -20,7 +20,7 @@ export const validatePlacementConstraints = (
   const isImage = assetType === AssetType.IMAGE;
 
   if (expectsImage !== isImage) {
-    throw new ValidationError(ErrorMessages.PLACEMENT_ASSET_TYPE_MISMATCH);
+    throw new ValidationError(ErrorMessages.AD_PLACEMENT_ASSET_TYPE_MISMATCH);
   }
   if (adType === AdType.PRE_ROLL && startOffsetSeconds !== 0) {
     throw new ValidationError(ErrorMessages.INVALID_PREROLL_OFFSET);

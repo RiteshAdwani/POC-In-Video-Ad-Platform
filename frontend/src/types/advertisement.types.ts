@@ -7,6 +7,6 @@ export type Advertisement = {
   assetType: AssetType;
   assetUrl: string;
   clickThroughUrl: string | null;
-  placementCount: number;
+  adPlacementCount: number;
   createdAt: string;
 };

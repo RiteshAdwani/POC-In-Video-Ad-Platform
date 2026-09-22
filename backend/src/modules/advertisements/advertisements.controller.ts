@@ -10,7 +10,9 @@ import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants
 import { createAdvertisementSchema, updateAdvertisementSchema } from './advertisements.schema';
 import { toAdvertisementDto } from './advertisements.service';
 
-const WITH_PLACEMENT_COUNT = { include: { _count: { select: { adPlacements: true } } } } as const;
+const WITH_AD_PLACEMENT_COUNT = {
+  include: { _count: { select: { adPlacements: true } } },
+} as const;
 
 /**
  * @description Creates an advertisement owned by the calling admin: uploads the creative to
@@ -54,7 +56,7 @@ export const listAdvertisements: RequestHandler = async (req, res) => {
   const advertisements = await prisma.advertisement.findMany({
     where: { authorId: req.admin!.id },
     orderBy: { createdAt: 'desc' },
-    ...WITH_PLACEMENT_COUNT,
+    ...WITH_AD_PLACEMENT_COUNT,
   });
 
   res.status(StatusCodes.OK).json({
@@ -66,13 +68,13 @@ export const listAdvertisements: RequestHandler = async (req, res) => {
 /**
  * @description Fetches one advertisement. requireOwnership already verified it belongs to the
  * caller - it's re-fetched here (rather than reused from req.resource) just to bring in the
- * placement count, which the ownership check itself doesn't need.
+ * ad placement count, which the ownership check itself doesn't need.
  */
 export const getAdvertisement: RequestHandler = async (req, res) => {
   const existing = req.resource as Advertisement;
   const advertisement = await prisma.advertisement.findUniqueOrThrow({
     where: { id: existing.id },
-    ...WITH_PLACEMENT_COUNT,
+    ...WITH_AD_PLACEMENT_COUNT,
   });
 
   res.status(StatusCodes.OK).json({
@@ -91,7 +93,7 @@ export const updateAdvertisement: RequestHandler = async (req, res) => {
   const advertisement = await prisma.advertisement.update({
     where: { id: existing.id },
     data,
-    ...WITH_PLACEMENT_COUNT,
+    ...WITH_AD_PLACEMENT_COUNT,
   });
 
   res.status(StatusCodes.OK).json({

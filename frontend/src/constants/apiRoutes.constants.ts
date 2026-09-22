@@ -15,4 +15,7 @@ export const ApiRoutes = {
   createAdPlacement: (videoId: string) => `/videos/${videoId}/placements`,
   updateAdPlacement: (videoId: string, id: string) => `/videos/${videoId}/placements/${id}`,
   deleteAdPlacement: (videoId: string, id: string) => `/videos/${videoId}/placements/${id}`,
+  getPublicVideos: () => '/public/videos',
+  getPlaybackConfig: (videoId: string) => `/public/videos/${videoId}/playback`,
+  recordPlaybackEvent: () => '/public/events',
 } as const;

@@ -34,7 +34,7 @@
   color: #0369a1;
 }
 
-.ad-details-page__placements {
+.ad-details-page__ad-placements {
   display: flex;
   flex-direction: column;
   gap: 16px;

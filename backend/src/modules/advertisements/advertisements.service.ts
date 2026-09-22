@@ -1,15 +1,15 @@
 import type { Advertisement } from '../../generated/prisma/client.js';
 
-type AdvertisementWithPlacementCount = Advertisement & { _count: { adPlacements: number } };
+type AdvertisementWithAdPlacementCount = Advertisement & { _count: { adPlacements: number } };
 
 /**
- * @description Flattens Prisma's `_count.adPlacements` aggregate into the flat `placementCount`
+ * @description Flattens Prisma's `_count.adPlacements` aggregate into the flat `adPlacementCount`
  * field the frontend actually consumes.
  */
 export const toAdvertisementDto = ({
   _count,
   ...advertisement
-}: AdvertisementWithPlacementCount) => ({
+}: AdvertisementWithAdPlacementCount) => ({
   ...advertisement,
-  placementCount: _count.adPlacements,
+  adPlacementCount: _count.adPlacements,
 });

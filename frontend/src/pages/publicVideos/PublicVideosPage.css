@@ -1,0 +1,22 @@
+.public-videos-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.public-videos-page__topbar {
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.public-videos-page__brand {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  color: #0369a1;
+}
+
+.public-videos-page__header {
+  margin-bottom: 24px;
+}

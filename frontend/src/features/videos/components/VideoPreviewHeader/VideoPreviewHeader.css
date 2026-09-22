@@ -1,12 +1,12 @@
-.video-details-page__header {
+.video-preview-header {
   margin: 16px 0 32px;
 }
 
-.video-details-page__title {
+.video-preview-header__title {
   margin: 0 !important;
 }
 
-.video-details-page__player {
+.video-preview-header__player {
   flex: 0 0 400px;
   aspect-ratio: 16 / 9;
   border-radius: 12px;
@@ -14,13 +14,13 @@
   background: #0f172a;
 }
 
-.video-details-page__player video {
+.video-preview-header__player video {
   width: 100%;
   height: 100%;
   display: block;
 }
 
-.video-details-page__player-placeholder {
+.video-preview-header__player-placeholder {
   width: 100%;
   height: 100%;
   display: flex;
@@ -32,18 +32,12 @@
   font-size: 32px;
 }
 
-.video-details-page__player-placeholder .ant-typography {
+.video-preview-header__player-placeholder .ant-typography {
   font-size: 14px;
   color: inherit;
 }
 
-.video-details-page__meta {
+.video-preview-header__meta {
   flex-grow: 1;
   align-self: stretch;
-}
-
-.video-details-page__placements {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
 }

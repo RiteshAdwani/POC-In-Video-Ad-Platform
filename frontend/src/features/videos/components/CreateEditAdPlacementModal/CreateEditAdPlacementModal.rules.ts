@@ -1,7 +1,7 @@
 import type { FormRule } from 'antd';
 import { AdType } from '../../../../constants/ad.constants';
 import { ValidationMessages } from '../../../../constants/validationMessages.constants';
-import { PlacementFormFields } from './CreateEditPlacementModal.constants';
+import { AdPlacementFormFields } from './CreateEditAdPlacementModal.constants';
 
 /**
  * @description Field-level validation for the create/edit placement form - depends on the
@@ -10,16 +10,16 @@ import { PlacementFormFields } from './CreateEditPlacementModal.constants';
  * everything else doesn't use one, and a mid-roll must start after 0 (offset 0 is reserved for
  * pre-roll - the field is otherwise disabled and locked to 0 there).
  */
-export const getPlacementFormRules = (
+export const getAdPlacementFormRules = (
   adType: AdType | undefined,
-): Record<PlacementFormFields, FormRule[]> => ({
-  [PlacementFormFields.AdvertisementId]: [
+): Record<AdPlacementFormFields, FormRule[]> => ({
+  [AdPlacementFormFields.AdvertisementId]: [
     { required: true, message: ValidationMessages.required('an ad') },
   ],
-  [PlacementFormFields.AdType]: [
+  [AdPlacementFormFields.AdType]: [
     { required: true, message: ValidationMessages.required('a placement type') },
   ],
-  [PlacementFormFields.StartOffsetSeconds]:
+  [AdPlacementFormFields.StartOffsetSeconds]:
     adType === AdType.MID_ROLL
       ? [
           { required: true, message: ValidationMessages.required('a start offset') },
@@ -29,14 +29,14 @@ export const getPlacementFormRules = (
           { required: true, message: ValidationMessages.required('a start offset') },
           { type: 'number', min: 0, message: ValidationMessages.min('Start offset', 0) },
         ],
-  [PlacementFormFields.DurationSeconds]:
+  [AdPlacementFormFields.DurationSeconds]:
     adType === AdType.BANNER_OVERLAY
       ? [
           { required: true, message: ValidationMessages.required('a duration') },
           { type: 'number', min: 1, message: ValidationMessages.min('Duration', 1) },
         ]
       : [],
-  [PlacementFormFields.SkipAfterSeconds]: [
+  [AdPlacementFormFields.SkipAfterSeconds]: [
     { type: 'number', min: 0, message: ValidationMessages.min('Skip-after', 0) },
   ],
 });

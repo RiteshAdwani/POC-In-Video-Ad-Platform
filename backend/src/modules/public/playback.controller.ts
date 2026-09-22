@@ -30,19 +30,22 @@ export const getPlaybackConfig: RequestHandler = async (req, res) => {
   // player never needs a separate branch for "missing" vs "not ready yet".
   res.status(StatusCodes.OK).json({
     data: {
+      title: video.title,
+      description: video.description,
       status: video.status,
       playbackUrl: isReady ? video.playbackUrl : null,
       ads: isReady
-        ? video.adPlacements.map((placement) => ({
+        ? video.adPlacements.map((adPlacement) => ({
             // The AdPlacement id, not the Advertisement id - the player echoes this back as
             // `adId` when it later posts playback events for this ad.
-            id: placement.id,
-            type: placement.adType,
-            assetUrl: placement.advertisement.assetUrl,
-            clickThroughUrl: placement.advertisement.clickThroughUrl,
-            startOffsetSeconds: placement.startOffsetSeconds,
-            durationSeconds: placement.durationSeconds,
-            skipAfterSeconds: placement.skipAfterSeconds,
+            id: adPlacement.id,
+            type: adPlacement.adType,
+            title: adPlacement.advertisement.title,
+            assetUrl: adPlacement.advertisement.assetUrl,
+            clickThroughUrl: adPlacement.advertisement.clickThroughUrl,
+            startOffsetSeconds: adPlacement.startOffsetSeconds,
+            durationSeconds: adPlacement.durationSeconds,
+            skipAfterSeconds: adPlacement.skipAfterSeconds,
           }))
         : [],
     },

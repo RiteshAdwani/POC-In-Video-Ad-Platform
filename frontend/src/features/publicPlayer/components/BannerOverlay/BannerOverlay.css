@@ -1,0 +1,19 @@
+/* Covers the whole video frame, not a thin strip - the video is paused for this the same way it
+   is for a pre/mid-roll, so it reads as a full takeover rather than a small unobtrusive overlay. */
+.player-page__banner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.player-page__banner img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}

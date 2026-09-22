@@ -1,5 +1,5 @@
 import { Button, ConfigProvider, Layout as AntLayout, Menu } from 'antd';
-import { LogoutOutlined } from '@ant-design/icons';
+import { GlobalOutlined, LogoutOutlined } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { Routes } from '../../constants/routes.constants';
@@ -41,14 +41,20 @@ export const Layout = () => {
             },
           }}
         >
-          <Button
-            type="text"
-            icon={<LogoutOutlined />}
-            onClick={handleLogout}
-            className="admin-layout__logout"
-          >
-            Log out
-          </Button>
+          <div className="admin-layout__footer">
+            <Button
+              type="text"
+              icon={<GlobalOutlined />}
+              href={Routes.HOME}
+              target="_blank"
+              rel="noreferrer"
+            >
+              View public site
+            </Button>
+            <Button type="text" icon={<LogoutOutlined />} onClick={handleLogout}>
+              Log out
+            </Button>
+          </div>
         </ConfigProvider>
       </Sider>
       <AntLayout>
