@@ -10,7 +10,9 @@ import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants
 import { createVideoSchema, updateVideoSchema } from './videos.schema';
 import { checkAndUpdateVideoStatus, toVideoDto } from './videos.service';
 
-const WITH_PLACEMENT_COUNT = { include: { _count: { select: { adPlacements: true } } } } as const;
+const WITH_AD_PLACEMENT_COUNT = {
+  include: { _count: { select: { adPlacements: true } } },
+} as const;
 
 /**
  * @description Uploads a video: streams it to Cloudinary and persists the resulting row.
@@ -74,7 +76,7 @@ export const listVideos: RequestHandler = async (req, res) => {
   const videos = await prisma.video.findMany({
     where: { authorId: req.admin!.id },
     orderBy: { createdAt: 'desc' },
-    ...WITH_PLACEMENT_COUNT,
+    ...WITH_AD_PLACEMENT_COUNT,
   });
 
   res
@@ -84,14 +86,14 @@ export const listVideos: RequestHandler = async (req, res) => {
 
 /**
  * @description Fetches one video. requireOwnership already verified it belongs to the caller -
- * it's re-fetched here (rather than reused from req.resource) just to bring in the placement
+ * it's re-fetched here (rather than reused from req.resource) just to bring in the ad placement
  * count, which the ownership check itself doesn't need.
  */
 export const getVideo: RequestHandler = async (req, res) => {
   const existing = req.resource as Video;
   const video = await prisma.video.findUniqueOrThrow({
     where: { id: existing.id },
-    ...WITH_PLACEMENT_COUNT,
+    ...WITH_AD_PLACEMENT_COUNT,
   });
 
   res
@@ -110,7 +112,7 @@ export const updateVideo: RequestHandler = async (req, res) => {
   const video = await prisma.video.update({
     where: { id: existing.id },
     data,
-    ...WITH_PLACEMENT_COUNT,
+    ...WITH_AD_PLACEMENT_COUNT,
   });
 
   res

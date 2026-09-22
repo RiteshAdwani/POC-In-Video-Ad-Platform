@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom';
+import { createBrowserRouter, type RouteObject } from 'react-router-dom';
 import { Layout } from './components/Layout/Layout';
 import { LoginPage } from './pages/login/LoginPage';
 import { VideosPage } from './pages/videos/VideosPage';
@@ -6,6 +6,8 @@ import { VideoDetailsPage } from './pages/videoDetails/VideoDetailsPage';
 import { AdsPage } from './pages/ads/AdsPage';
 import { AdDetailsPage } from './pages/adDetails/AdDetailsPage';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
+import { PublicVideosPage } from './pages/publicVideos/PublicVideosPage';
+import { PublicPlayerPage } from './pages/publicPlayer/PublicPlayerPage';
 import { RequireAuth } from './features/auth/components/RequireAuth/RequireAuth';
 import { RequireGuest } from './features/auth/components/RequireGuest/RequireGuest';
 import { Routes } from './constants/routes.constants';
@@ -29,6 +31,8 @@ const guardedAdminRoutes: RouteObject[] = adminRoutes.map((route) => ({
 }));
 
 const routes: AppRoute[] = [
+  { path: Routes.HOME, element: <PublicVideosPage /> },
+  { path: Routes.PLAY, element: <PublicPlayerPage /> },
   {
     path: Routes.LOGIN,
     element: (
@@ -38,7 +42,6 @@ const routes: AppRoute[] = [
     ),
   },
   { element: <Layout />, children: guardedAdminRoutes },
-  { path: '/', element: <Navigate to={Routes.VIDEOS} replace /> },
 ];
 
 export const router = createBrowserRouter(routes);

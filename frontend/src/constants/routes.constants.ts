@@ -1,4 +1,6 @@
 export const Routes = {
+  HOME: '/',
+  PLAY: '/play/:videoId',
   LOGIN: '/login',
   VIDEOS: '/videos',
   VIDEO_DETAILS: '/videos/:videoId',

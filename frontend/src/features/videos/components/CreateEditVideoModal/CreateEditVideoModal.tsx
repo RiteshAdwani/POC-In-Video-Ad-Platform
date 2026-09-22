@@ -35,9 +35,9 @@ type CreateEditVideoModalProps = {
 };
 
 /**
- * @description Shared create/edit form for a video - visual only for now, since editing has no
- * backend endpoint yet and creating needs auth wiring the app doesn't have. `onSubmit` is a stub
- * the caller controls; this component owns only the form itself.
+ * @description Shared create/edit form for a video - creating uploads a file (multipart), editing
+ * only touches title/description. `onSubmit` is the caller's mutation; this component owns only
+ * the form itself.
  */
 export const CreateEditVideoModal = ({
   open,

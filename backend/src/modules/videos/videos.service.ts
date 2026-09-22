@@ -5,13 +5,13 @@ import type { Video } from '../../generated/prisma/client.js';
 import { VideoStatus } from '../../generated/prisma/client.js';
 import { MAX_PROCESSING_AGE_MS } from '../../constants/poller.constants';
 
-type VideoWithPlacementCount = Video & { _count: { adPlacements: number } };
+type VideoWithAdPlacementCount = Video & { _count: { adPlacements: number } };
 
 /**
  * @description Flattens Prisma's `_count.adPlacements` aggregate into the flat `adPlacementCount`
  * field the frontend actually consumes.
  */
-export const toVideoDto = ({ _count, ...video }: VideoWithPlacementCount) => ({
+export const toVideoDto = ({ _count, ...video }: VideoWithAdPlacementCount) => ({
   ...video,
   adPlacementCount: _count.adPlacements,
 });

@@ -34,7 +34,7 @@ export const AdDetailsPage = () => {
   const { data: ad, isLoading, isError, error } = useAdQuery(adId);
   const { mutate: updateAdMutation, isPending: isUpdateAdMutationPending } = useUpdateAdMutation();
   const confirmDeleteAd = useDeleteAdModal();
-  const { data: placementVideos } = useAdPlacementsByAdQuery(adId);
+  const { data: adPlacementVideos } = useAdPlacementsByAdQuery(adId);
 
   /**
    * @description Editing an ad only ever touches title/description/click-through URL.
@@ -127,13 +127,13 @@ export const AdDetailsPage = () => {
         </Flex>
       </Flex>
 
-      <div className="ad-details-page__placements">
-        <Title level={4}>Placed on ({placementVideos?.length ?? 0})</Title>
+      <div className="ad-details-page__ad-placements">
+        <Title level={4}>Placed on ({adPlacementVideos?.length ?? 0})</Title>
 
-        {!placementVideos || placementVideos.length === 0 ? (
+        {!adPlacementVideos || adPlacementVideos.length === 0 ? (
           <Empty description="Not placed on any video yet" />
         ) : (
-          <AdPlacementVideosList items={placementVideos} />
+          <AdPlacementVideosList items={adPlacementVideos} />
         )}
       </div>
 

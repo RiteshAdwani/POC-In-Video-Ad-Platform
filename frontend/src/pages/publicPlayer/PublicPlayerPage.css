@@ -1,0 +1,87 @@
+.player-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 1rem;
+}
+
+.player-page__topbar,
+.player-page__meta {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.player-page__brand {
+  font-family: 'Lexend', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: #0369a1;
+}
+
+.player-page__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.player-page__video-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 960px;
+  border-radius: 8px;
+  /* Hard clip: a banner (or anything else absolutely positioned in here) can never visually
+     escape the video's own box, regardless of the source image's natural size. */
+  overflow: hidden;
+}
+
+.player-page__video {
+  display: block;
+  width: 100%;
+  background: #000;
+}
+
+.player-page__title.ant-typography {
+  margin: 0;
+}
+
+/* Shared between AdControls and BannerOverlay - both sit directly in .player-page__video-wrap (or
+   the banner's own full-frame overlay) and use the same "Ad · title · remaining time" badge. */
+.player-page__ad-badge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  max-width: calc(100% - 2rem);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.player-page__ad-badge-label {
+  font-weight: 700;
+  padding-right: 8px;
+  border-right: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.player-page__ad-badge-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+/* Also shared between AdControls and BannerOverlay - the bottom-right action cluster (visit
+   site / skip). */
+.player-page__ad-controls {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}

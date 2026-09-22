@@ -7,6 +7,7 @@ export const ApiSuccessMessages = {
   VIDEO_FETCHED: 'Video fetched successfully',
   VIDEO_UPDATED: 'Video updated successfully',
   VIDEO_DELETED: 'Video deleted successfully',
+  PUBLIC_VIDEOS_FETCHED: 'Videos fetched successfully',
   PLAYBACK_CONFIG_FETCHED: 'Playback config fetched successfully',
   PLAYBACK_EVENT_RECORDED: 'Playback event recorded successfully',
   PLAYBACK_EVENT_DEDUPED: 'Playback event already recorded',

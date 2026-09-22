@@ -13,13 +13,13 @@ export const useDeleteAdPlacementModal = (videoId: string) => {
   const { modal } = App.useApp();
   const deleteMutation = useDeleteAdPlacementMutation(videoId);
 
-  return (placement: AdPlacement) => {
+  return (adPlacement: AdPlacement) => {
     modal.confirm({
       title: 'Remove this placement?',
-      content: `"${placement.advertisement.title}" (${AD_TYPE_LABEL[placement.adType]}) will no longer play on this video. This can't be undone.`,
+      content: `"${adPlacement.advertisement.title}" (${AD_TYPE_LABEL[adPlacement.adType]}) will no longer play on this video. This can't be undone.`,
       okText: 'Remove',
       okButtonProps: { danger: true },
-      onOk: () => deleteMutation.mutateAsync(placement.id),
+      onOk: () => deleteMutation.mutateAsync(adPlacement.id),
     });
   };
 };

@@ -115,7 +115,7 @@ export const deleteAdPlacement: RequestHandler = async (req, res) => {
   } catch (error) {
     // P2003: foreign key constraint failed - PlaybackEvent rows still reference this placement.
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
-      throw new ConflictError(ErrorMessages.PLACEMENT_IN_USE);
+      throw new ConflictError(ErrorMessages.AD_PLACEMENT_IN_USE);
     }
     throw error;
   }

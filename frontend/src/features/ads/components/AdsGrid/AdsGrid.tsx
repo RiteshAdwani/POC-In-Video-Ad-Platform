@@ -33,8 +33,8 @@ export const AdsGrid = ({ ads, onEdit, onDelete }: AdsGridProps) => (
               <PlayCircleFilled className="ads-grid__play" />
             )}
             <AssetTypeTag assetType={ad.assetType} />
-            <span className="ads-grid__placement-count">
-              {ad.placementCount} {ad.placementCount === 1 ? 'video' : 'videos'}
+            <span className="ads-grid__ad-placement-count">
+              {ad.adPlacementCount} {ad.adPlacementCount === 1 ? 'video' : 'videos'}
             </span>
             {ad.clickThroughUrl && (
               <Tooltip title="Has a click-through link">

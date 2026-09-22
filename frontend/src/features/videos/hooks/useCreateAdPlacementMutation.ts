@@ -12,7 +12,7 @@ import type {
 /**
  * @description Attaches an ad to this video at a position. Also invalidates the video's own
  * query (its adPlacementCount just changed) and the ads list/details (the placed ad's own
- * placementCount just changed too), on top of this video's placements list.
+ * adPlacementCount just changed too), on top of this video's placements list.
  */
 export const useCreateAdPlacementMutation = (videoId: string) => {
   const queryClient = useQueryClient();
