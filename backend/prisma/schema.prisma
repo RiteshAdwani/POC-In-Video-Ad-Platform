@@ -38,6 +38,12 @@ enum PlaybackEventType {
   AD_CLICKED
 }
 
+enum AggregationRunStatus {
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
 /// Owns videos and advertisements; isolated per admin.
 model Admin {
   id             String          @id @default(uuid(7))
@@ -53,75 +59,106 @@ model Admin {
 
 /// Metadata only - the actual file lives with the hosting service.
 model Video {
-  id          String      @id @default(uuid(7))
-  title       String
-  description String?
-  status      VideoStatus @default(UPLOADING)
-  externalId  String? // null until hosting service assigns one
-  playbackUrl String? // null until status is READY
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  authorId String
-  author   Admin  @relation(fields: [authorId], references: [id])
-
+  id             String          @id @default(uuid(7))
+  title          String
+  description    String?
+  status         VideoStatus     @default(UPLOADING)
+  externalId     String? // null until hosting service assigns one
+  playbackUrl    String? // null until status is READY
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  authorId       String
+  author         Admin           @relation(fields: [authorId], references: [id])
   adPlacements   AdPlacement[]
   playbackEvents PlaybackEvent[]
+  dailyCounts    DailyCount[]
 }
 
 /// A reusable ad asset - placeable on multiple videos via AdPlacement.
 model Advertisement {
-  id              String    @id @default(uuid(7))
+  id              String        @id @default(uuid(7))
   title           String
   description     String?
   assetType       AssetType
   assetUrl        String
   clickThroughUrl String? // nullable - not every ad has a destination link
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  authorId String
-  author   Admin  @relation(fields: [authorId], references: [id])
-
-  adPlacements AdPlacement[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  authorId        String
+  author          Admin         @relation(fields: [authorId], references: [id])
+  adPlacements    AdPlacement[]
 }
 
 /// One placement of an Advertisement on a Video, at one position.
 model AdPlacement {
-  id                 String   @id @default(uuid(7))
+  id                 String          @id @default(uuid(7))
   adType             AdType // this placement's role - the same Advertisement can be PRE_ROLL here and MID_ROLL elsewhere
   startOffsetSeconds Int
   durationSeconds    Int? // banner-only; video ads use their own length
   skipAfterSeconds   Int? // null = not skippable
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  videoId         String
-  video           Video         @relation(fields: [videoId], references: [id])
-  advertisementId String
-  advertisement   Advertisement @relation(fields: [advertisementId], references: [id])
-
-  playbackEvents PlaybackEvent[]
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  videoId            String
+  video              Video           @relation(fields: [videoId], references: [id])
+  advertisementId    String
+  advertisement      Advertisement   @relation(fields: [advertisementId], references: [id])
+  playbackEvents     PlaybackEvent[]
+  dailyCounts        DailyCount[]
 }
 
 /// Raw, append-only event log - source of truth for all dashboard numbers.
 model PlaybackEvent {
-  id String @id @default(uuid(7))
-
-  videoId String
-  video   Video  @relation(fields: [videoId], references: [id])
-
+  id            String            @id @default(uuid(7))
+  videoId       String
+  video         Video             @relation(fields: [videoId], references: [id])
   adPlacementId String? // null for VIDEO_STARTED/VIDEO_FINISHED
-  adPlacement   AdPlacement? @relation(fields: [adPlacementId], references: [id])
-
-  sessionId String // identifies one viewing attempt; used for dedup
-  eventType PlaybackEventType
-
-  occurredAt DateTime // client-reported time
-  receivedAt DateTime @default(now()) // server timestamp, set on insert
+  adPlacement   AdPlacement?      @relation(fields: [adPlacementId], references: [id], onDelete: Restrict)
+  sessionId     String // identifies one viewing attempt; used for dedup
+  eventType     PlaybackEventType
+  occurredAt    DateTime // client-reported time
+  receivedAt    DateTime          @default(now()) // server timestamp, set on insert
 
   // Same ad placement, same session, same event type = one fact (ad-scoped events).
   @@unique([sessionId, eventType, adPlacementId], where: raw("\"adPlacementId\" IS NOT NULL"), map: "PlaybackEvent_session_ad_event_dedup")
   // Same session, same event type, no ad = one fact (video-level events: STARTED/FINISHED).
   @@unique([sessionId, eventType], where: raw("\"adPlacementId\" IS NULL"), map: "PlaybackEvent_session_video_event_dedup")
+  // Scans the aggregation job runs: all of one video's (or one placement's) events in a day.
+  @@index([videoId, eventType, occurredAt])
+  @@index([adPlacementId, eventType, occurredAt])
+}
+
+/// Derived, read-optimized aggregate - one row per (video, ad placement or none, event type, day).
+/// Recomputed from scratch and upserted by the aggregation job; the dashboard reads only this
+/// table, never PlaybackEvent directly.
+model DailyCount {
+  id            String            @id @default(uuid(7))
+  videoId       String
+  video         Video             @relation(fields: [videoId], references: [id])
+  adPlacementId String? // null aggregates the whole video; non-null aggregates one placement
+  adPlacement   AdPlacement?      @relation(fields: [adPlacementId], references: [id], onDelete: Restrict)
+  eventType     PlaybackEventType
+  day           DateTime          @db.Date // calendar day this row belongs to, bucketed by PlaybackEvent.occurredAt
+  count         Int
+  updatedAt     DateTime          @updatedAt
+
+  // Same video, same placement, same event type, same day = one fact (placement-scoped rows).
+  @@unique([videoId, adPlacementId, eventType, day], where: raw("\"adPlacementId\" IS NOT NULL"), map: "DailyCount_ad_scoped_key")
+  // Same video, same event type, same day, no placement = one fact (video-level rows).
+  @@unique([videoId, eventType, day], where: raw("\"adPlacementId\" IS NULL"), map: "DailyCount_video_scoped_key")
+}
+
+/// Audit trail for the aggregation job - one row per (day, execution attempt). This is what backs
+/// a disputed dashboard number: "day X was recomputed at 14:03 from N raw events, succeeded."
+/// Never updated after it completes; re-aggregating a day inserts a new row, not an edit.
+model AggregationRun {
+  id           String               @id @default(uuid(7))
+  day          DateTime             @db.Date // the single day this run (re)computed
+  status       AggregationRunStatus @default(RUNNING)
+  startedAt    DateTime             @default(now())
+  completedAt  DateTime?
+  rowsUpserted Int?
+  error        String? // set when status is FAILED
+
+  @@index([day])
+  @@index([status])
 }
