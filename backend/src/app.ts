@@ -9,6 +9,8 @@ import { errorHandler } from './middleware/errorHandler';
 import { authRouter } from './modules/auth/auth.routes';
 import { videosRouter } from './modules/videos/videos.routes';
 import { advertisementsRouter } from './modules/advertisements/advertisements.routes';
+import { dashboardRouter } from './modules/dashboard/dashboard.routes';
+import { aggregationRouter } from './modules/aggregation/aggregation.routes';
 import { publicRouter } from './modules/public/public.routes';
 
 export const app = express();
@@ -29,6 +31,8 @@ app.get('/health', (_req, res) => {
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/videos', videosRouter);
 app.use('/api/v1/advertisements', advertisementsRouter);
+app.use('/api/v1/dashboard', dashboardRouter);
+app.use('/api/v1/aggregation', aggregationRouter);
 app.use('/api/v1/public', publicRouter);
 
 // Routes go above this line - anything thrown (or rejected) in them ends up here.

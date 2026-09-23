@@ -20,4 +20,6 @@ export const ApiSuccessMessages = {
   AD_PLACEMENTS_FETCHED: 'Ad placements fetched successfully',
   AD_PLACEMENT_UPDATED: 'Ad placement updated successfully',
   AD_PLACEMENT_DELETED: 'Ad placement deleted successfully',
+  DASHBOARD_STATS_FETCHED: 'Dashboard stats fetched successfully',
+  AGGREGATION_RUN_TRIGGERED: 'Aggregation run completed successfully',
 } as const;
