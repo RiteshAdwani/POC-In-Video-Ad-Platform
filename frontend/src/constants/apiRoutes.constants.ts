@@ -18,4 +18,5 @@ export const ApiRoutes = {
   getPublicVideos: () => '/public/videos',
   getPlaybackConfig: (videoId: string) => `/public/videos/${videoId}/playback`,
   recordPlaybackEvent: () => '/public/events',
+  getDashboard: () => '/dashboard',
 } as const;

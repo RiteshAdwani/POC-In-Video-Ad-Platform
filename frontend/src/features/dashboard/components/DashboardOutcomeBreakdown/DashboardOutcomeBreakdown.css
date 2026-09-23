@@ -1,0 +1,24 @@
+.dashboard-outcome-breakdown__caption {
+  font-size: 12px;
+  text-align: center;
+}
+
+.dashboard-outcome-breakdown__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dashboard-outcome-breakdown__dot--completed {
+  background-color: #059669;
+}
+
+.dashboard-outcome-breakdown__dot--skipped {
+  background-color: #f97316;
+}
+
+.dashboard-outcome-breakdown__dot--pending {
+  background-color: #c7d2fe;
+  border: 1px solid #818cf8;
+}

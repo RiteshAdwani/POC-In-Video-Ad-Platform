@@ -5,4 +5,5 @@ export const QueryKeys = {
   AD_PLACEMENTS: 'adPlacements',
   PUBLIC_VIDEOS: 'publicVideos',
   PLAYBACK_CONFIG: 'playbackConfig',
+  DASHBOARD: 'dashboard',
 } as const;

@@ -1,0 +1,9 @@
+/* No outer padding here - the admin Layout's content area (Layout.css) already provides it. */
+
+.dashboard-page__header {
+  margin-bottom: 24px;
+}
+
+.dashboard-page__insights-row {
+  margin-top: 24px;
+}
