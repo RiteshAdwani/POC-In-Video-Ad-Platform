@@ -1,0 +1,20 @@
+.dashboard-rate-breakdown__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.dashboard-rate-breakdown__icon--primary {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.dashboard-rate-breakdown__icon--success {
+  background: #dcfce7;
+  color: #16a34a;
+}
