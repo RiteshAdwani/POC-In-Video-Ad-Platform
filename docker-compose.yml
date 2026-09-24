@@ -52,9 +52,10 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
     environment:
-      # Read by nginx.conf.template (via envsubst) to know which port to reach the backend
-      # service on, over the compose network - same value the backend itself listens on.
-      BACKEND_PORT: ${PORT}
+      # Read by nginx.conf.template (via envsubst) - the "backend" hostname only resolves on
+      # this compose network. A real deployment (e.g. Render) sets this to the backend's public
+      # URL instead, since the two services don't share a private network there.
+      BACKEND_ORIGIN: http://backend:${PORT}
     ports:
       - '5173:80'
     depends_on:
