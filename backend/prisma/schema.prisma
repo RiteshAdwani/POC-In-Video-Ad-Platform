@@ -59,19 +59,20 @@ model Admin {
 
 /// Metadata only - the actual file lives with the hosting service.
 model Video {
-  id             String          @id @default(uuid(7))
-  title          String
-  description    String?
-  status         VideoStatus     @default(UPLOADING)
-  externalId     String? // null until hosting service assigns one
-  playbackUrl    String? // null until status is READY
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  authorId       String
-  author         Admin           @relation(fields: [authorId], references: [id])
-  adPlacements   AdPlacement[]
-  playbackEvents PlaybackEvent[]
-  dailyCounts    DailyCount[]
+  id              String          @id @default(uuid(7))
+  title           String
+  description     String?
+  status          VideoStatus     @default(UPLOADING)
+  externalId      String? // null until hosting service assigns one
+  playbackUrl     String? // null until status is READY
+  durationSeconds Float? // null until status is READY - Cloudinary reports it once transcoding finishes
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  authorId        String
+  author          Admin           @relation(fields: [authorId], references: [id])
+  adPlacements    AdPlacement[]
+  playbackEvents  PlaybackEvent[]
+  dailyCounts     DailyCount[]
 }
 
 /// A reusable ad asset - placeable on multiple videos via AdPlacement.

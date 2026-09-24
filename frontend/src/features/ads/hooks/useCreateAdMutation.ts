@@ -3,6 +3,7 @@ import { axiosInstance } from '../../../api/axiosInstance';
 import { ApiRoutes } from '../../../constants/apiRoutes.constants';
 import { QueryKeys } from '../../../constants/queryKeys.constants';
 import { handleAxiosError } from '../../../lib/axiosError';
+import { handleAxiosSuccess } from '../../../lib/axiosSuccess';
 import type { ApiResponseBody } from '../../../types/apiResponse.types';
 import type { AdvertisementResponseDto } from '../../../dtos/advertisement.dto';
 
@@ -18,8 +19,9 @@ export const useCreateAdMutation = () => {
     mutationKey: [QueryKeys.ADS],
     mutationFn: (formData: FormData) =>
       axiosInstance.post<ApiResponseBody<AdvertisementResponseDto>>(ApiRoutes.createAd(), formData),
-    onSuccess: () => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.ADS] });
+      handleAxiosSuccess(response);
     },
     onError: handleAxiosError,
   });

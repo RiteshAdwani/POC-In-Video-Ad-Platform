@@ -3,6 +3,7 @@ import { axiosInstance } from '../../../api/axiosInstance';
 import { ApiRoutes } from '../../../constants/apiRoutes.constants';
 import { QueryKeys } from '../../../constants/queryKeys.constants';
 import { handleAxiosError } from '../../../lib/axiosError';
+import { handleAxiosSuccess } from '../../../lib/axiosSuccess';
 import type { ApiResponseBody } from '../../../types/apiResponse.types';
 import type { UpdateVideoRequestDto, VideoResponseDto } from '../../../dtos/video.dto';
 
@@ -17,8 +18,9 @@ export const useUpdateVideoMutation = () => {
     mutationKey: [QueryKeys.VIDEOS],
     mutationFn: ({ id, data }: { id: string; data: UpdateVideoRequestDto }) =>
       axiosInstance.patch<ApiResponseBody<VideoResponseDto>>(ApiRoutes.updateVideo(id), data),
-    onSuccess: () => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.VIDEOS] });
+      handleAxiosSuccess(response);
     },
     onError: handleAxiosError,
   });

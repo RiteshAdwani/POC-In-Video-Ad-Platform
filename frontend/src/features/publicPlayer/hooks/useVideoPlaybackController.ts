@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { getOrCreateSessionId } from '../../../lib/getOrCreateSessionId';
+import { useEffect, useRef, useState } from 'react';
+import { getOrCreateSessionId, rotateSessionId } from '../../../lib/getOrCreateSessionId';
 import { PlaybackEventType } from '../../../constants/playback.constants';
 import { AdType } from '../../../constants/ad.constants';
 import type { PlaybackAd, PlaybackConfig } from '../../../types/playback.types';
@@ -14,7 +14,13 @@ export const useVideoPlaybackController = (
   videoId: string | undefined,
   playbackConfig: PlaybackConfig | undefined,
 ) => {
-  const sessionId = useMemo(() => (videoId ? getOrCreateSessionId(videoId) : ''), [videoId]);
+  // A ref, not state - logEvent needs to see a rotated id within the same synchronous handler
+  // that triggers the rotation (a replay), not on the next render.
+  const sessionIdRef = useRef('');
+  useEffect(() => {
+    if (videoId) sessionIdRef.current = getOrCreateSessionId(videoId);
+  }, [videoId]);
+
   const { mutate: recordEvent } = useRecordPlaybackEventMutation();
 
   // States for Video Ads and Banners
@@ -41,6 +47,9 @@ export const useVideoPlaybackController = (
   // every engagement change instead of only on real activeAd/config changes.
   const hasEngagedRef = useRef(false);
   const videoStartedFiredRef = useRef(false);
+  // Set when the main video (not an ad) reaches its natural end - the only signal available for
+  // detecting a replay, since this player has no app-level "Watch Again" control of its own.
+  const videoEndedRef = useRef(false);
 
   /**
    * @description Records one playback event, tagged with this video/session. No-ops if videoId
@@ -48,7 +57,13 @@ export const useVideoPlaybackController = (
    */
   const logEvent = (eventType: PlaybackEventType, adId?: string) => {
     if (!videoId) return;
-    recordEvent({ videoId, sessionId, eventType, occurredAt: new Date().toISOString(), adId });
+    recordEvent({
+      videoId,
+      sessionId: sessionIdRef.current,
+      eventType,
+      occurredAt: new Date().toISOString(),
+      adId,
+    });
   };
 
   // Once ready, start on the pre-roll if there is one (its offset is always 0), else the video.
@@ -92,9 +107,18 @@ export const useVideoPlaybackController = (
 
   /**
    * @description Marks the viewer as engaged and fires the one-time AD_SHOWN or VIDEO_STARTED
-   * event for whatever just started playing.
+   * event for whatever just started playing. If this play follows the main video ending, treats
+   * it as a replay - a fresh viewing session, pre-roll and all - rather than a continuation.
    */
-  const handlePlay = () => {
+  const handleMediaPlay = () => {
+    if (videoEndedRef.current) {
+      videoEndedRef.current = false;
+      if (videoId) sessionIdRef.current = rotateSessionId(videoId);
+      videoStartedFiredRef.current = false;
+      shownAdPlacementIdsRef.current.clear();
+      setPreRollAppliedFor(undefined);
+    }
+
     hasEngagedRef.current = true;
     setHasEngaged(true);
 
@@ -113,23 +137,36 @@ export const useVideoPlaybackController = (
   };
 
   /**
-   * @description Ends the current ad (logs AD_COMPLETED, clears activeAd) or, if none is active,
-   * the main video (logs VIDEO_FINISHED).
+   * @description Ends the current ad (logs AD_COMPLETED), advancing to the next un-shown pre-roll
+   * in the same pod if there is one, else clearing activeAd. If none is active, ends the main
+   * video instead (logs VIDEO_FINISHED).
    */
-  const handleEnded = () => {
+  const handleMediaEnded = () => {
     if (activeAd) {
       logEvent(PlaybackEventType.AD_COMPLETED, activeAd.id);
+
+      if (activeAd.type === AdType.PRE_ROLL) {
+        const nextPreRoll = playbackConfig?.ads.find(
+          (ad) => ad.type === AdType.PRE_ROLL && !shownAdPlacementIdsRef.current.has(ad.id),
+        );
+        if (nextPreRoll) {
+          setActiveAd(nextPreRoll);
+          return;
+        }
+      }
+
       setActiveAd(null);
       return;
     }
     logEvent(PlaybackEventType.VIDEO_FINISHED);
+    videoEndedRef.current = true;
   };
 
   /**
    * @description Skips a broken ad silently so the viewer isn't stranded on a black screen - it
    * never actually played, so no event is logged for it.
    */
-  const handleError = () => {
+  const handleMediaError = () => {
     if (activeAd) {
       setActiveAd(null);
     }
@@ -211,7 +248,7 @@ export const useVideoPlaybackController = (
    * @description Per-tick dispatcher: updates the current ad's progress if one's playing, else
    * checks whether the next mid-roll or banner is due.
    */
-  const handleTimeUpdate = () => {
+  const handleMediaTimeUpdate = () => {
     const video = videoRef.current;
     if (!video || !playbackConfig) return;
     const currentTime = video.currentTime;
@@ -263,10 +300,10 @@ export const useVideoPlaybackController = (
     skipInSeconds,
     bannerSecondsRemaining,
     hasEngaged,
-    handlePlay,
-    handleEnded,
-    handleError,
-    handleTimeUpdate,
+    handleMediaPlay,
+    handleMediaEnded,
+    handleMediaError,
+    handleMediaTimeUpdate,
     handleSkipClick,
     handleAdClick,
     handleBannerClick,

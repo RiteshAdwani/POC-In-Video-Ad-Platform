@@ -29,7 +29,7 @@ export const createAdPlacement: RequestHandler = async (req, res) => {
   }
 
   // Validation for Ad placement
-  validatePlacementConstraints(advertisement.assetType, placementData);
+  validatePlacementConstraints(advertisement.assetType, video.durationSeconds, placementData);
 
   // Create Ad placement
   const adPlacement = await prisma.adPlacement.create({
@@ -86,11 +86,11 @@ export const listAdPlacementsForAdvertisement: RequestHandler = async (req, res)
  */
 export const updateAdPlacement: RequestHandler = async (req, res) => {
   // Extract resource and parse data
-  const existing = req.resource as AdPlacement & { advertisement: Advertisement };
+  const existing = req.resource as AdPlacement & { advertisement: Advertisement; video: Video };
   const data = updateAdPlacementSchema.parse(req.body);
 
   // Validate placement constraints
-  validatePlacementConstraints(existing.advertisement.assetType, {
+  validatePlacementConstraints(existing.advertisement.assetType, existing.video.durationSeconds, {
     adType: data.adType ?? existing.adType,
     startOffsetSeconds: data.startOffsetSeconds ?? existing.startOffsetSeconds,
     durationSeconds: data.durationSeconds ?? existing.durationSeconds,

@@ -3,6 +3,7 @@ import { axiosInstance } from '../../../api/axiosInstance';
 import { ApiRoutes } from '../../../constants/apiRoutes.constants';
 import { QueryKeys } from '../../../constants/queryKeys.constants';
 import { handleAxiosError } from '../../../lib/axiosError';
+import { handleAxiosSuccess } from '../../../lib/axiosSuccess';
 import type { ApiResponseBody } from '../../../types/apiResponse.types';
 import type { VideoResponseDto } from '../../../dtos/video.dto';
 
@@ -18,8 +19,9 @@ export const useUploadVideoMutation = () => {
     mutationKey: [QueryKeys.VIDEOS],
     mutationFn: (formData: FormData) =>
       axiosInstance.post<ApiResponseBody<VideoResponseDto>>(ApiRoutes.createVideo(), formData),
-    onSuccess: () => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.VIDEOS] });
+      handleAxiosSuccess(response);
     },
     onError: handleAxiosError,
   });

@@ -32,6 +32,7 @@ export const checkAndUpdateVideoStatus = async (video: Video): Promise<Video> =>
 
   let newStatus: VideoStatus = VideoStatus.PROCESSING;
   let playbackUrl: string | undefined;
+  let durationSeconds: number | undefined;
 
   try {
     const resource = await getVideoResource(video.externalId!);
@@ -40,6 +41,7 @@ export const checkAndUpdateVideoStatus = async (video: Video): Promise<Video> =>
     if (derived?.secure_url) {
       newStatus = VideoStatus.READY;
       playbackUrl = derived.secure_url as string;
+      durationSeconds = resource.duration as number | undefined;
     } else if (derived?.error || isPastMaxAge) {
       newStatus = VideoStatus.FAILED;
     }
@@ -57,7 +59,11 @@ export const checkAndUpdateVideoStatus = async (video: Video): Promise<Video> =>
 
   const updated = await prisma.video.update({
     where: { id: video.id },
-    data: { status: newStatus, ...(playbackUrl ? { playbackUrl } : {}) },
+    data: {
+      status: newStatus,
+      ...(playbackUrl ? { playbackUrl } : {}),
+      ...(durationSeconds != null ? { durationSeconds } : {}),
+    },
   });
 
   if (newStatus === VideoStatus.FAILED) {

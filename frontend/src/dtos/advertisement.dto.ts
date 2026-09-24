@@ -3,7 +3,7 @@ import type { Advertisement } from '../types/advertisement.types';
 export type UpdateAdvertisementRequestDto = {
   title?: string;
   description?: string;
-  clickThroughUrl?: string;
+  clickThroughUrl?: string | null;
 };
 
 export type AdvertisementResponseDto = { advertisement: Advertisement };

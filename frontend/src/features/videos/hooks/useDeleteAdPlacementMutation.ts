@@ -3,6 +3,8 @@ import { axiosInstance } from '../../../api/axiosInstance';
 import { ApiRoutes } from '../../../constants/apiRoutes.constants';
 import { QueryKeys } from '../../../constants/queryKeys.constants';
 import { handleAxiosError } from '../../../lib/axiosError';
+import { handleAxiosSuccess } from '../../../lib/axiosSuccess';
+import type { ApiResponseBody } from '../../../types/apiResponse.types';
 
 /**
  * @description Removes an ad placement. Rejected by the backend (409) if playback events still
@@ -15,11 +17,13 @@ export const useDeleteAdPlacementMutation = (videoId: string) => {
 
   return useMutation({
     mutationKey: [QueryKeys.AD_PLACEMENTS, videoId],
-    mutationFn: (id: string) => axiosInstance.delete(ApiRoutes.deleteAdPlacement(videoId, id)),
-    onSuccess: () => {
+    mutationFn: (id: string) =>
+      axiosInstance.delete<ApiResponseBody<null>>(ApiRoutes.deleteAdPlacement(videoId, id)),
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.AD_PLACEMENTS, videoId] });
       queryClient.invalidateQueries({ queryKey: [QueryKeys.VIDEOS] });
       queryClient.invalidateQueries({ queryKey: [QueryKeys.ADS] });
+      handleAxiosSuccess(response);
     },
     onError: handleAxiosError,
   });

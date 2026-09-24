@@ -79,17 +79,22 @@ export const recordPlaybackEvent: RequestHandler = async (req, res) => {
   }
 
   // Insert the fact - the DB's unique constraint is what actually enforces dedup.
+  let event;
   try {
-    await prisma.playbackEvent.create({
+    event = await prisma.playbackEvent.create({
       data: { videoId, sessionId, eventType, occurredAt, adPlacementId: adId },
     });
   } catch (error) {
-    // P2002: this exact event was already recorded - a retry, not a new fact. Still a 2xx.
+    // P2002: this exact event was already recorded - a retry, not a new fact. Still a 2xx. Echoes
+    // back the fields that collided (no extra query for the original row) - this is never read by
+    // the frontend (delivered via sendBeacon, which has no readable response), purely for
+    // curl/DevTools debugging.
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       req.log.info({ ...logContext, outcome: 'deduped', outOfOrder }, 'Playback event deduped');
-      res
-        .status(StatusCodes.OK)
-        .json({ data: null, message: ApiSuccessMessages.PLAYBACK_EVENT_DEDUPED });
+      res.status(StatusCodes.OK).json({
+        data: { videoId, sessionId, eventType, adId },
+        message: ApiSuccessMessages.PLAYBACK_EVENT_DEDUPED,
+      });
       return;
     }
     throw error;
@@ -98,5 +103,5 @@ export const recordPlaybackEvent: RequestHandler = async (req, res) => {
   req.log.info({ ...logContext, outcome: 'accepted', outOfOrder }, 'Playback event recorded');
   res
     .status(StatusCodes.CREATED)
-    .json({ data: null, message: ApiSuccessMessages.PLAYBACK_EVENT_RECORDED });
+    .json({ data: { event }, message: ApiSuccessMessages.PLAYBACK_EVENT_RECORDED });
 };

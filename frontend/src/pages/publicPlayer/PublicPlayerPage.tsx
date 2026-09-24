@@ -58,10 +58,10 @@ export const PublicPlayerPage = () => {
           ref={videoRef}
           className="player-page__video"
           controls={!player.activeAd || !player.hasEngaged}
-          onPlay={player.handlePlay}
-          onEnded={player.handleEnded}
-          onTimeUpdate={player.handleTimeUpdate}
-          onError={player.handleError}
+          onPlay={player.handleMediaPlay}
+          onEnded={player.handleMediaEnded}
+          onTimeUpdate={player.handleMediaTimeUpdate}
+          onError={player.handleMediaError}
         />
 
         {player.activeAd && (
