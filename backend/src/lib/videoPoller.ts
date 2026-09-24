@@ -40,9 +40,18 @@ export const startVideoPoller = (): NodeJS.Timeout => {
 
     void (async () => {
       try {
-        const processingVideos = await prisma.video.findMany({
-          where: { status: VideoStatus.PROCESSING },
-        });
+        let processingVideos;
+        try {
+          processingVideos = await prisma.video.findMany({
+            where: { status: VideoStatus.PROCESSING },
+          });
+        } catch (error) {
+          // Same "log and retry next tick" treatment as a single video's check failing below -
+          // this query failing (a DB blip, a bad migration) shouldn't be able to crash the whole
+          // process via an unhandled rejection.
+          logger.error(error, 'Video poller failed to fetch processing videos');
+          return;
+        }
         const stillProcessingIds = new Set(processingVideos.map((v) => v.id));
 
         // Drop schedules for videos that resolved (or vanished) since the last tick - otherwise
