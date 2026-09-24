@@ -40,9 +40,23 @@ COPY frontend/package.json ./frontend/package.json
 RUN npm ci --workspace=backend --ignore-scripts --omit=dev
 
 COPY --from=builder /repo/backend/dist ./backend/dist
+# migrate deploy (run below, on every container start) needs the schema, migration history, and
+# prisma.config.ts (Prisma 7 reads the datasource URL from there, not schema.prisma directly) -
+# none of that is part of dist, so it's copied straight from source, not the builder stage output.
+COPY backend/prisma ./backend/prisma
+COPY backend/prisma.config.ts ./backend/prisma.config.ts
+
+# node_modules was just created by npm ci above, as root - migrate deploy still needs to write
+# an engine binary into node_modules/@prisma/engines the first time it runs (skipped at install
+# time by --ignore-scripts), which fails under the non-root user below without this.
+RUN chown -R node:node /repo/node_modules
 
 # The base image ships a non-root "node" user for exactly this purpose.
 USER node
 
 EXPOSE 8000
-CMD ["node", "backend/dist/server.js"]
+# Applies any pending migration before the server starts accepting traffic - this project has no
+# paid-tier "pre-deploy command" hook available, so this is the free-tier-compatible equivalent:
+# runs on every container start (idempotent - a no-op if nothing's pending), and a failed
+# migration fails the container's startup instead of serving against a stale schema.
+CMD ["sh", "-c", "npm run prisma:deploy --workspace=backend && node backend/dist/server.js"]
