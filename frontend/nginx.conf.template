@@ -6,14 +6,19 @@ server {
 
     # Same two prefixes the Vite dev server proxies - keeps browser requests same-origin in
     # both environments, so the frontend never needs to know the backend's real address.
+    # BACKEND_ORIGIN is the backend's full origin - the docker-compose network's internal
+    # "http://backend:<port>" locally, or the backend's real public URL once each service is its
+    # own deployment (e.g. on Render, where the two no longer share a private network).
     location /api/ {
-        proxy_pass http://backend:${BACKEND_PORT}/api/;
-        proxy_set_header Host $host;
+        proxy_pass ${BACKEND_ORIGIN}/api/;
+        proxy_ssl_server_name on;
+        proxy_set_header Host $proxy_host;
     }
 
     location /public/ {
-        proxy_pass http://backend:${BACKEND_PORT}/public/;
-        proxy_set_header Host $host;
+        proxy_pass ${BACKEND_ORIGIN}/public/;
+        proxy_ssl_server_name on;
+        proxy_set_header Host $proxy_host;
     }
 
     # SPA fallback - a hard refresh on any client-side route (e.g. /videos) still serves
