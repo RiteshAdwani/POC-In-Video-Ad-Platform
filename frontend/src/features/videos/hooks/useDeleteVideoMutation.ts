@@ -3,6 +3,8 @@ import { axiosInstance } from '../../../api/axiosInstance';
 import { ApiRoutes } from '../../../constants/apiRoutes.constants';
 import { QueryKeys } from '../../../constants/queryKeys.constants';
 import { handleAxiosError } from '../../../lib/axiosError';
+import { handleAxiosSuccess } from '../../../lib/axiosSuccess';
+import type { ApiResponseBody } from '../../../types/apiResponse.types';
 
 /**
  * @description Deletes a video. Rejected by the backend (409) if it still has ad placements or
@@ -15,9 +17,11 @@ export const useDeleteVideoMutation = () => {
 
   return useMutation({
     mutationKey: [QueryKeys.VIDEOS],
-    mutationFn: (id: string) => axiosInstance.delete(ApiRoutes.deleteVideo(id)),
-    onSuccess: () => {
+    mutationFn: (id: string) =>
+      axiosInstance.delete<ApiResponseBody<null>>(ApiRoutes.deleteVideo(id)),
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.VIDEOS], exact: true });
+      handleAxiosSuccess(response);
     },
     onError: handleAxiosError,
   });

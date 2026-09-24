@@ -13,3 +13,13 @@ export const getOrCreateSessionId = (videoId: string): string => {
   sessionStorage.setItem(key, id);
   return id;
 };
+
+/**
+ * @description Mints and stores a fresh session id for this video, replacing whatever's already
+ * there - used when a replay should count as a new viewing rather than continuing the old one.
+ */
+export const rotateSessionId = (videoId: string): string => {
+  const id = crypto.randomUUID();
+  sessionStorage.setItem(`${SESSION_KEY_PREFIX}${videoId}`, id);
+  return id;
+};

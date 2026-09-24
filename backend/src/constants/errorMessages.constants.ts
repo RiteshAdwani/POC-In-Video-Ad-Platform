@@ -20,4 +20,6 @@ export const ErrorMessages = {
   INVALID_PREROLL_OFFSET: 'Pre-roll placements must have startOffsetSeconds = 0',
   INVALID_MIDROLL_OFFSET: 'Mid-roll placements must have startOffsetSeconds > 0',
   MISSING_BANNER_DURATION: 'Banner placements require durationSeconds',
+  PLACEMENT_OFFSET_EXCEEDS_VIDEO_DURATION:
+    "startOffsetSeconds must be less than the video's duration",
 } as const;

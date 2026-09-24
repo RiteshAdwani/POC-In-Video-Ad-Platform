@@ -3,6 +3,7 @@ import { axiosInstance } from '../../../api/axiosInstance';
 import { ApiRoutes } from '../../../constants/apiRoutes.constants';
 import { QueryKeys } from '../../../constants/queryKeys.constants';
 import { handleAxiosError } from '../../../lib/axiosError';
+import { handleAxiosSuccess } from '../../../lib/axiosSuccess';
 import type { ApiResponseBody } from '../../../types/apiResponse.types';
 import type {
   AdPlacementResponseDto,
@@ -24,10 +25,11 @@ export const useCreateAdPlacementMutation = (videoId: string) => {
         ApiRoutes.createAdPlacement(videoId),
         data,
       ),
-    onSuccess: () => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.AD_PLACEMENTS, videoId] });
       queryClient.invalidateQueries({ queryKey: [QueryKeys.VIDEOS] });
       queryClient.invalidateQueries({ queryKey: [QueryKeys.ADS] });
+      handleAxiosSuccess(response);
     },
     onError: handleAxiosError,
   });

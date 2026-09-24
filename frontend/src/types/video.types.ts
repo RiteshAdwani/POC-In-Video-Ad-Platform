@@ -6,6 +6,7 @@ export type Video = {
   description: string | null;
   status: VideoStatus;
   playbackUrl: string | null;
+  durationSeconds: number | null;
   adPlacementCount: number;
   createdAt: string;
 };

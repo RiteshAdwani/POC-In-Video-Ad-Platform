@@ -3,6 +3,8 @@ import { axiosInstance } from '../../../api/axiosInstance';
 import { ApiRoutes } from '../../../constants/apiRoutes.constants';
 import { QueryKeys } from '../../../constants/queryKeys.constants';
 import { handleAxiosError } from '../../../lib/axiosError';
+import { handleAxiosSuccess } from '../../../lib/axiosSuccess';
+import type { ApiResponseBody } from '../../../types/apiResponse.types';
 
 /**
  * @description Deletes an advertisement. Rejected by the backend (409) if it's still placed on
@@ -15,9 +17,10 @@ export const useDeleteAdMutation = () => {
 
   return useMutation({
     mutationKey: [QueryKeys.ADS],
-    mutationFn: (id: string) => axiosInstance.delete(ApiRoutes.deleteAd(id)),
-    onSuccess: () => {
+    mutationFn: (id: string) => axiosInstance.delete<ApiResponseBody<null>>(ApiRoutes.deleteAd(id)),
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.ADS], exact: true });
+      handleAxiosSuccess(response);
     },
     onError: handleAxiosError,
   });

@@ -43,7 +43,8 @@ export const AdDetailsPage = () => {
     const reqBody: UpdateAdvertisementRequestDto = {
       title: values[AdFormFields.Title],
       description: values[AdFormFields.Description],
-      clickThroughUrl: values[AdFormFields.ClickThroughUrl],
+      // An emptied input arrives as '', not undefined - map that to null so it actually clears.
+      clickThroughUrl: values[AdFormFields.ClickThroughUrl] || null,
     };
     updateAdMutation({ id: ad!.id, data: reqBody }, { onSuccess: handleClose });
   };
