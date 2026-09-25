@@ -121,8 +121,11 @@ model PlaybackEvent {
 
   // Same ad placement, same session, same event type = one fact (ad-scoped events).
   @@unique([sessionId, eventType, adPlacementId], where: raw("\"adPlacementId\" IS NOT NULL"), map: "PlaybackEvent_session_ad_event_dedup")
-  // Same session, same event type, no ad = one fact (video-level events: STARTED/FINISHED).
-  @@unique([sessionId, eventType], where: raw("\"adPlacementId\" IS NULL"), map: "PlaybackEvent_session_video_event_dedup")
+  // Same session, same video, same event type, no ad = one fact (video-level events:
+  // STARTED/FINISHED). videoId is included even though the frontend's per-video sessionId
+  // generation already makes cross-video collisions practically impossible - without it, this
+  // rule taken on its own doesn't actually scope to a video at all.
+  @@unique([sessionId, videoId, eventType], where: raw("\"adPlacementId\" IS NULL"), map: "PlaybackEvent_session_video_event_dedup")
   // Scans the aggregation job runs: all of one video's (or one placement's) events in a day.
   @@index([videoId, eventType, occurredAt])
   @@index([adPlacementId, eventType, occurredAt])
