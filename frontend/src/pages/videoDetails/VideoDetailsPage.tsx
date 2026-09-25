@@ -193,6 +193,7 @@ export const VideoDetailsPage = () => {
           mode={adPlacementModalMode}
           ads={ads ?? []}
           adPlacement={editingAdPlacement}
+          videoDurationSeconds={video.durationSeconds}
           submitting={isCreateAdPlacementMutationPending || isUpdateAdPlacementMutationPending}
           onCancel={handleCloseAdPlacementModal}
           onSubmit={handleAdPlacementSubmit}

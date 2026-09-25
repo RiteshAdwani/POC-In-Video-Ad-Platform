@@ -9,7 +9,10 @@ import {
   AD_TYPE_OPTIONS_BY_ASSET_TYPE,
 } from './CreateEditAdPlacementModal.constants';
 import type { AdPlacementFormType } from './CreateEditAdPlacementModal.types';
-import { getAdPlacementFormRules } from './CreateEditAdPlacementModal.rules';
+import {
+  getAdPlacementFormRules,
+  getMaxStartOffsetSeconds,
+} from './CreateEditAdPlacementModal.rules';
 import './CreateEditAdPlacementModal.css';
 
 type CreateEditAdPlacementModalProps = {
@@ -17,6 +20,7 @@ type CreateEditAdPlacementModalProps = {
   mode: ModalMode;
   ads: Advertisement[];
   adPlacement?: AdPlacement;
+  videoDurationSeconds: number | null | undefined;
   submitting?: boolean;
   onCancel: () => void;
   onSubmit: (values: AdPlacementFormType) => void;
@@ -32,6 +36,7 @@ export const CreateEditAdPlacementModal = ({
   mode,
   ads,
   adPlacement,
+  videoDurationSeconds,
   submitting,
   onCancel,
   onSubmit,
@@ -58,13 +63,20 @@ export const CreateEditAdPlacementModal = ({
   const isPreRoll = selectedAdType === AdType.PRE_ROLL;
   const isMidRoll = selectedAdType === AdType.MID_ROLL;
   const isBanner = selectedAdType === AdType.BANNER_OVERLAY;
-  const rules = getAdPlacementFormRules(selectedAdType);
+  const rules = getAdPlacementFormRules(selectedAdType, videoDurationSeconds);
+
+  const maxStartOffsetSeconds = getMaxStartOffsetSeconds(selectedAdType, videoDurationSeconds);
 
   let startOffsetHelpText: string | undefined;
   if (isPreRoll) {
     startOffsetHelpText = "Pre-roll ads always play at the video's start";
   } else if (isMidRoll) {
-    startOffsetHelpText = 'Mid-roll ads must start after the video begins';
+    startOffsetHelpText =
+      maxStartOffsetSeconds !== undefined
+        ? `Mid-roll ads must start after the video begins, at or before ${maxStartOffsetSeconds}s`
+        : 'Mid-roll ads must start after the video begins';
+  } else if (isBanner && maxStartOffsetSeconds !== undefined) {
+    startOffsetHelpText = `Banner ads must start at or before ${maxStartOffsetSeconds}s`;
   }
 
   /**
@@ -160,6 +172,7 @@ export const CreateEditAdPlacementModal = ({
                 >
                   <InputNumber
                     min={isMidRoll ? 1 : 0}
+                    max={maxStartOffsetSeconds}
                     disabled={isPreRoll}
                     className="ad-placement-form__number-input"
                   />
