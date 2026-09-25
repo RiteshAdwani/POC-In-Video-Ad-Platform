@@ -11,6 +11,7 @@ export const ErrorMessages = {
   AD_PLACEMENT_ASSET_TYPE_MISMATCH: "This ad's asset does not support the selected placement type",
   RESOURCE_NOT_FOUND: 'Resource not found',
   VIDEO_NOT_FOUND: 'Video not found',
+  VIDEO_NOT_READY: 'Video is not ready for playback',
   INVALID_AD_REFERENCE: 'Ad Id does not reference an ad placement on the given video',
   BANNER_NOT_SKIPPABLE: 'Banner overlay placements cannot be skipped',
   ADVERTISEMENT_NOT_FOUND: 'Advertisement not found',

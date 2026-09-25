@@ -1,7 +1,7 @@
 import type { RequestHandler } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { prisma } from '../../lib/prisma';
-import { Prisma, PlaybackEventType, AdType } from '../../generated/prisma/client.js';
+import { Prisma, PlaybackEventType, AdType, VideoStatus } from '../../generated/prisma/client.js';
 import { ValidationError } from '../../errors/AppError';
 import { ErrorMessages } from '../../constants/errorMessages.constants';
 import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants';
@@ -41,6 +41,16 @@ export const recordPlaybackEvent: RequestHandler = async (req, res) => {
   if (!video) {
     req.log.warn({ ...logContext, outcome: 'rejected' }, 'Playback event rejected: unknown video');
     throw new ValidationError(ErrorMessages.VIDEO_NOT_FOUND);
+  }
+
+  // The real player can only ever obtain ad/playback info for a READY video - a request against
+  // one that isn't (still processing, or failed) can't be a genuine viewer, only a stale/guessed id.
+  if (video.status !== VideoStatus.READY) {
+    req.log.warn(
+      { ...logContext, outcome: 'rejected' },
+      'Playback event rejected: video is not READY',
+    );
+    throw new ValidationError(ErrorMessages.VIDEO_NOT_READY);
   }
 
   // An adId from a different video is invalid, same as a missing one - one check, one error.
