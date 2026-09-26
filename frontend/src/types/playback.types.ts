@@ -25,4 +25,6 @@ export type PublicVideoSummary = {
   title: string;
   description: string | null;
   createdAt: string;
+  // Never null here - this list only ever contains READY videos.
+  playbackUrl: string;
 };
