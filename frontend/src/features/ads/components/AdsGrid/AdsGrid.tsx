@@ -3,7 +3,7 @@ import { Button, Tooltip, Typography } from 'antd';
 import { DeleteOutlined, EditOutlined, LinkOutlined, PlayCircleFilled } from '@ant-design/icons';
 import { AssetType } from '../../../../constants/ad.constants';
 import { Routes } from '../../../../constants/routes.constants';
-import { formatDate } from '../../../../lib/formatDate';
+import { formatRelativeTime } from '../../../../lib/formatRelativeTime';
 import type { Advertisement } from '../../../../types/advertisement.types';
 import { AssetTypeTag } from '../AssetTypeTag/AssetTypeTag';
 import './AdsGrid.css';
@@ -54,7 +54,7 @@ export const AdsGrid = ({ ads, onEdit, onDelete }: AdsGridProps) => (
         </Link>
 
         <div className="ads-grid__footer">
-          <span className="mono">{formatDate(ad.createdAt)}</span>
+          <span>{formatRelativeTime(ad.createdAt)}</span>
           <span className="ads-grid__actions">
             <Tooltip title="Edit ad">
               <Button

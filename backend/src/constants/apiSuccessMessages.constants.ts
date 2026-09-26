@@ -1,7 +1,7 @@
 /** Shared, reusable success message strings, keyed for readability at call sites. */
 export const ApiSuccessMessages = {
   LOGIN_SUCCESSFUL: 'Login successful',
-  VIDEO_UPLOADED: 'Video uploaded successfully',
+  VIDEO_UPLOADED: 'Video uploaded successfully and is currently processing',
   VIDEO_STATUS_FETCHED: 'Video status fetched successfully',
   VIDEOS_FETCHED: 'Videos fetched successfully',
   VIDEO_FETCHED: 'Video fetched successfully',

@@ -2,11 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { axiosInstance } from '../../../api/axiosInstance';
 import { ApiRoutes } from '../../../constants/apiRoutes.constants';
 import { QueryKeys } from '../../../constants/queryKeys.constants';
-import { VideoStatus } from '../../../constants/video.constants';
+import { POLL_WHILE_VIDEO_NOT_READY_MS, VideoStatus } from '../../../constants/video.constants';
 import type { ApiResponseBody } from '../../../types/apiResponse.types';
 import type { PlaybackConfig } from '../../../types/playback.types';
-
-const POLL_WHILE_NOT_READY_MS = 5000;
 
 /**
  * @description Fetches a video's playback config, polling every 5s while it isn't READY yet -
@@ -24,7 +22,7 @@ export const usePlaybackConfigQuery = (videoId: string | undefined) =>
     enabled: Boolean(videoId),
     refetchInterval: (query) => {
       const status = query.state.data?.status;
-      const stillWaiting = status === VideoStatus.UPLOADING || status === VideoStatus.PROCESSING;
-      return stillWaiting ? POLL_WHILE_NOT_READY_MS : false;
+      const stillWaiting = status === VideoStatus.PROCESSING;
+      return stillWaiting ? POLL_WHILE_VIDEO_NOT_READY_MS : false;
     },
   });

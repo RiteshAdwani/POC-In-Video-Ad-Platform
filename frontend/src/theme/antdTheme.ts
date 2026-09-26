@@ -9,6 +9,7 @@ export const antdTheme: ThemeConfig = {
     colorSuccess: '#16A34A',
     colorError: '#DC2626',
     fontFamily: "'Source Sans 3', sans-serif",
+    borderRadius: 12,
   },
   components: {
     Layout: {

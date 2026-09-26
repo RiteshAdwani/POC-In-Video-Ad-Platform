@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Flex, Result, Typography } from 'antd';
+import { Button, Empty, Flex, Result, Typography } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import { CreateEditVideoModal } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal';
 import { ModalMode } from '../../constants/modalMode.constants';
@@ -78,7 +78,7 @@ export const VideosPage = () => {
         formData.append('description', description);
       }
       formData.append('video', file);
-      uploadVideoMutation(formData, { onSuccess: closeModal });
+      uploadVideoMutation({ formData }, { onSuccess: closeModal });
     } else {
       const reqBody: UpdateVideoRequestDto = {
         title: values[VideoFormFields.Title],
@@ -95,10 +95,16 @@ export const VideosPage = () => {
     content = (
       <Result status="error" title="Couldn't load videos" subTitle="Please try again shortly." />
     );
-  } else {
+  } else if (!videos || videos.length === 0) {
     content = (
-      <VideosGrid videos={videos ?? []} onEdit={openEditModal} onDelete={confirmDeleteVideo} />
+      <Empty description="No videos yet">
+        <Button type="primary" icon={<UploadOutlined />} onClick={openCreateModal}>
+          Upload your first video
+        </Button>
+      </Empty>
     );
+  } else {
+    content = <VideosGrid videos={videos} onEdit={openEditModal} onDelete={confirmDeleteVideo} />;
   }
 
   return (
