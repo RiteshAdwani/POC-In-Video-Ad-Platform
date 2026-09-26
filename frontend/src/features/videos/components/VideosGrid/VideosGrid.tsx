@@ -4,6 +4,7 @@ import { DeleteOutlined, EditOutlined, PlayCircleFilled, TagsOutlined } from '@a
 import { Routes } from '../../../../constants/routes.constants';
 import { VideoStatus } from '../../../../constants/video.constants';
 import { formatRelativeTime } from '../../../../lib/formatRelativeTime';
+import { getVideoThumbnailUrl } from '../../../../lib/videoThumbnail';
 import type { Video } from '../../../../types/video.types';
 import { VideoStatusTag } from '../../../../components/VideoStatusTag/VideoStatusTag';
 import './VideosGrid.css';
@@ -27,68 +28,75 @@ export const VideosGrid = ({ videos, onEdit, onDelete }: VideosGridProps) => {
 
   return (
     <div className="videos-grid">
-      {videos.map((video) => (
-        <div className="videos-grid__card" key={video.id}>
-          <Link
-            to={generatePath(Routes.VIDEO_DETAILS, { videoId: video.id })}
-            className="videos-grid__link"
-          >
-            <div className="videos-grid__thumb">
-              <VideoStatusTag status={video.status} />
-              <span className="videos-grid__ad-count">
-                {video.adPlacementCount} {video.adPlacementCount === 1 ? 'ad' : 'ads'}
+      {videos.map((video) => {
+        const thumbnailUrl = video.playbackUrl ? getVideoThumbnailUrl(video.playbackUrl) : null;
+
+        return (
+          <div className="videos-grid__card" key={video.id}>
+            <Link
+              to={generatePath(Routes.VIDEO_DETAILS, { videoId: video.id })}
+              className="videos-grid__link"
+            >
+              <div className="videos-grid__thumb">
+                {thumbnailUrl && (
+                  <img src={thumbnailUrl} alt="" className="videos-grid__thumb-image" />
+                )}
+                <VideoStatusTag status={video.status} />
+                <span className="videos-grid__ad-count">
+                  {video.adPlacementCount} {video.adPlacementCount === 1 ? 'ad' : 'ads'}
+                </span>
+                <PlayCircleFilled className="videos-grid__play" />
+              </div>
+
+              <div className="videos-grid__body">
+                <Text strong ellipsis className="videos-grid__title">
+                  {video.title}
+                </Text>
+                <Text type="secondary" ellipsis className="videos-grid__description">
+                  {video.description ?? 'No description'}
+                </Text>
+              </div>
+            </Link>
+
+            <div className="videos-grid__footer">
+              <span>{formatRelativeTime(video.createdAt)}</span>
+              <span className="videos-grid__actions">
+                <Tooltip title="Edit video">
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<EditOutlined />}
+                    onClick={() => onEdit(video)}
+                    aria-label="Edit video"
+                  />
+                </Tooltip>
+                <Tooltip title="Manage ad placements">
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<TagsOutlined />}
+                    disabled={video.status !== VideoStatus.READY}
+                    onClick={() =>
+                      navigate(generatePath(Routes.VIDEO_DETAILS, { videoId: video.id }))
+                    }
+                    aria-label="Manage ad placements"
+                  />
+                </Tooltip>
+                <Tooltip title="Delete video">
+                  <Button
+                    type="text"
+                    size="small"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => onDelete(video)}
+                    aria-label="Delete video"
+                  />
+                </Tooltip>
               </span>
-              <PlayCircleFilled className="videos-grid__play" />
             </div>
-
-            <div className="videos-grid__body">
-              <Text strong ellipsis className="videos-grid__title">
-                {video.title}
-              </Text>
-              <Text type="secondary" ellipsis className="videos-grid__description">
-                {video.description ?? 'No description'}
-              </Text>
-            </div>
-          </Link>
-
-          <div className="videos-grid__footer">
-            <span>{formatRelativeTime(video.createdAt)}</span>
-            <span className="videos-grid__actions">
-              <Tooltip title="Edit video">
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<EditOutlined />}
-                  onClick={() => onEdit(video)}
-                  aria-label="Edit video"
-                />
-              </Tooltip>
-              <Tooltip title="Manage ad placements">
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<TagsOutlined />}
-                  disabled={video.status !== VideoStatus.READY}
-                  onClick={() =>
-                    navigate(generatePath(Routes.VIDEO_DETAILS, { videoId: video.id }))
-                  }
-                  aria-label="Manage ad placements"
-                />
-              </Tooltip>
-              <Tooltip title="Delete video">
-                <Button
-                  type="text"
-                  size="small"
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={() => onDelete(video)}
-                  aria-label="Delete video"
-                />
-              </Tooltip>
-            </span>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
