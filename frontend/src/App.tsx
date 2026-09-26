@@ -18,7 +18,20 @@ export const App = () => {
           <AuthProvider>
             <RouterProvider router={router} />
           </AuthProvider>
-          <Toaster position="top-center" />
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              style: {
+                borderRadius: 12,
+                fontFamily: "'Source Sans 3', sans-serif",
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 8px 20px rgba(15, 23, 42, 0.1)',
+                color: '#0f172a',
+              },
+              success: { style: { borderLeft: '4px solid #16a34a' } },
+              error: { style: { borderLeft: '4px solid #dc2626' } },
+            }}
+          />
         </QueryClientProvider>
       </AntApp>
     </ConfigProvider>

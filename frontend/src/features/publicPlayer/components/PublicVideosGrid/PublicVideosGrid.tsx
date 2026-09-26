@@ -2,7 +2,7 @@ import { generatePath, Link } from 'react-router-dom';
 import { Typography } from 'antd';
 import { PlayCircleFilled, VideoCameraOutlined } from '@ant-design/icons';
 import { Routes } from '../../../../constants/routes.constants';
-import { formatDate } from '../../../../lib/formatDate';
+import { formatRelativeTime } from '../../../../lib/formatRelativeTime';
 import type { PublicVideoSummary } from '../../../../types/playback.types';
 import './PublicVideosGrid.css';
 
@@ -37,8 +37,8 @@ export const PublicVideosGrid = ({ videos }: PublicVideosGridProps) => (
           <Text type="secondary" ellipsis className="public-videos-grid__description">
             {video.description ?? 'No description'}
           </Text>
-          <Text type="secondary" className="public-videos-grid__date mono">
-            {formatDate(video.createdAt)}
+          <Text type="secondary" className="public-videos-grid__date">
+            {formatRelativeTime(video.createdAt)}
           </Text>
         </div>
       </Link>

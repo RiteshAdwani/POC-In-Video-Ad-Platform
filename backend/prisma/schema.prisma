@@ -9,7 +9,6 @@ datasource db {
 }
 
 enum VideoStatus {
-  UPLOADING
   PROCESSING
   READY
   FAILED
@@ -62,7 +61,7 @@ model Video {
   id              String          @id @default(uuid(7))
   title           String
   description     String?
-  status          VideoStatus     @default(UPLOADING)
+  status          VideoStatus     @default(PROCESSING)
   externalId      String? // null until hosting service assigns one
   playbackUrl     String? // null until status is READY
   durationSeconds Float? // null until status is READY - Cloudinary reports it once transcoding finishes

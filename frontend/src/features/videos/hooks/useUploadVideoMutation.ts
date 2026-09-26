@@ -7,6 +7,10 @@ import { handleAxiosSuccess } from '../../../lib/axiosSuccess';
 import type { ApiResponseBody } from '../../../types/apiResponse.types';
 import type { VideoResponseDto } from '../../../dtos/video.dto';
 
+type UploadVideoVariables = {
+  formData: FormData;
+};
+
 /**
  * @description Uploads a new video - multipart, since it carries the actual file alongside its
  * title/description. The caller builds the FormData (see VideosPage); this just posts it.
@@ -17,7 +21,7 @@ export const useUploadVideoMutation = () => {
 
   return useMutation({
     mutationKey: [QueryKeys.VIDEOS],
-    mutationFn: (formData: FormData) =>
+    mutationFn: ({ formData }: UploadVideoVariables) =>
       axiosInstance.post<ApiResponseBody<VideoResponseDto>>(ApiRoutes.createVideo(), formData),
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.VIDEOS] });

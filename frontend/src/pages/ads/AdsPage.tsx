@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Flex, Result, Typography } from 'antd';
+import { Button, Empty, Flex, Result, Typography } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { ModalMode } from '../../constants/modalMode.constants';
 import { AdsGrid } from '../../features/ads/components/AdsGrid/AdsGrid';
@@ -99,8 +99,16 @@ export const AdsPage = () => {
     content = (
       <Result status="error" title="Couldn't load ads" subTitle="Please try again shortly." />
     );
+  } else if (!ads || ads.length === 0) {
+    content = (
+      <Empty description="No ads yet">
+        <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
+          Create your first ad
+        </Button>
+      </Empty>
+    );
   } else {
-    content = <AdsGrid ads={ads ?? []} onEdit={openEditModal} onDelete={confirmDeleteAd} />;
+    content = <AdsGrid ads={ads} onEdit={openEditModal} onDelete={confirmDeleteAd} />;
   }
 
   return (

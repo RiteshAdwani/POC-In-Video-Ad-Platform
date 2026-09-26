@@ -3,7 +3,7 @@ import { Button, Tooltip, Typography } from 'antd';
 import { DeleteOutlined, EditOutlined, PlayCircleFilled, TagsOutlined } from '@ant-design/icons';
 import { Routes } from '../../../../constants/routes.constants';
 import { VideoStatus } from '../../../../constants/video.constants';
-import { formatDate } from '../../../../lib/formatDate';
+import { formatRelativeTime } from '../../../../lib/formatRelativeTime';
 import type { Video } from '../../../../types/video.types';
 import { VideoStatusTag } from '../../../../components/VideoStatusTag/VideoStatusTag';
 import './VideosGrid.css';
@@ -52,7 +52,7 @@ export const VideosGrid = ({ videos, onEdit, onDelete }: VideosGridProps) => {
           </Link>
 
           <div className="videos-grid__footer">
-            <span className="mono">{formatDate(video.createdAt)}</span>
+            <span>{formatRelativeTime(video.createdAt)}</span>
             <span className="videos-grid__actions">
               <Tooltip title="Edit video">
                 <Button

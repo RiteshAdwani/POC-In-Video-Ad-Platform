@@ -7,10 +7,6 @@
   color: #ffffff;
 }
 
-.video-status-tag[data-status='UPLOADING'] {
-  background: #475569;
-}
-
 .video-status-tag[data-status='PROCESSING'] {
   background: #0369a1;
 }
