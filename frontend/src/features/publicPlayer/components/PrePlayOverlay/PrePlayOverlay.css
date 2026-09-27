@@ -1,0 +1,43 @@
+.pre-play-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: linear-gradient(135deg, #0f172a, #0369a1);
+}
+
+.pre-play-overlay__image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pre-play-overlay__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  transition: background 0.2s ease;
+}
+
+.pre-play-overlay:hover .pre-play-overlay__scrim {
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.pre-play-overlay__icon {
+  position: relative;
+  font-size: 72px;
+  color: #ffffff;
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.45));
+  transition: transform 0.2s ease;
+}
+
+.pre-play-overlay:hover .pre-play-overlay__icon {
+  transform: scale(1.08);
+}

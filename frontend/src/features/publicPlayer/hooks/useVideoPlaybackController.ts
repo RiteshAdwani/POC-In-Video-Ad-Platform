@@ -33,6 +33,15 @@ export const useVideoPlaybackController = (
   const [bannerSecondsRemaining, setBannerSecondsRemaining] = useState<number | null>(null);
   const [preRollAppliedFor, setPreRollAppliedFor] = useState<PlaybackConfig | undefined>(undefined);
 
+  // Drives the custom control bar's seek track - the main video's own duration isn't part of
+  // playbackConfig, so it's read off the <video> element itself once its metadata loads.
+  const [mainVideoDuration, setMainVideoDuration] = useState<number | null>(null);
+  const [mainVideoCurrentTime, setMainVideoCurrentTime] = useState(0);
+
+  // Reflects the native <video>'s own paused/playing state for the custom control bar's play/pause
+  // icon - there are no native controls left to show this once removed.
+  const [isPlaying, setIsPlaying] = useState(false);
+
   // Controls stay visible until the viewer's first real play, even with a pre-roll already
   // loaded - autoplay is blocked without a genuine click, so hiding controls before then would
   // strand them with no way to start anything.
@@ -121,6 +130,7 @@ export const useVideoPlaybackController = (
 
     hasEngagedRef.current = true;
     setHasEngaged(true);
+    setIsPlaying(true);
 
     if (activeAd) {
       if (!shownAdPlacementIdsRef.current.has(activeAd.id)) {
@@ -160,6 +170,50 @@ export const useVideoPlaybackController = (
     }
     logEvent(PlaybackEventType.VIDEO_FINISHED);
     videoEndedRef.current = true;
+  };
+
+  /**
+   * @description Captures the main video's own duration the moment its metadata loads - ignored
+   * while an ad is loaded into the same <video> element, since its duration is the ad's, not the
+   * main content's.
+   */
+  const handleMediaLoadedMetadata = () => {
+    if (activeAd) return;
+    const duration = videoRef.current?.duration;
+    if (duration !== undefined && Number.isFinite(duration)) setMainVideoDuration(duration);
+  };
+
+  /**
+   * @description Reflects the native pause event (a deliberate pause, or reaching the end) in the
+   * custom control bar's play/pause icon.
+   */
+  const handleMediaPause = () => setIsPlaying(false);
+
+  /**
+   * @description Toggles play/pause on the underlying <video> - the custom control bar's play
+   * button, replacing the native control the app no longer renders.
+   */
+  const handleTogglePlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      void video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  };
+
+  /**
+   * @description Jumps the main video to an exact position from the custom control bar's seek
+   * track. Safe against landing anywhere: checkForMidRoll/checkForBanner compare the new position
+   * against each ad's offset on every tick rather than watching for one specific instant, so a seek
+   * still triggers whichever ad is next due, same as normal playback would.
+   */
+  const handleSeek = (seconds: number) => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.currentTime = seconds;
+    setMainVideoCurrentTime(seconds);
   };
 
   /**
@@ -257,6 +311,7 @@ export const useVideoPlaybackController = (
       updateAdProgress(video, currentTime);
       return;
     }
+    setMainVideoCurrentTime(currentTime);
     if (checkForMidRoll(currentTime)) return;
     if (!activeBanner) checkForBanner(video, currentTime);
   };
@@ -300,10 +355,17 @@ export const useVideoPlaybackController = (
     skipInSeconds,
     bannerSecondsRemaining,
     hasEngaged,
+    mainVideoDuration,
+    mainVideoCurrentTime,
+    isPlaying,
     handleMediaPlay,
     handleMediaEnded,
+    handleMediaPause,
     handleMediaError,
+    handleMediaLoadedMetadata,
     handleMediaTimeUpdate,
+    handleTogglePlay,
+    handleSeek,
     handleSkipClick,
     handleAdClick,
     handleBannerClick,
