@@ -13,8 +13,10 @@ import {
 // would only see this router's own params (:id), not the parent's :videoId.
 export const adPlacementsRouter = Router({ mergeParams: true });
 
+// findFirst, not findUnique - a retired (soft-deleted) video must be treated as not found here
+// too, same as videos.routes.ts's own instance of this same fetcher.
 const requireVideoOwnership = requireOwnership(
-  (id) => prisma.video.findUnique({ where: { id } }),
+  (id) => prisma.video.findFirst({ where: { id, deletedAt: null } }),
   'videoId',
 );
 

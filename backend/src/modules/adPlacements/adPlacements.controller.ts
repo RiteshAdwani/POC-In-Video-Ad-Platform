@@ -1,13 +1,8 @@
 import type { RequestHandler } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { prisma } from '../../lib/prisma';
-import {
-  Prisma,
-  type Advertisement,
-  type AdPlacement,
-  type Video,
-} from '../../generated/prisma/client.js';
-import { ConflictError, NotFoundError } from '../../errors/AppError';
+import type { Advertisement, AdPlacement, Video } from '../../generated/prisma/client.js';
+import { NotFoundError } from '../../errors/AppError';
 import { ErrorMessages } from '../../constants/errorMessages.constants';
 import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants';
 import { createAdPlacementSchema, updateAdPlacementSchema } from './adPlacements.schema';
@@ -42,14 +37,15 @@ export const createAdPlacement: RequestHandler = async (req, res) => {
 };
 
 /**
- * @description Lists every ad placement on a video. requireOwnership already verified the video.
+ * @description Lists every currently-active ad placement on a video (excludes retired/soft-
+ * deleted ones - see deleteAdPlacement). requireOwnership already verified the video.
  */
 export const listAdPlacements: RequestHandler = async (req, res) => {
   const video = req.resource as Video;
 
   // Fetch all Ad placements
   const adPlacements = await prisma.adPlacement.findMany({
-    where: { videoId: video.id },
+    where: { videoId: video.id, deletedAt: null },
     include: { advertisement: true },
     orderBy: { startOffsetSeconds: 'asc' },
   });
@@ -60,14 +56,15 @@ export const listAdPlacements: RequestHandler = async (req, res) => {
 };
 
 /**
- * @description Lists every placement of one advertisement, across all the videos it's on - the
- * mirror of listAdPlacements. requireOwnership already verified the advertisement.
+ * @description Lists every currently-active placement of one advertisement, across all the
+ * videos it's on - the mirror of listAdPlacements. requireOwnership already verified the
+ * advertisement.
  */
 export const listAdPlacementsForAdvertisement: RequestHandler = async (req, res) => {
   const advertisement = req.resource as Advertisement;
 
   const adPlacements = await prisma.adPlacement.findMany({
-    where: { advertisementId: advertisement.id },
+    where: { advertisementId: advertisement.id, deletedAt: null },
     include: { video: true },
     orderBy: { createdAt: 'desc' },
   });
@@ -105,20 +102,18 @@ export const updateAdPlacement: RequestHandler = async (req, res) => {
 };
 
 /**
- * @description Removes an Ad placement. requireOwnership already fetched and verified it.
+ * @description Retires an ad placement - a soft delete (sets deletedAt), never a real row
+ * deletion. A hard delete would be permanently blocked by onDelete: Restrict the moment any
+ * PlaybackEvent/DailyCount row references this placement, and even before that point, physically
+ * removing the row is never actually necessary: every admin-facing query already filters
+ * deletedAt: null, so a retired placement simply stops appearing anywhere active, while its past
+ * analytics stay exactly as valid as they were before. requireOwnership already fetched and
+ * verified it.
  */
 export const deleteAdPlacement: RequestHandler = async (req, res) => {
   const existing = req.resource as AdPlacement;
 
-  try {
-    await prisma.adPlacement.delete({ where: { id: existing.id } });
-  } catch (error) {
-    // P2003: foreign key constraint failed - PlaybackEvent rows still reference this placement.
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
-      throw new ConflictError(ErrorMessages.AD_PLACEMENT_IN_USE);
-    }
-    throw error;
-  }
+  await prisma.adPlacement.update({ where: { id: existing.id }, data: { deletedAt: new Date() } });
 
   res.status(StatusCodes.OK).json({ data: null, message: ApiSuccessMessages.AD_PLACEMENT_DELETED });
 };
