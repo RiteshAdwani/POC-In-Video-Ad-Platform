@@ -12,6 +12,7 @@ export type AdPlacement = {
     id: string;
     title: string;
     assetType: AssetType;
+    assetUrl: string;
   };
 };
 

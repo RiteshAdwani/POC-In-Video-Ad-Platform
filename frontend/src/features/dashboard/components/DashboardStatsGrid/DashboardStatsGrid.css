@@ -24,14 +24,15 @@
 }
 
 .dashboard-stats-grid__section-bar--primary {
-  background: #0369a1;
+  background: #2563eb;
 }
 
 .dashboard-stats-grid__section-bar--success {
-  background: #16a34a;
+  background: #059669;
 }
 
 .dashboard-stats-grid__card {
+  height: 100%;
   transition: box-shadow 0.2s ease;
 }
 
@@ -47,15 +48,42 @@
   height: 36px;
   margin-bottom: 12px;
   border-radius: 50%;
-  font-size: 16px;
+  font-size: 15px;
 }
 
 .dashboard-stats-grid__icon--primary {
-  background: #e0f2fe;
-  color: #0369a1;
+  background: #eff6ff;
+  color: #2563eb;
 }
 
 .dashboard-stats-grid__icon--success {
-  background: #dcfce7;
-  color: #16a34a;
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.dashboard-stats-grid__explainer-icon {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.dashboard-stats-grid__card .ant-statistic-title {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: #64748b;
+  margin-bottom: 2px;
+}
+
+.dashboard-stats-grid__card .ant-statistic-content {
+  font-size: 24px;
+  font-weight: 600;
+  font-family: 'IBM Plex Mono', monospace;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-stats-grid__caption {
+  display: block;
+  font-size: 12px;
+  margin-top: 4px;
 }

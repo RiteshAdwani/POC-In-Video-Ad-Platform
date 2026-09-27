@@ -1,0 +1,69 @@
+.video-stats-widget {
+  margin-bottom: 32px;
+}
+
+.video-stats-widget__tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 160px;
+  min-width: 160px;
+  padding-right: 24px;
+  border-right: 1px solid #e2e8f0;
+}
+
+.video-stats-widget__tile:last-child {
+  padding-right: 0;
+  border-right: none;
+}
+
+.video-stats-widget__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 8px;
+  border-radius: 50%;
+  font-size: 14px;
+}
+
+.video-stats-widget__icon--plays {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.video-stats-widget__icon--finished {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.video-stats-widget__icon--early {
+  background: #f5f3ff;
+  color: #7c3aed;
+}
+
+.video-stats-widget__label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.video-stats-widget__value {
+  font-size: 22px;
+  font-weight: 600;
+  font-family: 'IBM Plex Mono', monospace;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+.video-stats-widget__sparkline {
+  width: 100%;
+  max-width: 280px;
+  height: 32px;
+  margin-top: 6px;
+}
+
+.video-stats-widget__caption {
+  font-size: 12px;
+}

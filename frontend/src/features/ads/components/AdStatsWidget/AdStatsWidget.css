@@ -1,0 +1,74 @@
+.ad-stats-widget {
+  margin-bottom: 32px;
+}
+
+.ad-stats-widget__tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 160px;
+  min-width: 160px;
+  padding-right: 24px;
+  border-right: 1px solid #e2e8f0;
+}
+
+.ad-stats-widget__tile:last-child {
+  padding-right: 0;
+  border-right: none;
+}
+
+.ad-stats-widget__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 8px;
+  border-radius: 50%;
+  font-size: 14px;
+}
+
+.ad-stats-widget__icon--impressions {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.ad-stats-widget__icon--completion {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.ad-stats-widget__icon--skip {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.ad-stats-widget__icon--ctr {
+  background: #f5f3ff;
+  color: #7c3aed;
+}
+
+.ad-stats-widget__label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.ad-stats-widget__value {
+  font-size: 22px;
+  font-weight: 600;
+  font-family: 'IBM Plex Mono', monospace;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+.ad-stats-widget__sparkline {
+  width: 100%;
+  max-width: 280px;
+  height: 32px;
+  margin-top: 6px;
+}
+
+.ad-stats-widget__caption {
+  font-size: 12px;
+}

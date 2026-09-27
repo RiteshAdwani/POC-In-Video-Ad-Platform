@@ -6,6 +6,7 @@ export const dashboardQuerySchema = z
     endDate: z.coerce.date(),
     videoId: z.uuid().optional(),
     adPlacementId: z.uuid().optional(),
+    advertisementId: z.uuid().optional(),
   })
   .refine((query) => query.startDate <= query.endDate, {
     path: ['endDate'],
@@ -14,4 +15,8 @@ export const dashboardQuerySchema = z
   .refine((query) => !query.adPlacementId || query.videoId, {
     path: ['adPlacementId'],
     message: 'adPlacementId requires videoId',
+  })
+  .refine((query) => !query.advertisementId || (!query.videoId && !query.adPlacementId), {
+    path: ['advertisementId'],
+    message: 'advertisementId cannot be combined with videoId/adPlacementId',
   });
