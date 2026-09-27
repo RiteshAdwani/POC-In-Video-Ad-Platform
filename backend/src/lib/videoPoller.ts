@@ -43,7 +43,7 @@ export const startVideoPoller = (): NodeJS.Timeout => {
         let processingVideos;
         try {
           processingVideos = await prisma.video.findMany({
-            where: { status: VideoStatus.PROCESSING },
+            where: { status: VideoStatus.PROCESSING, deletedAt: null },
           });
         } catch (error) {
           // Same "log and retry next tick" treatment as a single video's check failing below -

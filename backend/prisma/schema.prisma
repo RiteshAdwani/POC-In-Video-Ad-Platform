@@ -67,6 +67,10 @@ model Video {
   durationSeconds Float? // null until status is READY - Cloudinary reports it once transcoding finishes
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
+  // Soft-delete only - same reasoning as AdPlacement.deletedAt: a hard delete is permanently
+  // blocked by onDelete: Restrict on AdPlacement/PlaybackEvent/DailyCount the moment any of them
+  // reference this video, since every video that's ever actually been watched has at least one.
+  deletedAt       DateTime?
   authorId        String
   author          Admin           @relation(fields: [authorId], references: [id])
   adPlacements    AdPlacement[]
@@ -98,6 +102,12 @@ model AdPlacement {
   skipAfterSeconds   Int? // null = not skippable
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
+  // Soft-delete only - a hard delete is permanently blocked by onDelete: Restrict below the moment
+  // any PlaybackEvent/DailyCount row references this placement, since removing the row would
+  // either destroy or silently corrupt real analytics history. "Deleting" a placement instead sets
+  // this timestamp; every admin-facing query filters deletedAt: null, while the dashboard's own
+  // historical queries never need to (a retired placement's past events are still real facts).
+  deletedAt          DateTime?
   videoId            String
   video              Video           @relation(fields: [videoId], references: [id])
   advertisementId    String

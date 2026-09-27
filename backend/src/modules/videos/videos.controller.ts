@@ -2,9 +2,9 @@ import type { RequestHandler } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { prisma } from '../../lib/prisma';
 import { initiateVideoUpload, deleteVideoResource } from '../../lib/cloudinary';
-import { Prisma, type Video } from '../../generated/prisma/client.js';
+import type { Video } from '../../generated/prisma/client.js';
 import { VideoStatus } from '../../generated/prisma/client.js';
-import { ConflictError, UpstreamServiceError, ValidationError } from '../../errors/AppError';
+import { UpstreamServiceError, ValidationError } from '../../errors/AppError';
 import { ErrorMessages } from '../../constants/errorMessages.constants';
 import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants';
 import { createVideoSchema, updateVideoSchema } from './videos.schema';
@@ -70,11 +70,12 @@ export const getVideoStatus: RequestHandler = async (req, res) => {
 };
 
 /**
- * @description Lists every video owned by the calling admin - never other admins' videos.
+ * @description Lists every currently-active video owned by the calling admin (excludes
+ * retired/soft-deleted ones - see deleteVideo) - never other admins' videos.
  */
 export const listVideos: RequestHandler = async (req, res) => {
   const videos = await prisma.video.findMany({
-    where: { authorId: req.admin!.id },
+    where: { authorId: req.admin!.id, deletedAt: null },
     orderBy: { createdAt: 'desc' },
     ...WITH_AD_PLACEMENT_COUNT,
   });
@@ -121,23 +122,19 @@ export const updateVideo: RequestHandler = async (req, res) => {
 };
 
 /**
- * @description Deletes a video. requireOwnership already fetched and verified it. The DB row is
- * removed first (the source of truth); the Cloudinary asset cleanup is best-effort afterward, same
- * as the poller's own FAILED-video cleanup - a dangling asset is a storage cost, not a correctness
- * bug.
+ * @description Retires a video - a soft delete (sets deletedAt), never a real row deletion. A
+ * hard delete would be permanently blocked by onDelete: Restrict the moment any AdPlacement/
+ * PlaybackEvent/DailyCount row references it (i.e. any video that's ever actually been watched),
+ * and physically removing the row was never actually necessary either way: every admin- and
+ * public-facing query already filters deletedAt: null, so a retired video simply stops appearing
+ * anywhere active while its history stays intact. requireOwnership already fetched and verified
+ * it. The Cloudinary asset cleanup below still runs the same as before - the file itself is a
+ * storage cost with no analytics value once nothing can reach it anymore.
  */
 export const deleteVideo: RequestHandler = async (req, res) => {
   const existing = req.resource as Video;
 
-  try {
-    await prisma.video.delete({ where: { id: existing.id } });
-  } catch (error) {
-    // P2003: foreign key constraint failed - still-referenced by an AdPlacement or PlaybackEvent.
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
-      throw new ConflictError(ErrorMessages.VIDEO_IN_USE);
-    }
-    throw error;
-  }
+  await prisma.video.update({ where: { id: existing.id }, data: { deletedAt: new Date() } });
 
   if (existing.externalId) {
     try {

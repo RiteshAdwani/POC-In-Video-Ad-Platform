@@ -15,7 +15,11 @@ import {
 
 export const videosRouter = Router();
 
-const requireVideoOwnership = requireOwnership((id) => prisma.video.findUnique({ where: { id } }));
+// findFirst, not findUnique - a retired (soft-deleted) video must be treated as not found by
+// every route this guards, the same as one that doesn't exist or isn't owned by the caller.
+const requireVideoOwnership = requireOwnership((id) =>
+  prisma.video.findFirst({ where: { id, deletedAt: null } }),
+);
 
 videosRouter.post('/', requireAuth, videoUpload.single('video'), uploadVideoHandler);
 videosRouter.get('/', requireAuth, listVideos);

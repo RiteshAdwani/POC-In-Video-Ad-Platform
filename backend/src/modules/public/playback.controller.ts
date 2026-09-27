@@ -15,9 +15,13 @@ export const getPlaybackConfig: RequestHandler = async (req, res) => {
   // ParamsDictionary typing it as string | string[].
   const videoId = req.params.id as string;
 
-  const video = await prisma.video.findUnique({
-    where: { id: videoId },
-    include: { adPlacements: { include: { advertisement: true } } },
+  // findFirst, not findUnique - a retired (soft-deleted) video must 404 here exactly like one
+  // that never existed, same as requireOwnership already does for the admin side.
+  const video = await prisma.video.findFirst({
+    where: { id: videoId, deletedAt: null },
+    // Excludes retired (soft-deleted) placements - a viewer should never be served an ad the
+    // admin has since taken down, even though its past playback history stays intact elsewhere.
+    include: { adPlacements: { where: { deletedAt: null }, include: { advertisement: true } } },
   });
 
   if (!video) {

@@ -16,8 +16,6 @@ export const ErrorMessages = {
   BANNER_NOT_SKIPPABLE: 'Banner overlay placements cannot be skipped',
   ADVERTISEMENT_NOT_FOUND: 'Advertisement not found',
   ADVERTISEMENT_IN_USE: 'Cannot delete an advertisement that is still placed on one or more videos',
-  VIDEO_IN_USE: 'Cannot delete a video that still has ad placements or recorded playback events',
-  AD_PLACEMENT_IN_USE: 'Cannot delete a placement that has recorded playback events',
   INVALID_PREROLL_OFFSET: 'Pre-roll placements must have startOffsetSeconds = 0',
   INVALID_MIDROLL_OFFSET: 'Mid-roll placements must have startOffsetSeconds > 0',
   MISSING_BANNER_DURATION: 'Banner placements require durationSeconds',

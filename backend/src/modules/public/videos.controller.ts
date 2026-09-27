@@ -11,7 +11,7 @@ import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants
  */
 export const listPublicVideos: RequestHandler = async (_req, res) => {
   const videos = await prisma.video.findMany({
-    where: { status: VideoStatus.READY },
+    where: { status: VideoStatus.READY, deletedAt: null },
     select: { id: true, title: true, description: true, createdAt: true, playbackUrl: true },
     orderBy: { createdAt: 'desc' },
   });
