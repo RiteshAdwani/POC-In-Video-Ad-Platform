@@ -6,9 +6,12 @@ import { useVideoPlaybackController } from '../../features/publicPlayer/hooks/us
 import { AdControls } from '../../features/publicPlayer/components/AdControls/AdControls';
 import { BannerOverlay } from '../../features/publicPlayer/components/BannerOverlay/BannerOverlay';
 import { PlaybackStatusScreen } from '../../features/publicPlayer/components/PlaybackStatusScreen';
+import { PrePlayOverlay } from '../../features/publicPlayer/components/PrePlayOverlay/PrePlayOverlay';
+import { PlayerControls } from '../../features/publicPlayer/components/PlayerControls/PlayerControls';
 import { VideoStatus } from '../../constants/video.constants';
 import { PlaybackScreenStatus } from '../../constants/playback.constants';
 import { Routes } from '../../constants/routes.constants';
+import { getVideoThumbnailUrl } from '../../lib/videoThumbnail';
 import './PublicPlayerPage.css';
 
 const { Title, Text } = Typography;
@@ -57,12 +60,23 @@ export const PublicPlayerPage = () => {
         <video
           ref={videoRef}
           className="player-page__video"
-          controls={!player.activeAd || !player.hasEngaged}
           onPlay={player.handleMediaPlay}
+          onPause={player.handleMediaPause}
           onEnded={player.handleMediaEnded}
           onTimeUpdate={player.handleMediaTimeUpdate}
           onError={player.handleMediaError}
+          onLoadedMetadata={player.handleMediaLoadedMetadata}
         />
+
+        {!player.hasEngaged && (
+          <PrePlayOverlay
+            thumbnailUrl={
+              playbackConfig.playbackUrl ? getVideoThumbnailUrl(playbackConfig.playbackUrl) : null
+            }
+            title={playbackConfig.title}
+            onPlay={player.handleTogglePlay}
+          />
+        )}
 
         {player.activeAd && (
           <AdControls
@@ -80,6 +94,17 @@ export const PublicPlayerPage = () => {
             banner={player.activeBanner}
             secondsRemaining={player.bannerSecondsRemaining}
             onClick={player.handleBannerClick}
+          />
+        )}
+
+        {player.hasEngaged && !player.activeAd && player.mainVideoDuration && (
+          <PlayerControls
+            ads={playbackConfig.ads}
+            durationSeconds={player.mainVideoDuration}
+            currentTime={player.mainVideoCurrentTime}
+            isPlaying={player.isPlaying}
+            onTogglePlay={player.handleTogglePlay}
+            onSeek={player.handleSeek}
           />
         )}
       </div>
