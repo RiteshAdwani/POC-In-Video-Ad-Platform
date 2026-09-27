@@ -5,6 +5,7 @@ import { Button, Result } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { Routes } from '../../constants/routes.constants';
 import { VideoPreviewHeader } from '../../features/videos/components/VideoPreviewHeader/VideoPreviewHeader';
+import { VideoStatsWidget } from '../../features/videos/components/VideoStatsWidget/VideoStatsWidget';
 import { AdPlacementsSection } from '../../features/videos/components/AdPlacementsSection/AdPlacementsSection';
 import { CreateEditAdPlacementModal } from '../../features/videos/components/CreateEditAdPlacementModal/CreateEditAdPlacementModal';
 import { AdPlacementFormFields } from '../../features/videos/components/CreateEditAdPlacementModal/CreateEditAdPlacementModal.constants';
@@ -166,8 +167,11 @@ export const VideoDetailsPage = () => {
 
       <VideoPreviewHeader video={video} onEdit={handleOpen} onDelete={handleDelete} />
 
+      <VideoStatsWidget videoId={video.id} />
+
       <AdPlacementsSection
         adPlacements={adPlacements}
+        videoId={video.id}
         videoStatus={video.status}
         onAdd={handleAddAdPlacement}
         onEdit={handleEditAdPlacement}

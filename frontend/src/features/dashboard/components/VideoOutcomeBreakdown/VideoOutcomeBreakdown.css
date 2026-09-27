@@ -1,0 +1,23 @@
+.video-outcome-breakdown__caption {
+  font-size: 12px;
+  text-align: center;
+}
+
+.video-outcome-breakdown__chart {
+  width: 100%;
+}
+
+.video-outcome-breakdown__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.video-outcome-breakdown__dot--finished {
+  background-color: #2563eb;
+}
+
+.video-outcome-breakdown__dot--early {
+  background-color: #ec4899;
+}

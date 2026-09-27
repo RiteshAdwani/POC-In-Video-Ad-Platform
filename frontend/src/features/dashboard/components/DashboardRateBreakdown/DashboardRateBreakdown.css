@@ -9,12 +9,45 @@
   flex-shrink: 0;
 }
 
-.dashboard-rate-breakdown__icon--primary {
-  background: #e0f2fe;
-  color: #0369a1;
+.dashboard-rate-breakdown__icon--success {
+  background: #ecfdf5;
+  color: #059669;
 }
 
-.dashboard-rate-breakdown__icon--success {
-  background: #dcfce7;
-  color: #16a34a;
+.dashboard-rate-breakdown__icon--warning {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.dashboard-rate-breakdown__icon--accent {
+  background: #f5f3ff;
+  color: #7c3aed;
+}
+
+.dashboard-rate-breakdown__label {
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.dashboard-rate-breakdown__explainer {
+  font-size: 12px;
+}
+
+.dashboard-rate-breakdown__value {
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.dashboard-rate-breakdown__percent {
+  white-space: nowrap;
+  font-size: 18px;
+  font-weight: 600;
+  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  color: #0f172a;
+}
+
+.dashboard-rate-breakdown__count {
+  font-size: 12px;
+  white-space: nowrap;
 }

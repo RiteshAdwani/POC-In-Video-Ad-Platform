@@ -5,7 +5,9 @@ import { useDashboardDateRange } from '../../features/dashboard/hooks/useDashboa
 import { DashboardFilters } from '../../features/dashboard/components/DashboardFilters/DashboardFilters';
 import { DashboardStatsGrid } from '../../features/dashboard/components/DashboardStatsGrid/DashboardStatsGrid';
 import { DashboardTrendChart } from '../../features/dashboard/components/DashboardTrendChart/DashboardTrendChart';
+import { VideoTrendChart } from '../../features/dashboard/components/VideoTrendChart/VideoTrendChart';
 import { DashboardOutcomeBreakdown } from '../../features/dashboard/components/DashboardOutcomeBreakdown/DashboardOutcomeBreakdown';
+import { VideoOutcomeBreakdown } from '../../features/dashboard/components/VideoOutcomeBreakdown/VideoOutcomeBreakdown';
 import { DashboardRateBreakdown } from '../../features/dashboard/components/DashboardRateBreakdown/DashboardRateBreakdown';
 import './DashboardPage.css';
 
@@ -34,12 +36,18 @@ export const DashboardPage = () => {
     content = (
       <>
         <DashboardStatsGrid stats={data} />
-        <DashboardTrendChart series={data.series} />
+        <Flex vertical gap={16} className="dashboard-page__trend-charts">
+          <DashboardTrendChart series={data.series} />
+          <VideoTrendChart series={data.series} />
+        </Flex>
         <Row gutter={[16, 16]} className="dashboard-page__insights-row">
-          <Col xs={24} lg={12}>
+          <Col xs={24} lg={8}>
+            <VideoOutcomeBreakdown stats={data} />
+          </Col>
+          <Col xs={24} lg={8}>
             <DashboardRateBreakdown stats={data} />
           </Col>
-          <Col xs={24} lg={12}>
+          <Col xs={24} lg={8}>
             <DashboardOutcomeBreakdown stats={data} />
           </Col>
         </Row>

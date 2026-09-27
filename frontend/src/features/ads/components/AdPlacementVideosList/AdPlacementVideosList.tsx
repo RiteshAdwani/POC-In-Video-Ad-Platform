@@ -6,20 +6,28 @@ import { Routes } from '../../../../constants/routes.constants';
 import { formatDuration } from '../../../../lib/formatDuration';
 import { formatDurationOrSkip } from '../../../../lib/formatDurationOrSkip';
 import type { AdPlacementWithVideo } from '../../../../types/adPlacement.types';
+import { AdPlacementRowStat } from '../../../../components/AdPlacementRowStat/AdPlacementRowStat';
 import './AdPlacementVideosList.css';
 
 const { Text } = Typography;
 
 type AdPlacementVideosListProps = {
   items: AdPlacementWithVideo[];
+  startDate: string;
+  endDate: string;
 };
 
 /**
  * @description Row-per-video list of everywhere an ad is placed - the mirror image of
  * `AdPlacementsList` (which lists a video's ads), linking each row through to that video's own
- * details page.
+ * details page. Each row also carries its own performance line for the given window, via the same
+ * AdPlacementRowStat used on the video side.
  */
-export const AdPlacementVideosList = ({ items }: AdPlacementVideosListProps) => (
+export const AdPlacementVideosList = ({
+  items,
+  startDate,
+  endDate,
+}: AdPlacementVideosListProps) => (
   <div className="ad-placement-videos-list">
     {items.map((adPlacement) => (
       <Link
@@ -44,6 +52,12 @@ export const AdPlacementVideosList = ({ items }: AdPlacementVideosListProps) => 
           <Text type="secondary" className="ad-placement-videos-list__meta">
             {formatDurationOrSkip(adPlacement)}
           </Text>
+          <AdPlacementRowStat
+            videoId={adPlacement.video.id}
+            adPlacementId={adPlacement.id}
+            startDate={startDate}
+            endDate={endDate}
+          />
         </div>
       </Link>
     ))}

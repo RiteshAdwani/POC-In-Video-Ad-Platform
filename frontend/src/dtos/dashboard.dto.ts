@@ -5,6 +5,7 @@ export type GetDashboardRequestDto = {
   endDate: string;
   videoId?: string;
   adPlacementId?: string;
+  advertisementId?: string;
 };
 
 export type DashboardResponseDto = DashboardStats & { series: DashboardSeriesPoint[] };
