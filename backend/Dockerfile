@@ -32,27 +32,27 @@ RUN npm run build --workspace=backend
 # No TypeScript, no dev tooling, no .ts source files end up in here.
 FROM node:22-alpine AS runtime
 WORKDIR /repo
+
+# Hand /repo off to the non-root "node" user now, while it's still empty, and switch to it before
+# anything gets installed - so npm ci (and every COPY --chown below) creates files already owned
+# by node, and node_modules never needs a later chown. Doing this chown after npm ci instead (on
+# an already-populated ~500MB node_modules) would force Docker to rewrite nearly every file's
+# metadata into a new layer, nearly doubling the image for an ownership-only change.
+RUN chown node:node /repo
+USER node
 ENV NODE_ENV=production
 
-COPY package.json package-lock.json ./
-COPY backend/package.json ./backend/package.json
-COPY frontend/package.json ./frontend/package.json
+COPY --chown=node:node package.json package-lock.json ./
+COPY --chown=node:node backend/package.json ./backend/package.json
+COPY --chown=node:node frontend/package.json ./frontend/package.json
 RUN npm ci --workspace=backend --ignore-scripts --omit=dev
 
-COPY --from=builder /repo/backend/dist ./backend/dist
+COPY --chown=node:node --from=builder /repo/backend/dist ./backend/dist
 # migrate deploy (run below, on every container start) needs the schema, migration history, and
 # prisma.config.ts (Prisma 7 reads the datasource URL from there, not schema.prisma directly) -
 # none of that is part of dist, so it's copied straight from source, not the builder stage output.
-COPY backend/prisma ./backend/prisma
-COPY backend/prisma.config.ts ./backend/prisma.config.ts
-
-# node_modules was just created by npm ci above, as root - migrate deploy still needs to write
-# an engine binary into node_modules/@prisma/engines the first time it runs (skipped at install
-# time by --ignore-scripts), which fails under the non-root user below without this.
-RUN chown -R node:node /repo/node_modules
-
-# The base image ships a non-root "node" user for exactly this purpose.
-USER node
+COPY --chown=node:node backend/prisma ./backend/prisma
+COPY --chown=node:node backend/prisma.config.ts ./backend/prisma.config.ts
 
 EXPOSE 8000
 # Applies any pending migration before the server starts accepting traffic - this project has no
