@@ -10,6 +10,10 @@ server {
     # "http://backend:<port>" locally, or the backend's real public URL once each service is its
     # own deployment (e.g. on Render, where the two no longer share a private network).
     location /api/ {
+        # Matches the backend's own MAX_VIDEO_SIZE_BYTES (100 MB) with headroom for multipart
+        # overhead - nginx's 1MB default otherwise rejects any real video upload before the
+        # request ever reaches the backend's own (higher) limit.
+        client_max_body_size 105m;
         proxy_pass ${BACKEND_ORIGIN}/api/;
         proxy_ssl_server_name on;
         proxy_set_header Host $proxy_host;
