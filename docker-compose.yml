@@ -32,6 +32,11 @@ services:
       # host machine) with the in-network hostname - the "postgres" service is reachable by that
       # name only from other containers on this compose network, not from the host.
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      # Overrides .env's NODE_ENV=development (meant for running the backend directly on the
+      # host) - the image's own ENV NODE_ENV=production otherwise gets silently clobbered by
+      # env_file below, which flips the logger to pino-pretty (a devDependency, not present in
+      # this production image) and crashes the container on every start.
+      NODE_ENV: production
     depends_on:
       postgres:
         condition: service_healthy
@@ -51,21 +56,21 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
-    environment:
-      # Read by nginx.conf.template (via envsubst) - the "backend" hostname only resolves on
-      # this compose network. A real deployment (e.g. Render) sets this to the backend's public
-      # URL instead, since the two services don't share a private network there.
-      BACKEND_ORIGIN: http://backend:${PORT}
+      args:
+        # Baked into the JS bundle at build time (see Dockerfile) - the backend's port is already
+        # published to the host below, so the browser can reach it directly at this address, the
+        # same way it reaches the backend's real public URL directly in production.
+        VITE_API_BASE_URL: http://localhost:${PORT}
     ports:
-      - '5173:80'
+      - '5173:3000'
     depends_on:
       backend:
         condition: service_healthy
     healthcheck:
-      # 127.0.0.1, not localhost - BusyBox wget resolves "localhost" to ::1 (IPv6) first, but
-      # nginx's "listen 80" only binds IPv4, so that lookup order alone was enough to make an
-      # otherwise-working nginx report unhealthy.
-      test: ['CMD-SHELL', 'wget --spider -q http://127.0.0.1:80/ || exit 1']
+      # 127.0.0.1, not localhost - BusyBox wget can resolve "localhost" to ::1 (IPv6) first and
+      # fail a healthcheck the server itself answers fine, so this sidesteps that ambiguity
+      # entirely rather than depending on which interface(s) the server happens to bind.
+      test: ['CMD-SHELL', 'wget --spider -q http://127.0.0.1:3000/ || exit 1']
       interval: 10s
       timeout: 3s
       retries: 5

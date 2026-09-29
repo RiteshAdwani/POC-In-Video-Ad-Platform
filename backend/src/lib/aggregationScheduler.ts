@@ -3,11 +3,9 @@ import { runScheduledAggregation } from '../modules/aggregation/aggregation.serv
 import { AGGREGATION_INTERVAL_MS } from '../constants/aggregation.constants';
 
 /**
- * @description Runs runScheduledAggregation on a fixed interval. Mirrors lib/videoPoller.ts's own overlap guard: if a tick is still
- * running when the next one is due, the next one is skipped rather than started concurrently -
- * this only guards against overlap within this one process; runScheduledAggregation itself is
- * responsible for the DB-level guard (checking AggregationRun for a day that's already RUNNING)
- * that also covers a stuck/crashed previous process.
+ * @description Runs runScheduledAggregation on a fixed interval. Mirrors lib/videoPoller.ts's own
+ * overlap guard: if a tick is still running when the next one is due, the next one is skipped
+ * rather than started concurrently.
  */
 export const startAggregationScheduler = (): NodeJS.Timeout => {
   let isTickInProgress = false;
