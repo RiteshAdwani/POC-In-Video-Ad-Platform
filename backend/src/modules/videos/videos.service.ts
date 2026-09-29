@@ -53,7 +53,11 @@ export const checkAndUpdateVideoStatus = async (video: Video): Promise<Video> =>
     newStatus = VideoStatus.FAILED;
   }
 
-  if (newStatus === video.status) {
+  // A status that didn't change is normally a no-op - except a READY video that's still missing
+  // durationSeconds (Cloudinary hadn't reported it back on the check that first flipped the
+  // status to READY) gets one more chance to pick it up, rather than staying null forever.
+  const recoveredMissingDuration = video.durationSeconds == null && durationSeconds != null;
+  if (newStatus === video.status && !recoveredMissingDuration) {
     return video;
   }
 

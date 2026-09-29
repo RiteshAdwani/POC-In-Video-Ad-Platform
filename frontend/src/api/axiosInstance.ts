@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { ApiRoutes } from '../constants/apiRoutes.constants';
+import { API_BASE_URL } from '../constants/api.constants';
 import { getAuthToken } from '../lib/authToken';
 import { notifyUnauthorized } from '../lib/authEvents';
 
@@ -8,7 +9,7 @@ import { notifyUnauthorized } from '../lib/authEvents';
  * base URL/interceptor changes happen in one place.
  */
 export const axiosInstance = axios.create({
-  baseURL: '/api/v1',
+  baseURL: API_BASE_URL,
 });
 
 /**

@@ -13,13 +13,27 @@ COPY frontend/package.json ./frontend/package.json
 RUN npm ci --workspace=frontend --ignore-scripts
 
 COPY frontend ./frontend
+
+# The backend origin the built JS bundle will call directly (see api.constants.ts) - Vite bakes
+# VITE_* vars into the bundle at build time, so this has to be a build arg, not a runtime env var
+# Passed by docker-compose.yml locally and by the platform's build settings in production.
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 RUN npm run build --workspace=frontend
 
 # ---------- Stage 2: runtime ----------
-# A production build is just static files - nginx serves them and reverse-proxies /api and
-# /public to the backend container, so the browser never has to deal with CORS.
-FROM nginx:1.27-alpine AS runtime
-COPY --from=builder /repo/frontend/dist /usr/share/nginx/html
-COPY frontend/nginx.conf.template /etc/nginx/templates/default.conf.template
+# A production build is just static files - `serve` is one well-known package that serves a
+# folder with SPA-fallback support built in (-s: unknown paths get index.html, so a hard refresh
+# on e.g. /videos works), instead of a whole separate web server with its own config file. The
+# backend call itself goes browser-to-backend directly (VITE_API_BASE_URL above).
+FROM node:22-alpine AS runtime
+WORKDIR /app
 
-EXPOSE 80
+# Global install needs root's default npm prefix - the running process still drops to a non-root
+# user below, same posture as backend/Dockerfile.
+RUN npm install -g serve@14 && chown node:node /app
+USER node
+COPY --from=builder --chown=node:node /repo/frontend/dist ./dist
+
+EXPOSE 3000
+CMD ["serve", "-s", "dist", "-l", "3000"]
