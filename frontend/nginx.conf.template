@@ -14,6 +14,21 @@ server {
         # overhead - nginx's 1MB default otherwise rejects any real video upload before the
         # request ever reaches the backend's own (higher) limit.
         client_max_body_size 105m;
+
+        # A free-tier backend that's spun down from inactivity can take 50s+ to wake - matched
+        # here so nginx stays patient for a single attempt that long, rather than giving up early.
+        proxy_connect_timeout 75s;
+        proxy_read_timeout 75s;
+        proxy_send_timeout 75s;
+
+        # nginx's proxy_pass defaults to HTTP/1.0 toward the upstream unless told otherwise. A
+        # free-tier backend waking from inactivity can take 50s+ (Render's own stated behavior) -
+        # a direct HTTP/1.1+ request always just waits that out and succeeds,
+        # but the same request proxied through here at HTTP/1.0 gets an immediate 429
+        # instead every time. Forcing 1.1 solves this.
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+
         proxy_pass ${BACKEND_ORIGIN}/api/;
         proxy_ssl_server_name on;
         proxy_set_header Host $proxy_host;
