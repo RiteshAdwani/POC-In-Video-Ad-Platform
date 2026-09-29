@@ -17,8 +17,8 @@ COPY frontend ./frontend
 # The backend origin the built JS bundle will call directly (see api.constants.ts) - Vite bakes
 # VITE_* vars into the bundle at build time, so this has to be a build arg, not a runtime env var
 # Passed by docker-compose.yml locally and by the platform's build settings in production.
-ARG VITE_API_BASE_URL
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ARG VITE_BACKEND_ORIGIN
+ENV VITE_BACKEND_ORIGIN=$VITE_BACKEND_ORIGIN
 RUN npm run build --workspace=frontend
 
 # ---------- Stage 2: runtime ----------

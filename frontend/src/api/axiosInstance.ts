@@ -9,7 +9,7 @@ import { notifyUnauthorized } from '../lib/authEvents';
  * base URL/interceptor changes happen in one place.
  */
 export const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: `${API_BASE_URL}/v1`,
 });
 
 /**
