@@ -60,7 +60,7 @@ services:
         # Baked into the JS bundle at build time (see Dockerfile) - the backend's port is already
         # published to the host below, so the browser can reach it directly at this address, the
         # same way it reaches the backend's real public URL directly in production.
-        VITE_API_BASE_URL: http://localhost:${PORT}
+        VITE_BACKEND_ORIGIN: http://localhost:${PORT}
     ports:
       - '5173:3000'
     depends_on:
