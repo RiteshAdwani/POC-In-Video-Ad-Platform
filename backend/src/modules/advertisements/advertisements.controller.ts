@@ -9,6 +9,8 @@ import { ErrorMessages } from '../../constants/errorMessages.constants';
 import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants';
 import { createAdvertisementSchema, updateAdvertisementSchema } from './advertisements.schema';
 import { toAdvertisementDto } from './advertisements.service';
+import { paginationQuerySchema } from '../../schemas/pagination.schema';
+import { buildPaginationMeta } from '../../lib/pagination';
 
 const WITH_AD_PLACEMENT_COUNT = {
   include: { _count: { select: { adPlacements: true } } },
@@ -50,17 +52,29 @@ export const createAdvertisement: RequestHandler = async (req, res) => {
 
 /**
  * @description Lists advertisements owned by the calling admin - never other admins' ads.
+ * Paginated: page/pageSize come from the query string, defaulted and bounded by
+ * paginationQuerySchema.
  */
 export const listAdvertisements: RequestHandler = async (req, res) => {
-  // Fetch all advertisements for an admin
-  const advertisements = await prisma.advertisement.findMany({
-    where: { authorId: req.admin!.id },
-    orderBy: { createdAt: 'desc' },
-    ...WITH_AD_PLACEMENT_COUNT,
-  });
+  const { page, pageSize } = paginationQuerySchema.parse(req.query);
+  const where = { authorId: req.admin!.id };
+
+  const [advertisements, totalItems] = await Promise.all([
+    prisma.advertisement.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      ...WITH_AD_PLACEMENT_COUNT,
+    }),
+    prisma.advertisement.count({ where }),
+  ]);
 
   res.status(StatusCodes.OK).json({
-    data: { advertisements: advertisements.map(toAdvertisementDto) },
+    data: {
+      advertisements: advertisements.map(toAdvertisementDto),
+      pagination: buildPaginationMeta(page, pageSize, totalItems),
+    },
     message: ApiSuccessMessages.ADVERTISEMENTS_FETCHED,
   });
 };

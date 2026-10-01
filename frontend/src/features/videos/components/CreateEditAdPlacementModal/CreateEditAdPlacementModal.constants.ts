@@ -1,5 +1,8 @@
 import { AdType, AD_TYPE_LABEL, AssetType } from '../../../../constants/ad.constants';
 
+// How close to the bottom of the ad-selection dropdown (in px) triggers loading the next page.
+export const ADS_DROPDOWN_SCROLL_THRESHOLD_PX = 50;
+
 export const AdPlacementFormFields = {
   AdvertisementId: 'advertisementId',
   AdType: 'adType',

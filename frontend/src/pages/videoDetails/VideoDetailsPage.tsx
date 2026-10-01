@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { Button, Result } from 'antd';
@@ -15,7 +15,7 @@ import { ModalMode } from '../../constants/modalMode.constants';
 import type { VideoFormType } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal.types';
 import { VideoFormFields } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal.constants';
 import { PageSpinner } from '../../components/PageSpinner/PageSpinner';
-import { useAdsQuery } from '../../features/ads/hooks/useAdsQuery';
+import { useInfiniteAdsQuery } from '../../features/ads/hooks/useInfiniteAdsQuery';
 import { useVideoQuery } from '../../features/videos/hooks/useVideoQuery';
 import { useUpdateVideoMutation } from '../../features/videos/hooks/useUpdateVideoMutation';
 import { useDeleteVideoModal } from '../../features/videos/hooks/useDeleteVideoModal';
@@ -54,7 +54,15 @@ export const VideoDetailsPage = () => {
     useUpdateVideoMutation();
   const confirmDeleteVideo = useDeleteVideoModal();
 
-  const { data: ads } = useAdsQuery();
+  // The ad-placement modal's selection dropdown needs every ad, not one paginated page - loaded
+  // incrementally as the dropdown scrolls, rather than fetching the whole ad library upfront.
+  const {
+    data: adsData,
+    fetchNextPage: fetchNextAdsPage,
+    hasNextPage: hasMoreAds,
+    isFetchingNextPage: isLoadingMoreAds,
+  } = useInfiniteAdsQuery(adPlacementModalOpen);
+  const ads = useMemo(() => adsData?.pages.flatMap((page) => page.advertisements) ?? [], [adsData]);
   const { data: adPlacements } = useAdPlacementsQuery(videoId);
   const { mutate: createAdPlacementMutation, isPending: isCreateAdPlacementMutationPending } =
     useCreateAdPlacementMutation(videoId!);
@@ -195,7 +203,10 @@ export const VideoDetailsPage = () => {
         <CreateEditAdPlacementModal
           open
           mode={adPlacementModalMode}
-          ads={ads ?? []}
+          ads={ads}
+          onLoadMoreAds={fetchNextAdsPage}
+          hasMoreAds={Boolean(hasMoreAds)}
+          isLoadingMoreAds={isLoadingMoreAds}
           adPlacement={editingAdPlacement}
           videoDurationSeconds={video.durationSeconds}
           submitting={isCreateAdPlacementMutationPending || isUpdateAdPlacementMutationPending}

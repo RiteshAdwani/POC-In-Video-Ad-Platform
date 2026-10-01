@@ -8,9 +8,10 @@ import type { ApiResponseBody } from '../../../types/apiResponse.types';
 
 /**
  * @description Deletes a video. Rejected by the backend (409) if it still has ad placements or
- * recorded playback events. Refetches the video list on success - `exact: true` so this doesn't
- * also refetch the just-deleted video's own single-item query (a `useVideoQuery(id)` consumer,
- * e.g. the details page mid-navigation-away, would otherwise get a spurious 404).
+ * recorded playback events. Refetches every video query on success, including this video's own
+ * single-item one if it's mounted elsewhere (e.g. its details page open in another tab) - that
+ * page already renders a clean 404 Result for a missing video, so showing it the fact promptly
+ * beats leaving stale, now-broken data on screen.
  */
 export const useDeleteVideoMutation = () => {
   const queryClient = useQueryClient();
@@ -20,7 +21,7 @@ export const useDeleteVideoMutation = () => {
     mutationFn: (id: string) =>
       axiosInstance.delete<ApiResponseBody<null>>(ApiRoutes.deleteVideo(id)),
     onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: [QueryKeys.VIDEOS], exact: true });
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.VIDEOS] });
       handleAxiosSuccess(response);
     },
     onError: handleAxiosError,

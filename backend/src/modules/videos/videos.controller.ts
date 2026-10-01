@@ -9,6 +9,8 @@ import { ErrorMessages } from '../../constants/errorMessages.constants';
 import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants';
 import { createVideoSchema, updateVideoSchema } from './videos.schema';
 import { checkAndUpdateVideoStatus, toVideoDto } from './videos.service';
+import { paginationQuerySchema } from '../../schemas/pagination.schema';
+import { buildPaginationMeta } from '../../lib/pagination';
 
 const WITH_AD_PLACEMENT_COUNT = {
   include: { _count: { select: { adPlacements: true } } },
@@ -71,18 +73,31 @@ export const getVideoStatus: RequestHandler = async (req, res) => {
 
 /**
  * @description Lists every currently-active video owned by the calling admin (excludes
- * retired/soft-deleted ones - see deleteVideo) - never other admins' videos.
+ * retired/soft-deleted ones - see deleteVideo) - never other admins' videos. Paginated: page/
+ * pageSize come from the query string, defaulted and bounded by paginationQuerySchema.
  */
 export const listVideos: RequestHandler = async (req, res) => {
-  const videos = await prisma.video.findMany({
-    where: { authorId: req.admin!.id, deletedAt: null },
-    orderBy: { createdAt: 'desc' },
-    ...WITH_AD_PLACEMENT_COUNT,
-  });
+  const { page, pageSize } = paginationQuerySchema.parse(req.query);
+  const where = { authorId: req.admin!.id, deletedAt: null };
 
-  res
-    .status(StatusCodes.OK)
-    .json({ data: { videos: videos.map(toVideoDto) }, message: ApiSuccessMessages.VIDEOS_FETCHED });
+  const [videos, totalItems] = await Promise.all([
+    prisma.video.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      ...WITH_AD_PLACEMENT_COUNT,
+    }),
+    prisma.video.count({ where }),
+  ]);
+
+  res.status(StatusCodes.OK).json({
+    data: {
+      videos: videos.map(toVideoDto),
+      pagination: buildPaginationMeta(page, pageSize, totalItems),
+    },
+    message: ApiSuccessMessages.VIDEOS_FETCHED,
+  });
 };
 
 /**
