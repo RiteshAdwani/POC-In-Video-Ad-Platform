@@ -1,4 +1,5 @@
 import type { Video } from '../types/video.types';
+import type { PaginationMeta } from '../types/pagination.types';
 
 export type UpdateVideoRequestDto = {
   title?: string;
@@ -6,4 +7,4 @@ export type UpdateVideoRequestDto = {
 };
 
 export type VideoResponseDto = { video: Video };
-export type VideosResponseDto = { videos: Video[] };
+export type VideosResponseDto = { videos: Video[]; pagination: PaginationMeta };

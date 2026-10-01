@@ -1,5 +1,24 @@
 /* No outer padding here - the admin Layout's content area (Layout.css) already provides it. */
 
+.ads-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
 .ads-page__header {
   margin-bottom: 24px;
+}
+
+/* Fills the remaining height below the header, so the pagination control below lands at a
+   consistent spot regardless of how many rows the current page's grid happens to have. */
+.ads-page__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.ads-page__pagination {
+  margin-top: auto;
+  padding-top: 24px;
 }

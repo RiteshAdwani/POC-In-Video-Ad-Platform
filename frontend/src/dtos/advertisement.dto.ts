@@ -1,4 +1,5 @@
 import type { Advertisement } from '../types/advertisement.types';
+import type { PaginationMeta } from '../types/pagination.types';
 
 export type UpdateAdvertisementRequestDto = {
   title?: string;
@@ -7,4 +8,7 @@ export type UpdateAdvertisementRequestDto = {
 };
 
 export type AdvertisementResponseDto = { advertisement: Advertisement };
-export type AdvertisementsResponseDto = { advertisements: Advertisement[] };
+export type AdvertisementsResponseDto = {
+  advertisements: Advertisement[];
+  pagination: PaginationMeta;
+};

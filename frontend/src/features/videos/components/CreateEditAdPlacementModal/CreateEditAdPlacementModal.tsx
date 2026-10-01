@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react';
+import type { UIEvent } from 'react';
 import { Form, InputNumber, Modal, Select } from 'antd';
 import { AdType } from '../../../../constants/ad.constants';
 import { ModalMode } from '../../../../constants/modalMode.constants';
@@ -7,6 +8,7 @@ import type { AdPlacement } from '../../../../types/adPlacement.types';
 import {
   AdPlacementFormFields,
   AD_TYPE_OPTIONS_BY_ASSET_TYPE,
+  ADS_DROPDOWN_SCROLL_THRESHOLD_PX,
 } from './CreateEditAdPlacementModal.constants';
 import type { AdPlacementFormType } from './CreateEditAdPlacementModal.types';
 import {
@@ -19,6 +21,9 @@ type CreateEditAdPlacementModalProps = {
   open: boolean;
   mode: ModalMode;
   ads: Advertisement[];
+  onLoadMoreAds: () => void;
+  hasMoreAds: boolean;
+  isLoadingMoreAds: boolean;
   adPlacement?: AdPlacement;
   videoDurationSeconds: number | null | undefined;
   submitting?: boolean;
@@ -35,6 +40,9 @@ export const CreateEditAdPlacementModal = ({
   open,
   mode,
   ads,
+  onLoadMoreAds,
+  hasMoreAds,
+  isLoadingMoreAds,
   adPlacement,
   videoDurationSeconds,
   submitting,
@@ -48,6 +56,20 @@ export const CreateEditAdPlacementModal = ({
     isEdit && adPlacement
       ? [{ value: adPlacement.advertisement.id, label: adPlacement.advertisement.title }]
       : ads.map((ad) => ({ value: ad.id, label: ad.title }));
+
+  /**
+   * @description Loads the next page of ads once the dropdown is scrolled near its bottom -
+   * lets the Select act as an infinite-scrolling list instead of requiring every ad upfront.
+   */
+  const handleAdsPopupScroll = (event: UIEvent<HTMLDivElement>) => {
+    if (isEdit || !hasMoreAds || isLoadingMoreAds) return;
+
+    const target = event.currentTarget;
+    const distanceFromBottom = target.scrollHeight - target.scrollTop - target.clientHeight;
+    if (distanceFromBottom < ADS_DROPDOWN_SCROLL_THRESHOLD_PX) {
+      onLoadMoreAds();
+    }
+  };
 
   const selectedAdId = Form.useWatch(AdPlacementFormFields.AdvertisementId, form);
   const selectedAssetType = isEdit
@@ -140,7 +162,13 @@ export const CreateEditAdPlacementModal = ({
           name={AdPlacementFormFields.AdvertisementId}
           rules={rules[AdPlacementFormFields.AdvertisementId]}
         >
-          <Select placeholder="Select an ad to place" options={adOptions} disabled={isEdit} />
+          <Select
+            placeholder="Select an ad to place"
+            options={adOptions}
+            disabled={isEdit}
+            loading={!isEdit && isLoadingMoreAds}
+            onPopupScroll={handleAdsPopupScroll}
+          />
         </Form.Item>
 
         {selectedAssetType && (

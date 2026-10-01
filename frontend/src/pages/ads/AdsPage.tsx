@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Empty, Flex, Result, Typography } from 'antd';
+import { Button, Empty, Flex, Pagination, Result, Typography } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { ModalMode } from '../../constants/modalMode.constants';
 import { AdsGrid } from '../../features/ads/components/AdsGrid/AdsGrid';
@@ -12,6 +12,7 @@ import { useCreateAdMutation } from '../../features/ads/hooks/useCreateAdMutatio
 import { useUpdateAdMutation } from '../../features/ads/hooks/useUpdateAdMutation';
 import { useDeleteAdModal } from '../../features/ads/hooks/useDeleteAdModal';
 import { useModalState } from '../../hooks/useModalState';
+import { usePaginationParam } from '../../hooks/usePaginationParam';
 import type { Advertisement } from '../../types/advertisement.types';
 import type { UpdateAdvertisementRequestDto } from '../../dtos/advertisement.dto';
 import './AdsPage.css';
@@ -27,7 +28,8 @@ export const AdsPage = () => {
   const [modalMode, setModalMode] = useState<ModalMode>(ModalMode.CREATE);
   const [editingAd, setEditingAd] = useState<Advertisement | undefined>(undefined);
 
-  const { data: ads, isLoading, isError } = useAdsQuery();
+  const { page, onPageChange } = usePaginationParam();
+  const { data, isLoading, isError } = useAdsQuery(page);
   const { mutate: createAdMutation, isPending: isCreateAdMutationPending } = useCreateAdMutation();
   const { mutate: updateAdMutation, isPending: isUpdateAdMutationPending } = useUpdateAdMutation();
   const confirmDeleteAd = useDeleteAdModal();
@@ -99,7 +101,7 @@ export const AdsPage = () => {
     content = (
       <Result status="error" title="Couldn't load ads" subTitle="Please try again shortly." />
     );
-  } else if (!ads || ads.length === 0) {
+  } else if (!data || data.pagination.totalItems === 0) {
     content = (
       <Empty description="No ads yet">
         <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
@@ -108,7 +110,20 @@ export const AdsPage = () => {
       </Empty>
     );
   } else {
-    content = <AdsGrid ads={ads} onEdit={openEditModal} onDelete={confirmDeleteAd} />;
+    content = (
+      <>
+        <AdsGrid ads={data.advertisements} onEdit={openEditModal} onDelete={confirmDeleteAd} />
+        <Flex justify="flex-end" className="ads-page__pagination">
+          <Pagination
+            current={data.pagination.page}
+            pageSize={data.pagination.pageSize}
+            total={data.pagination.totalItems}
+            onChange={onPageChange}
+            showSizeChanger={false}
+          />
+        </Flex>
+      </>
+    );
   }
 
   return (
@@ -116,14 +131,14 @@ export const AdsPage = () => {
       <Flex justify="space-between" align="flex-start" className="ads-page__header">
         <Flex vertical gap={4}>
           <Title level={2}>Ads</Title>
-          <Text type="secondary">{ads?.length ?? 0} ads in your library</Text>
+          <Text type="secondary">{data?.pagination.totalItems ?? 0} ads in your library</Text>
         </Flex>
         <Button type="primary" size="large" icon={<PlusOutlined />} onClick={openCreateModal}>
           Create ad
         </Button>
       </Flex>
 
-      {content}
+      <div className="ads-page__body">{content}</div>
 
       {open && (
         <CreateEditAdModal

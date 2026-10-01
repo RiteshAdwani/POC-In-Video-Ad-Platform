@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Empty, Flex, Result, Typography } from 'antd';
+import { Button, Empty, Flex, Pagination, Result, Typography } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import { CreateEditVideoModal } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal';
 import { ModalMode } from '../../constants/modalMode.constants';
@@ -12,6 +12,7 @@ import { useUploadVideoMutation } from '../../features/videos/hooks/useUploadVid
 import { useUpdateVideoMutation } from '../../features/videos/hooks/useUpdateVideoMutation';
 import { useDeleteVideoModal } from '../../features/videos/hooks/useDeleteVideoModal';
 import { useModalState } from '../../hooks/useModalState';
+import { usePaginationParam } from '../../hooks/usePaginationParam';
 import type { Video } from '../../types/video.types';
 import type { UpdateVideoRequestDto } from '../../dtos/video.dto';
 import './VideosPage.css';
@@ -27,7 +28,8 @@ export const VideosPage = () => {
   const [modalMode, setModalMode] = useState<ModalMode>(ModalMode.CREATE);
   const [editingVideo, setEditingVideo] = useState<Video | undefined>(undefined);
 
-  const { data: videos, isLoading, isError } = useVideosQuery();
+  const { page, onPageChange } = usePaginationParam();
+  const { data, isLoading, isError } = useVideosQuery(page);
   const { mutate: uploadVideoMutation, isPending: isUploadVideoMutationPending } =
     useUploadVideoMutation();
   const { mutate: updateVideoMutation, isPending: isUpdateVideoMutationPending } =
@@ -95,7 +97,7 @@ export const VideosPage = () => {
     content = (
       <Result status="error" title="Couldn't load videos" subTitle="Please try again shortly." />
     );
-  } else if (!videos || videos.length === 0) {
+  } else if (!data || data.pagination.totalItems === 0) {
     content = (
       <Empty description="No videos yet">
         <Button type="primary" icon={<UploadOutlined />} onClick={openCreateModal}>
@@ -104,7 +106,20 @@ export const VideosPage = () => {
       </Empty>
     );
   } else {
-    content = <VideosGrid videos={videos} onEdit={openEditModal} onDelete={confirmDeleteVideo} />;
+    content = (
+      <>
+        <VideosGrid videos={data.videos} onEdit={openEditModal} onDelete={confirmDeleteVideo} />
+        <Flex justify="flex-end" className="videos-page__pagination">
+          <Pagination
+            current={data.pagination.page}
+            pageSize={data.pagination.pageSize}
+            total={data.pagination.totalItems}
+            onChange={onPageChange}
+            showSizeChanger={false}
+          />
+        </Flex>
+      </>
+    );
   }
 
   return (
@@ -112,14 +127,14 @@ export const VideosPage = () => {
       <Flex justify="space-between" align="flex-start" className="videos-page__header">
         <Flex vertical gap={4}>
           <Title level={2}>Videos</Title>
-          <Text type="secondary">{videos?.length ?? 0} videos in your library</Text>
+          <Text type="secondary">{data?.pagination.totalItems ?? 0} videos in your library</Text>
         </Flex>
         <Button type="primary" size="large" icon={<UploadOutlined />} onClick={openCreateModal}>
           Upload video
         </Button>
       </Flex>
 
-      {content}
+      <div className="videos-page__body">{content}</div>
 
       {open && (
         <CreateEditVideoModal
