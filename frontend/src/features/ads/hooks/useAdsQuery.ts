@@ -7,15 +7,16 @@ import type { ApiResponseBody } from '../../../types/apiResponse.types';
 import type { AdvertisementsResponseDto } from '../../../dtos/advertisement.dto';
 
 /**
- * @description Fetches one page of advertisements owned by the signed-in admin.
+ * @description Fetches one page of advertisements owned by the signed-in admin, optionally
+ * filtered by a title search term.
  */
-export const useAdsQuery = (page: number) =>
+export const useAdsQuery = (page: number, search: string) =>
   useQuery({
-    queryKey: [QueryKeys.ADS, page],
+    queryKey: [QueryKeys.ADS, page, search],
     queryFn: async () => {
       const response = await axiosInstance.get<ApiResponseBody<AdvertisementsResponseDto>>(
         ApiRoutes.getAds(),
-        { params: { page, pageSize: DEFAULT_PAGE_SIZE } },
+        { params: { page, pageSize: DEFAULT_PAGE_SIZE, search } },
       );
       return response.data.data;
     },

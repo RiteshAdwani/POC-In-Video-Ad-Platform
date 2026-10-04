@@ -1,7 +1,7 @@
 .ads-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
 }
 
 .ads-grid__card {
@@ -33,7 +33,7 @@
 
 .ads-grid__thumb {
   position: relative;
-  height: 168px;
+  height: 130px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -88,10 +88,10 @@
 }
 
 .ads-grid__body {
-  padding: 14px 16px 8px;
+  padding: 12px 14px 6px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .ads-grid__title {
@@ -109,7 +109,7 @@
   justify-content: space-between;
   align-items: center;
   margin-top: auto;
-  padding: 0 16px 14px;
+  padding: 0 14px 12px;
 }
 
 .ads-grid__actions {

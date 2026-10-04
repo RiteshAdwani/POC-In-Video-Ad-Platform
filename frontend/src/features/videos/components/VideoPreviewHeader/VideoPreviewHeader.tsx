@@ -33,7 +33,7 @@ export const VideoPreviewHeader = ({ video, onEdit, onDelete }: VideoPreviewHead
     </div>
 
     <Flex vertical gap={8} className="video-preview-header__meta">
-      <Flex justify="space-between" align="flex-start" gap={16}>
+      <Flex justify="space-between" align="center" gap={16}>
         <Flex vertical gap={8}>
           <Flex align="flex-start" gap={12}>
             <Title level={2} className="video-preview-header__title">

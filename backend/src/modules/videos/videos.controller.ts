@@ -77,8 +77,12 @@ export const getVideoStatus: RequestHandler = async (req, res) => {
  * pageSize come from the query string, defaulted and bounded by paginationQuerySchema.
  */
 export const listVideos: RequestHandler = async (req, res) => {
-  const { page, pageSize } = paginationQuerySchema.parse(req.query);
-  const where = { authorId: req.admin!.id, deletedAt: null };
+  const { page, pageSize, search } = paginationQuerySchema.parse(req.query);
+  const where = {
+    authorId: req.admin!.id,
+    deletedAt: null,
+    ...(search ? { title: { contains: search, mode: 'insensitive' as const } } : {}),
+  };
 
   const [videos, totalItems] = await Promise.all([
     prisma.video.findMany({

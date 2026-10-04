@@ -10,6 +10,11 @@
   margin-bottom: 24px;
 }
 
+.videos-page__search {
+  max-width: 320px;
+  margin-bottom: 20px;
+}
+
 /* Fills the remaining height below the header, so the pagination control below lands at a
    consistent spot regardless of how many rows the current page's grid happens to have. */
 .videos-page__body {

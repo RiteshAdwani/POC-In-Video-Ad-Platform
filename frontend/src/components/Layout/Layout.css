@@ -29,5 +29,5 @@
 
 .admin-layout__content {
   overflow: auto;
-  padding: 32px;
+  padding: 12px 32px 32px;
 }
