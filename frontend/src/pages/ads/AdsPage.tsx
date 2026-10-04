@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Button, Empty, Flex, Pagination, Result, Typography } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Button, Empty, Flex, Input, Pagination, Result, Typography } from 'antd';
+import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { ModalMode } from '../../constants/modalMode.constants';
 import { AdsGrid } from '../../features/ads/components/AdsGrid/AdsGrid';
 import { CreateEditAdModal } from '../../features/ads/components/CreateEditAdModal/CreateEditAdModal';
@@ -13,6 +13,8 @@ import { useUpdateAdMutation } from '../../features/ads/hooks/useUpdateAdMutatio
 import { useDeleteAdModal } from '../../features/ads/hooks/useDeleteAdModal';
 import { useModalState } from '../../hooks/useModalState';
 import { usePaginationParam } from '../../hooks/usePaginationParam';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import { SEARCH_DEBOUNCE_MS } from '../../constants/search.constants';
 import type { Advertisement } from '../../types/advertisement.types';
 import type { UpdateAdvertisementRequestDto } from '../../dtos/advertisement.dto';
 import './AdsPage.css';
@@ -29,7 +31,19 @@ export const AdsPage = () => {
   const [editingAd, setEditingAd] = useState<Advertisement | undefined>(undefined);
 
   const { page, onPageChange } = usePaginationParam();
-  const { data, isLoading, isError } = useAdsQuery(page);
+  const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
+  const { data, isLoading, isError } = useAdsQuery(page, debouncedSearch);
+
+  /**
+   * @description Jumps back to page 1 as soon as the search term changes - otherwise a search
+   * typed while on, say, page 3 would show "page 3 of filtered results" (likely nonexistent)
+   * instead of starting from the top of the new results.
+   */
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    onPageChange(1);
+  };
   const { mutate: createAdMutation, isPending: isCreateAdMutationPending } = useCreateAdMutation();
   const { mutate: updateAdMutation, isPending: isUpdateAdMutationPending } = useUpdateAdMutation();
   const confirmDeleteAd = useDeleteAdModal();
@@ -102,7 +116,9 @@ export const AdsPage = () => {
       <Result status="error" title="Couldn't load ads" subTitle="Please try again shortly." />
     );
   } else if (!data || data.pagination.totalItems === 0) {
-    content = (
+    content = debouncedSearch ? (
+      <Empty description={`No ads match "${debouncedSearch}"`} />
+    ) : (
       <Empty description="No ads yet">
         <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
           Create your first ad
@@ -128,7 +144,7 @@ export const AdsPage = () => {
 
   return (
     <div className="ads-page">
-      <Flex justify="space-between" align="flex-start" className="ads-page__header">
+      <Flex justify="space-between" align="center" className="ads-page__header">
         <Flex vertical gap={4}>
           <Title level={2}>Ads</Title>
           <Text type="secondary">{data?.pagination.totalItems ?? 0} ads in your library</Text>
@@ -137,6 +153,15 @@ export const AdsPage = () => {
           Create ad
         </Button>
       </Flex>
+
+      <Input
+        placeholder="Search ads by title"
+        prefix={<SearchOutlined />}
+        allowClear
+        value={search}
+        onChange={(event) => handleSearchChange(event.target.value)}
+        className="ads-page__search"
+      />
 
       <div className="ads-page__body">{content}</div>
 

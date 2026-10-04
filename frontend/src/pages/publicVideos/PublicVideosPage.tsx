@@ -1,10 +1,14 @@
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Empty, Flex, Result, Typography } from 'antd';
-import { LoginOutlined } from '@ant-design/icons';
+import { Button, Empty, Flex, Input, Result, Spin, Typography } from 'antd';
+import { LoginOutlined, SearchOutlined } from '@ant-design/icons';
 import { Routes } from '../../constants/routes.constants';
 import { PublicVideosGrid } from '../../features/publicPlayer/components/PublicVideosGrid/PublicVideosGrid';
 import { PageSpinner } from '../../components/PageSpinner/PageSpinner';
 import { usePublicVideosQuery } from '../../features/publicPlayer/hooks/usePublicVideosQuery';
+import { useInfiniteScrollTrigger } from '../../hooks/useInfiniteScrollTrigger';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import { SEARCH_DEBOUNCE_MS } from '../../constants/search.constants';
 import './PublicVideosPage.css';
 
 const { Title, Text } = Typography;
@@ -12,10 +16,23 @@ const { Title, Text } = Typography;
 /**
  * @description The public catalog every visitor lands on - every READY video, open to anyone,
  * with a clearly visible way for the platform's own admins to reach the login page from the same
- * screen (mirroring the login page's own "Continue as a guest" link back the other way).
+ * screen (mirroring the login page's own "Continue as a guest" link back the other way). Loads
+ * further videos as the grid is scrolled near its bottom, rather than numbered pages - this is a
+ * browse/discovery feed, not a "find this specific item" management task.
  */
 export const PublicVideosPage = () => {
-  const { data: videos, isLoading, isError } = usePublicVideosQuery();
+  const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
+  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    usePublicVideosQuery(debouncedSearch);
+
+  const videos = useMemo(() => data?.pages.flatMap((page) => page.videos) ?? [], [data]);
+  const totalItems = data?.pages[0]?.pagination.totalItems ?? 0;
+
+  const scrollTriggerRef = useInfiniteScrollTrigger(
+    fetchNextPage,
+    Boolean(hasNextPage) && !isFetchingNextPage,
+  );
 
   let content;
   if (isLoading) {
@@ -24,27 +41,56 @@ export const PublicVideosPage = () => {
     content = (
       <Result status="error" title="Couldn't load videos" subTitle="Please try again shortly." />
     );
-  } else if (!videos || videos.length === 0) {
-    content = <Empty description="No videos published yet" />;
+  } else if (videos.length === 0) {
+    content = (
+      <Empty
+        description={
+          debouncedSearch ? `No videos match "${debouncedSearch}"` : 'No videos published yet'
+        }
+      />
+    );
   } else {
-    content = <PublicVideosGrid videos={videos} />;
+    content = (
+      <>
+        <PublicVideosGrid videos={videos} />
+        <div ref={scrollTriggerRef} className="public-videos-page__load-more">
+          {isFetchingNextPage && <Spin />}
+          {!hasNextPage && <Text type="secondary">You've reached the end</Text>}
+        </div>
+      </>
+    );
   }
 
   return (
     <div className="public-videos-page">
-      <Flex justify="space-between" align="center" className="public-videos-page__topbar">
-        <span className="public-videos-page__brand">FrameCue</span>
-        <Link to={Routes.LOGIN}>
-          <Button icon={<LoginOutlined />}>Admin login</Button>
-        </Link>
-      </Flex>
+      <div className="public-videos-page__topbar">
+        <Flex justify="space-between" align="center" className="public-videos-page__topbar-inner">
+          <span className="public-videos-page__brand">FrameCue</span>
+          <Link to={Routes.LOGIN}>
+            <Button icon={<LoginOutlined />}>Admin login</Button>
+          </Link>
+        </Flex>
+      </div>
 
-      <Flex vertical gap={4} className="public-videos-page__header">
-        <Title level={2}>Watch videos</Title>
-        <Text type="secondary">{videos?.length ?? 0} videos to watch</Text>
-      </Flex>
+      <div className="public-videos-page__content">
+        <Flex vertical gap={4} className="public-videos-page__header">
+          <Title level={1} className="public-videos-page__title">
+            Watch videos
+          </Title>
+          <Text type="secondary">{totalItems} videos to watch</Text>
+        </Flex>
 
-      {content}
+        <Input
+          placeholder="Search videos by title"
+          prefix={<SearchOutlined />}
+          allowClear
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          className="public-videos-page__search"
+        />
+
+        {content}
+      </div>
     </div>
   );
 };

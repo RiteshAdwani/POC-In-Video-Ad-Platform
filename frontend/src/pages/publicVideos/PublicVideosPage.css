@@ -1,22 +1,56 @@
 .public-videos-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
+  min-height: 100%;
 }
 
+/* Sticky, not fixed - stays pinned without needing a manual top-offset on the content below it.
+   Frosted-glass treatment (semi-transparent + blur) so it reads as "above" the content that
+   scrolls underneath, matching the page's own background rather than a hard white bar. */
 .public-videos-page__topbar {
-  margin-bottom: 32px;
-  padding-bottom: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(248, 250, 252, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid #e2e8f0;
+}
+
+.public-videos-page__topbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 24px;
 }
 
 .public-videos-page__brand {
   font-family: 'Lexend', sans-serif;
   font-weight: 700;
   font-size: 20px;
+  letter-spacing: -0.01em;
   color: #0369a1;
 }
 
+.public-videos-page__content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+}
+
 .public-videos-page__header {
-  margin-bottom: 24px;
+  margin-bottom: 28px;
+}
+
+.public-videos-page__search {
+  max-width: 360px;
+  margin-bottom: 28px;
+}
+
+.public-videos-page__title.ant-typography {
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.public-videos-page__load-more {
+  display: flex;
+  justify-content: center;
+  padding: 32px 0;
 }

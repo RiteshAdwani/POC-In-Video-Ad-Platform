@@ -56,8 +56,11 @@ export const createAdvertisement: RequestHandler = async (req, res) => {
  * paginationQuerySchema.
  */
 export const listAdvertisements: RequestHandler = async (req, res) => {
-  const { page, pageSize } = paginationQuerySchema.parse(req.query);
-  const where = { authorId: req.admin!.id };
+  const { page, pageSize, search } = paginationQuerySchema.parse(req.query);
+  const where = {
+    authorId: req.admin!.id,
+    ...(search ? { title: { contains: search, mode: 'insensitive' as const } } : {}),
+  };
 
   const [advertisements, totalItems] = await Promise.all([
     prisma.advertisement.findMany({

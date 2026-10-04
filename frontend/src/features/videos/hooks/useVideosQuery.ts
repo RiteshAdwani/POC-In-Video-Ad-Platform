@@ -8,17 +8,17 @@ import type { ApiResponseBody } from '../../../types/apiResponse.types';
 import type { VideosResponseDto } from '../../../dtos/video.dto';
 
 /**
- * @description Fetches one page of videos owned by the signed-in admin, polling every 5s while
- * any of them isn't READY yet - picks up the backend's own poller flipping a video's status
- * without a manual page refresh.
+ * @description Fetches one page of videos owned by the signed-in admin, optionally filtered by a
+ * title search term, polling every 5s while any of them isn't READY yet - picks up the backend's
+ * own poller flipping a video's status without a manual page refresh.
  */
-export const useVideosQuery = (page: number) =>
+export const useVideosQuery = (page: number, search: string) =>
   useQuery({
-    queryKey: [QueryKeys.VIDEOS, page],
+    queryKey: [QueryKeys.VIDEOS, page, search],
     queryFn: async () => {
       const response = await axiosInstance.get<ApiResponseBody<VideosResponseDto>>(
         ApiRoutes.getVideos(),
-        { params: { page, pageSize: DEFAULT_PAGE_SIZE } },
+        { params: { page, pageSize: DEFAULT_PAGE_SIZE, search } },
       );
       return response.data.data;
     },

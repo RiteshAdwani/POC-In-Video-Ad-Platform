@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Button, Empty, Flex, Pagination, Result, Typography } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
+import { Button, Empty, Flex, Input, Pagination, Result, Typography } from 'antd';
+import { SearchOutlined, UploadOutlined } from '@ant-design/icons';
 import { CreateEditVideoModal } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal';
 import { ModalMode } from '../../constants/modalMode.constants';
 import { VideoFormFields } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal.constants';
@@ -13,6 +13,8 @@ import { useUpdateVideoMutation } from '../../features/videos/hooks/useUpdateVid
 import { useDeleteVideoModal } from '../../features/videos/hooks/useDeleteVideoModal';
 import { useModalState } from '../../hooks/useModalState';
 import { usePaginationParam } from '../../hooks/usePaginationParam';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import { SEARCH_DEBOUNCE_MS } from '../../constants/search.constants';
 import type { Video } from '../../types/video.types';
 import type { UpdateVideoRequestDto } from '../../dtos/video.dto';
 import './VideosPage.css';
@@ -29,7 +31,19 @@ export const VideosPage = () => {
   const [editingVideo, setEditingVideo] = useState<Video | undefined>(undefined);
 
   const { page, onPageChange } = usePaginationParam();
-  const { data, isLoading, isError } = useVideosQuery(page);
+  const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
+  const { data, isLoading, isError } = useVideosQuery(page, debouncedSearch);
+
+  /**
+   * @description Jumps back to page 1 as soon as the search term changes - otherwise a search
+   * typed while on, say, page 3 would show "page 3 of filtered results" (likely nonexistent)
+   * instead of starting from the top of the new results.
+   */
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    onPageChange(1);
+  };
   const { mutate: uploadVideoMutation, isPending: isUploadVideoMutationPending } =
     useUploadVideoMutation();
   const { mutate: updateVideoMutation, isPending: isUpdateVideoMutationPending } =
@@ -98,7 +112,9 @@ export const VideosPage = () => {
       <Result status="error" title="Couldn't load videos" subTitle="Please try again shortly." />
     );
   } else if (!data || data.pagination.totalItems === 0) {
-    content = (
+    content = debouncedSearch ? (
+      <Empty description={`No videos match "${debouncedSearch}"`} />
+    ) : (
       <Empty description="No videos yet">
         <Button type="primary" icon={<UploadOutlined />} onClick={openCreateModal}>
           Upload your first video
@@ -124,7 +140,7 @@ export const VideosPage = () => {
 
   return (
     <div className="videos-page">
-      <Flex justify="space-between" align="flex-start" className="videos-page__header">
+      <Flex justify="space-between" align="center" className="videos-page__header">
         <Flex vertical gap={4}>
           <Title level={2}>Videos</Title>
           <Text type="secondary">{data?.pagination.totalItems ?? 0} videos in your library</Text>
@@ -133,6 +149,15 @@ export const VideosPage = () => {
           Upload video
         </Button>
       </Flex>
+
+      <Input
+        placeholder="Search videos by title"
+        prefix={<SearchOutlined />}
+        allowClear
+        value={search}
+        onChange={(event) => handleSearchChange(event.target.value)}
+        className="videos-page__search"
+      />
 
       <div className="videos-page__body">{content}</div>
 

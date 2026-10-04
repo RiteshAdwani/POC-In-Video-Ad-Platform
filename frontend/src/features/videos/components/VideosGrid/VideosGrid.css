@@ -1,7 +1,7 @@
 .videos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
 }
 
 .videos-grid__card {
@@ -33,7 +33,7 @@
 
 .videos-grid__thumb {
   position: relative;
-  height: 168px;
+  height: 130px;
   background: linear-gradient(135deg, #0f172a, #0369a1);
   display: flex;
   align-items: center;
@@ -74,10 +74,10 @@
 }
 
 .videos-grid__body {
-  padding: 14px 16px 8px;
+  padding: 12px 14px 6px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .videos-grid__title {
@@ -95,7 +95,7 @@
   justify-content: space-between;
   align-items: center;
   margin-top: auto;
-  padding: 0 16px 14px;
+  padding: 0 14px 12px;
 }
 
 .videos-grid__actions {

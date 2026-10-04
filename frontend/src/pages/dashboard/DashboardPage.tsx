@@ -57,7 +57,7 @@ export const DashboardPage = () => {
 
   return (
     <div className="dashboard-page">
-      <Flex justify="space-between" align="flex-start" className="dashboard-page__header">
+      <Flex justify="space-between" align="center" className="dashboard-page__header">
         <Flex vertical gap={4}>
           <Title level={2}>Dashboard</Title>
           <Text type="secondary">
