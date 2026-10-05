@@ -6,9 +6,11 @@ import { ErrorMessages } from '../../constants/errorMessages.constants';
  * @description Enforces the placement rules: a banner overlay needs an image asset (it has no
  * natural end the way a video ad does, hence the required duration), a pre/mid-roll needs a video
  * asset, pre-roll is always at offset 0 (there's nowhere else for it to go), and mid-roll must be
- * strictly after 0 (otherwise it's indistinguishable from a pre-roll). The video's own duration -
- * null if it isn't READY yet, or predates duration capture - skips the length checks below rather
- * than failing closed, since there's nothing to validate against.
+ * strictly after 0 (otherwise it's indistinguishable from a pre-roll). A banner's optional
+ * skipAfterSeconds (same field video ads use) must land before its own durationSeconds - otherwise
+ * the skip point would never actually arrive before the banner ends on its own. The video's own
+ * duration - null if it isn't READY yet, or predates duration capture - skips the length checks
+ * below rather than failing closed, since there's nothing to validate against.
  */
 export const validatePlacementConstraints = (
   assetType: AssetType,
@@ -17,7 +19,13 @@ export const validatePlacementConstraints = (
     adType,
     startOffsetSeconds,
     durationSeconds,
-  }: { adType: AdType; startOffsetSeconds: number; durationSeconds?: number | null },
+    skipAfterSeconds,
+  }: {
+    adType: AdType;
+    startOffsetSeconds: number;
+    durationSeconds?: number | null;
+    skipAfterSeconds?: number | null;
+  },
 ): void => {
   const expectsImage = adType === AdType.BANNER_OVERLAY;
   const isImage = assetType === AssetType.IMAGE;
@@ -31,8 +39,13 @@ export const validatePlacementConstraints = (
   if (adType === AdType.MID_ROLL && startOffsetSeconds === 0) {
     throw new ValidationError(ErrorMessages.INVALID_MIDROLL_OFFSET);
   }
-  if (adType === AdType.BANNER_OVERLAY && !durationSeconds) {
-    throw new ValidationError(ErrorMessages.MISSING_BANNER_DURATION);
+  if (adType === AdType.BANNER_OVERLAY) {
+    if (!durationSeconds) {
+      throw new ValidationError(ErrorMessages.MISSING_BANNER_DURATION);
+    }
+    if (skipAfterSeconds != null && skipAfterSeconds >= durationSeconds) {
+      throw new ValidationError(ErrorMessages.SKIP_AFTER_EXCEEDS_BANNER_DURATION);
+    }
   }
 
   if (videoDurationSeconds == null) return;

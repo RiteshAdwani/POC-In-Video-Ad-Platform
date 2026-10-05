@@ -19,11 +19,13 @@ export const getMaxStartOffsetSeconds = (
 /**
  * @description Field-level validation for the create/edit placement form - mirrors the backend's
  * per-adType rules, including the start-offset upper bound against the video's own duration
- * (skipped until that duration is known).
+ * (skipped until that duration is known) and, for a banner, the skip-after upper bound against its
+ * own duration field (skipped until that's typed in).
  */
 export const getAdPlacementFormRules = (
   adType: AdType | undefined,
   videoDurationSeconds: number | null | undefined,
+  bannerDurationSeconds?: number | null,
 ): Record<AdPlacementFormFields, FormRule[]> => {
   const startOffsetRules: FormRule[] =
     adType === AdType.MID_ROLL
@@ -45,6 +47,18 @@ export const getAdPlacementFormRules = (
     });
   }
 
+  const skipAfterRules: FormRule[] = [
+    { type: 'number', min: 0, message: ValidationMessages.min('Skip-after', 0) },
+  ];
+  if (adType === AdType.BANNER_OVERLAY && bannerDurationSeconds != null) {
+    const maxSkipAfterSeconds = bannerDurationSeconds - 1;
+    skipAfterRules.push({
+      type: 'number',
+      max: maxSkipAfterSeconds,
+      message: ValidationMessages.max('Skip-after', maxSkipAfterSeconds),
+    });
+  }
+
   return {
     [AdPlacementFormFields.AdvertisementId]: [
       { required: true, message: ValidationMessages.required('an ad') },
@@ -60,8 +74,6 @@ export const getAdPlacementFormRules = (
             { type: 'number', min: 1, message: ValidationMessages.min('Duration', 1) },
           ]
         : [],
-    [AdPlacementFormFields.SkipAfterSeconds]: [
-      { type: 'number', min: 0, message: ValidationMessages.min('Skip-after', 0) },
-    ],
+    [AdPlacementFormFields.SkipAfterSeconds]: skipAfterRules,
   };
 };
