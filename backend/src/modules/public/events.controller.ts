@@ -1,7 +1,7 @@
 import type { RequestHandler } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { prisma } from '../../lib/prisma';
-import { Prisma, PlaybackEventType, AdType, VideoStatus } from '../../generated/prisma/client.js';
+import { Prisma, PlaybackEventType, VideoStatus } from '../../generated/prisma/client.js';
 import { ValidationError } from '../../errors/AppError';
 import { ErrorMessages } from '../../constants/errorMessages.constants';
 import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants';
@@ -66,16 +66,14 @@ export const recordPlaybackEvent: RequestHandler = async (req, res) => {
       throw new ValidationError(ErrorMessages.INVALID_AD_REFERENCE);
     }
 
-    // Banners have no skip button - there's nothing to skip out of.
-    if (
-      eventType === PlaybackEventType.AD_SKIPPED &&
-      adPlacement.adType === AdType.BANNER_OVERLAY
-    ) {
+    // An ad with no configured skip point can't be skipped - applies the same way regardless of
+    // ad type, rather than hardcoding banners as the only non-skippable case.
+    if (eventType === PlaybackEventType.AD_SKIPPED && adPlacement.skipAfterSeconds == null) {
       req.log.warn(
         { ...logContext, outcome: 'rejected' },
-        'Playback event rejected: banner placements cannot be skipped',
+        'Playback event rejected: this ad placement cannot be skipped',
       );
-      throw new ValidationError(ErrorMessages.BANNER_NOT_SKIPPABLE);
+      throw new ValidationError(ErrorMessages.AD_NOT_SKIPPABLE);
     }
 
     // Check whether this ad's AD_SHOWN already landed - flag it if not, but still proceed.

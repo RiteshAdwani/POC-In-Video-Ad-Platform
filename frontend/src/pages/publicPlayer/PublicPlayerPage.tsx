@@ -93,7 +93,10 @@ export const PublicPlayerPage = () => {
           <BannerOverlay
             banner={player.activeBanner}
             secondsRemaining={player.bannerSecondsRemaining}
-            onClick={player.handleBannerClick}
+            canSkip={player.bannerCanSkip}
+            skipInSeconds={player.bannerSkipInSeconds}
+            onVisitSite={player.handleBannerClick}
+            onSkip={player.handleBannerSkipClick}
           />
         )}
 

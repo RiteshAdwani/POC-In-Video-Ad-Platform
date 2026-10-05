@@ -91,6 +91,7 @@ export const updateAdPlacement: RequestHandler = async (req, res) => {
     adType: data.adType ?? existing.adType,
     startOffsetSeconds: data.startOffsetSeconds ?? existing.startOffsetSeconds,
     durationSeconds: data.durationSeconds ?? existing.durationSeconds,
+    skipAfterSeconds: data.skipAfterSeconds ?? existing.skipAfterSeconds,
   });
 
   // Update Ad placement

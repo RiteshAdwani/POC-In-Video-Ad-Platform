@@ -85,7 +85,12 @@ export const CreateEditAdPlacementModal = ({
   const isPreRoll = selectedAdType === AdType.PRE_ROLL;
   const isMidRoll = selectedAdType === AdType.MID_ROLL;
   const isBanner = selectedAdType === AdType.BANNER_OVERLAY;
-  const rules = getAdPlacementFormRules(selectedAdType, videoDurationSeconds);
+  const selectedDurationSeconds = Form.useWatch(AdPlacementFormFields.DurationSeconds, form);
+  const rules = getAdPlacementFormRules(
+    selectedAdType,
+    videoDurationSeconds,
+    selectedDurationSeconds,
+  );
 
   const maxStartOffsetSeconds = getMaxStartOffsetSeconds(selectedAdType, videoDurationSeconds);
 
@@ -119,7 +124,8 @@ export const CreateEditAdPlacementModal = ({
   /**
    * @description Syncs timing fields to the selected type, in both modes. Guarded on
    * selectedAdType being defined so it can't fire on Form.useWatch's transient undefined on the
-   * first render and wipe the placement's real values before they're shown.
+   * first render and wipe the placement's real values before they're shown. skipAfterSeconds is
+   * left alone here - it's valid for every ad type, banner included.
    */
   useEffect(() => {
     if (!selectedAdType) return;
@@ -128,9 +134,7 @@ export const CreateEditAdPlacementModal = ({
       form.setFieldValue(AdPlacementFormFields.StartOffsetSeconds, 0);
     }
 
-    if (selectedAdType === AdType.BANNER_OVERLAY) {
-      form.setFieldValue(AdPlacementFormFields.SkipAfterSeconds, undefined);
-    } else {
+    if (selectedAdType !== AdType.BANNER_OVERLAY) {
       form.setFieldValue(AdPlacementFormFields.DurationSeconds, undefined);
     }
   }, [selectedAdType, form]);
@@ -206,7 +210,7 @@ export const CreateEditAdPlacementModal = ({
                   />
                 </Form.Item>
 
-                {isBanner ? (
+                {isBanner && (
                   <Form.Item<AdPlacementFormType>
                     label="Duration (seconds)"
                     name={AdPlacementFormFields.DurationSeconds}
@@ -214,16 +218,16 @@ export const CreateEditAdPlacementModal = ({
                   >
                     <InputNumber min={1} className="ad-placement-form__number-input" />
                   </Form.Item>
-                ) : (
-                  <Form.Item<AdPlacementFormType>
-                    label="Skip after (seconds)"
-                    name={AdPlacementFormFields.SkipAfterSeconds}
-                    rules={rules[AdPlacementFormFields.SkipAfterSeconds]}
-                    extra="Leave empty if this ad can't be skipped"
-                  >
-                    <InputNumber min={0} className="ad-placement-form__number-input" />
-                  </Form.Item>
                 )}
+
+                <Form.Item<AdPlacementFormType>
+                  label="Skip after (seconds)"
+                  name={AdPlacementFormFields.SkipAfterSeconds}
+                  rules={rules[AdPlacementFormFields.SkipAfterSeconds]}
+                  extra="Leave empty if this ad can't be skipped"
+                >
+                  <InputNumber min={0} className="ad-placement-form__number-input" />
+                </Form.Item>
               </>
             )}
           </>

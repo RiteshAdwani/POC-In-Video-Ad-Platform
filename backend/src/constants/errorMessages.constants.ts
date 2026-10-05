@@ -13,12 +13,14 @@ export const ErrorMessages = {
   VIDEO_NOT_FOUND: 'Video not found',
   VIDEO_NOT_READY: 'Video is not ready for playback',
   INVALID_AD_REFERENCE: 'Ad Id does not reference an ad placement on the given video',
-  BANNER_NOT_SKIPPABLE: 'Banner overlay placements cannot be skipped',
+  AD_NOT_SKIPPABLE: 'This ad placement cannot be skipped',
   ADVERTISEMENT_NOT_FOUND: 'Advertisement not found',
   ADVERTISEMENT_IN_USE: 'Cannot delete an advertisement that is still placed on one or more videos',
   INVALID_PREROLL_OFFSET: 'Pre-roll placements must have startOffsetSeconds = 0',
   INVALID_MIDROLL_OFFSET: 'Mid-roll placements must have startOffsetSeconds > 0',
   MISSING_BANNER_DURATION: 'Banner placements require durationSeconds',
+  SKIP_AFTER_EXCEEDS_BANNER_DURATION:
+    "A banner's skipAfterSeconds must be less than its durationSeconds",
   PLACEMENT_OFFSET_EXCEEDS_VIDEO_DURATION:
     "startOffsetSeconds must be less than the video's duration",
 } as const;

@@ -31,6 +31,7 @@ export const useVideoPlaybackController = (
   const [adSecondsRemaining, setAdSecondsRemaining] = useState<number | null>(null);
   const [skipInSeconds, setSkipInSeconds] = useState<number | null>(null);
   const [bannerSecondsRemaining, setBannerSecondsRemaining] = useState<number | null>(null);
+  const [bannerSkipInSeconds, setBannerSkipInSeconds] = useState<number | null>(null);
   const [preRollAppliedFor, setPreRollAppliedFor] = useState<PlaybackConfig | undefined>(undefined);
 
   // Drives the custom control bar's seek track - the main video's own duration isn't part of
@@ -50,6 +51,10 @@ export const useVideoPlaybackController = (
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const shownAdPlacementIdsRef = useRef<Set<string>>(new Set());
   const resumeTimeRef = useRef(0);
+  // So a banner skipped early can cancel its own pending countdown/auto-end timers instead of
+  // letting them fire after the banner's already gone.
+  const bannerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const bannerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Same fact as hasEngaged, kept as its own ref so the effect below can read it without
   // depending on it - depending on the state would re-run the effect (and restart playback) on
@@ -281,18 +286,24 @@ export const useVideoPlaybackController = (
 
     const bannerDurationSeconds = nextBanner.durationSeconds ?? 5;
     setBannerSecondsRemaining(bannerDurationSeconds);
+    setBannerSkipInSeconds(nextBanner.skipAfterSeconds ?? null);
 
     // No `timeupdate` fires while the video is paused, so the countdown needs its own clock -
     // unlike the ad countdown above, which rides the main video's own timeupdate events.
-    const countdownIntervalId = setInterval(() => {
+    bannerIntervalRef.current = setInterval(() => {
       setBannerSecondsRemaining((prev) => (prev !== null ? Math.max(0, prev - 1) : null));
+      setBannerSkipInSeconds((prev) => (prev !== null ? Math.max(0, prev - 1) : null));
     }, 1000);
 
-    // No `ended` event for an <img> - a banner completes itself on a timer instead.
-    setTimeout(() => {
-      clearInterval(countdownIntervalId);
+    // No `ended` event for an <img> - a banner completes itself on a timer instead, unless
+    // handleBannerSkipClick cancels this first.
+    bannerTimeoutRef.current = setTimeout(() => {
+      if (bannerIntervalRef.current) clearInterval(bannerIntervalRef.current);
+      bannerIntervalRef.current = null;
+      bannerTimeoutRef.current = null;
       setActiveBanner(null);
       setBannerSecondsRemaining(null);
+      setBannerSkipInSeconds(null);
       logEvent(PlaybackEventType.AD_COMPLETED, nextBanner.id);
       void videoRef.current?.play().catch(() => {});
     }, bannerDurationSeconds * 1000);
@@ -326,6 +337,25 @@ export const useVideoPlaybackController = (
   };
 
   /**
+   * @description Logs AD_SKIPPED and ends the current banner early: cancels its pending
+   * countdown/auto-end timers (so they don't also fire afterward) and resumes the main video
+   * itself, since a banner pauses it on start rather than relying on the activeAd effect to do so.
+   */
+  const handleBannerSkipClick = () => {
+    if (!activeBanner) return;
+    if (bannerIntervalRef.current) clearInterval(bannerIntervalRef.current);
+    if (bannerTimeoutRef.current) clearTimeout(bannerTimeoutRef.current);
+    bannerIntervalRef.current = null;
+    bannerTimeoutRef.current = null;
+
+    logEvent(PlaybackEventType.AD_SKIPPED, activeBanner.id);
+    setActiveBanner(null);
+    setBannerSecondsRemaining(null);
+    setBannerSkipInSeconds(null);
+    void videoRef.current?.play().catch(() => {});
+  };
+
+  /**
    * @description Opens the current ad's click-through link and logs AD_CLICKED.
    */
   const handleAdClick = () => {
@@ -345,6 +375,7 @@ export const useVideoPlaybackController = (
 
   // Skippable the instant the countdown hits 0 - derived rather than tracked separately.
   const canSkip = skipInSeconds === 0;
+  const bannerCanSkip = bannerSkipInSeconds === 0;
 
   return {
     videoRef,
@@ -354,6 +385,8 @@ export const useVideoPlaybackController = (
     adSecondsRemaining,
     skipInSeconds,
     bannerSecondsRemaining,
+    bannerCanSkip,
+    bannerSkipInSeconds,
     hasEngaged,
     mainVideoDuration,
     mainVideoCurrentTime,
@@ -367,6 +400,7 @@ export const useVideoPlaybackController = (
     handleTogglePlay,
     handleSeek,
     handleSkipClick,
+    handleBannerSkipClick,
     handleAdClick,
     handleBannerClick,
   };
