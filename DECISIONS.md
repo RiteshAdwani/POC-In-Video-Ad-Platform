@@ -225,9 +225,9 @@ video with a real audit trail rather than a silently stuck one.
 The dashboard never queries raw `PlaybackEvent` — every read goes through `DailyCount`, whose
 partial unique indexes (`[videoId, adPlacementId, eventType, day]` / `[videoId, eventType, day]`)
 double as the query's access path, since the dashboard's `groupBy` filters on exactly those
-columns. The aggregation job's own scan of raw events per day is backed by
-`[videoId, eventType, occurredAt]` / `[adPlacementId, eventType, occurredAt]`, so recomputing one
-day never means scanning the whole table.
+columns. The aggregation job's own scan of raw events per day — the recount and the late-arrival
+check, both an `occurredAt` range across every video — is backed by a plain `[occurredAt]` index,
+so recomputing one day never means scanning the whole table.
 
 ## Known gaps
 

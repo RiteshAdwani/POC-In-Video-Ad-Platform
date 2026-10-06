@@ -138,7 +138,9 @@ model PlaybackEvent {
   // generation already makes cross-video collisions practically impossible - without it, this
   // rule taken on its own doesn't actually scope to a video at all.
   @@unique([sessionId, videoId, eventType], where: raw("\"adPlacementId\" IS NULL"), map: "PlaybackEvent_session_video_event_dedup")
-  // Scans the aggregation job runs: all of one video's (or one placement's) events in a day.
+  // The aggregation job's scans - one day's events across every video (recount + late-arrival check).
+  @@index([occurredAt])
+  // Auditing a disputed number: the raw events behind one video's (or placement's) count for a day.
   @@index([videoId, eventType, occurredAt])
   @@index([adPlacementId, eventType, occurredAt])
 }

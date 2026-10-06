@@ -58,8 +58,11 @@ every video-level event. Full reasoning in [DECISIONS.md](DECISIONS.md#event-ide
 `DailyCount` uses the identical partial-index pattern (`DailyCount_ad_scoped_key` /
 `DailyCount_video_scoped_key`) for the same reason, one calendar day at a time.
 
-Two plain (non-unique) indexes exist purely for the aggregation job's scans:
-`[videoId, eventType, occurredAt]` and `[adPlacementId, eventType, occurredAt]`.
+A plain `[occurredAt]` index backs the aggregation job's scans — both the per-day recount and the
+late-arrival check filter on an `occurredAt` range across every video. Two more,
+`[videoId, eventType, occurredAt]` and `[adPlacementId, eventType, occurredAt]`, serve auditing a
+disputed number: pulling the raw events behind one video's or placement's count for a given day,
+to check them against `DailyCount`.
 
 ### Deletion behavior
 
