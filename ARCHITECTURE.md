@@ -108,15 +108,15 @@ context and never leaks its internals to the client.
 
 ### Module map
 
-| Module           | Route prefix             | Auth                                                       | Purpose                                                                                                                                                                                                                                                                                                           |
-| ---------------- | ------------------------ | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `auth`           | `/api/v1/auth`           | none                                                       | `POST /login` — verifies email/bcrypt password, issues a JWT                                                                                                                                                                                                                                                      |
-| `videos`         | `/api/v1/videos`         | `requireAuth` + `requireOwnership` on per-id routes        | Admin CRUD for videos: multipart upload (streamed to Cloudinary, no local copy kept), paginated + searchable list, get-by-id (own videos, includes ad-placement count), on-demand status check, update, delete (409 if placements/events reference it). Mounts `adPlacements` nested under `/:videoId/placements` |
-| `advertisements` | `/api/v1/advertisements` | `requireAuth` + `requireOwnership`                         | Admin CRUD for reusable ad creatives, with the same paginated + searchable list shape as `videos`; `GET /:id/placements` lists every video an ad is placed on                                                                                                                                                     |
-| `adPlacements`   | nested under `videos`    | `requireAuth`; ownership derived from the **parent video** | Create/list/update/delete one placement of an ad on a video, with the placement business rules below                                                                                                                                                                                                              |
-| `dashboard`      | `/api/v1/dashboard`      | `requireAuth`                                              | `GET /` — impressions/completions/skips/clicks/CTR/completion-rate/skip-rate/video-completion-rate + a daily trend series, scoped to the caller's own videos (optionally narrowed to one video, placement, or advertisement), reading only `DailyCount`                                                           |
-| `aggregation`    | `/api/v1/aggregation`    | `requireAuth`, no ownership check (system-wide)            | `POST /runs` — manually (re)aggregates one day, bypassing the scheduler's grace window — the "a client disputes a number" correction path                                                                                                                                                                         |
-| `public`         | `/api/v1/public`         | **none, deliberately**                                     | `GET /videos` (public catalog, paginated + searchable, same shape as the admin lists), `GET /videos/:id/playback` (playback URL + ad list), `POST /events` (event ingestion). This module never imports the admin write controllers — see [DECISIONS.md](DECISIONS.md#read-only-enforcement)                      |
+| Module           | Route prefix             | Auth                                                       | Purpose                                                                                                                                                                                                                                                                                                                               |
+| ---------------- | ------------------------ | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auth`           | `/api/v1/auth`           | none                                                       | `POST /login` — verifies email/bcrypt password, issues a JWT                                                                                                                                                                                                                                                                          |
+| `videos`         | `/api/v1/videos`         | `requireAuth` + `requireOwnership` on per-id routes        | Admin CRUD for videos: multipart upload (streamed to Cloudinary, no local copy kept), paginated + searchable list, get-by-id (own videos, includes ad-placement count), on-demand status check, update, delete (soft delete — see [Deletion behavior](#deletion-behavior)). Mounts `adPlacements` nested under `/:videoId/placements` |
+| `advertisements` | `/api/v1/advertisements` | `requireAuth` + `requireOwnership`                         | Admin CRUD for reusable ad creatives, with the same paginated + searchable list shape as `videos`; `GET /:id/placements` lists every video an ad is placed on                                                                                                                                                                         |
+| `adPlacements`   | nested under `videos`    | `requireAuth`; ownership derived from the **parent video** | Create/list/update/delete one placement of an ad on a video, with the placement business rules below                                                                                                                                                                                                                                  |
+| `dashboard`      | `/api/v1/dashboard`      | `requireAuth`                                              | `GET /` — impressions/completions/skips/clicks/CTR/completion-rate/skip-rate/video-completion-rate + a daily trend series, scoped to the caller's own videos (optionally narrowed to one video, placement, or advertisement), reading only `DailyCount`                                                                               |
+| `aggregation`    | `/api/v1/aggregation`    | `requireAuth`, no ownership check (system-wide)            | `POST /runs` — manually (re)aggregates one day, bypassing the scheduler's grace window — the "a client disputes a number" correction path                                                                                                                                                                                             |
+| `public`         | `/api/v1/public`         | **none, deliberately**                                     | `GET /videos` (public catalog, paginated + searchable, same shape as the admin lists), `GET /videos/:id/playback` (playback URL + ad list), `POST /events` (event ingestion). This module never imports the admin write controllers — see [DECISIONS.md](DECISIONS.md#read-only-enforcement)                                          |
 
 ### Ownership pattern
 
@@ -280,8 +280,9 @@ destination) and nested under a shared `<Layout>` (sidebar shell).
 
 ### Data fetching convention (every hook follows this)
 
-- One shared `axiosInstance` (`baseURL` from `API_BASE_URL` — the backend's own origin at
-  `/api/v1`, set at build time via `VITE_API_BASE_URL`; see [Deployment shape](#deployment-shape)),
+- One shared `axiosInstance` (`baseURL` is `API_BASE_URL` + `/v1`, where `API_BASE_URL` is the
+  backend's origin — set at build time via `VITE_BACKEND_ORIGIN`, empty in dev so calls stay
+  relative and go through Vite's proxy — plus `/api`; see [Deployment shape](#deployment-shape)),
   request interceptor attaches the bearer token.
 - Query keys: a flat `QueryKeys` object of base segments; each hook composes the full array key
   inline (`[QueryKeys.VIDEOS]`, `[QueryKeys.PLAYBACK_CONFIG, videoId]`).
@@ -387,15 +388,15 @@ skip-or-duration chips in place of a single plain-text line.
 ## Deployment shape
 
 **Local:** `docker-compose.yml` — Postgres + backend (Node, compiled JS) + frontend (`serve`
-serving the built SPA — a single static-file server, no reverse-proxy config to maintain). The
+serving the built SPA as static files). The
 browser calls the backend directly at `http://localhost:<port>` (the backend's port is published
 to the host).
 
 **Production (e.g. Render):** the two containers become two separate services with no shared
 private network — same as local, the browser calls the backend's real public HTTPS URL directly.
-Both still use their existing Dockerfiles unchanged; the only difference is `VITE_API_BASE_URL` (a
-_build-time_ arg, baked into the JS bundle — see `frontend/Dockerfile`) is set to the backend
-service's real public URL instead of `http://localhost:<port>`.
+Both still use their existing Dockerfiles unchanged; the only difference is `VITE_BACKEND_ORIGIN`
+(a _build-time_ arg, baked into the JS bundle — see `frontend/Dockerfile`) is set to the backend
+service's real public origin instead of `http://localhost:<port>`.
 
 The backend's `cors` middleware (`CORS_ORIGIN`) handles the resulting cross-origin calls in both
 environments.

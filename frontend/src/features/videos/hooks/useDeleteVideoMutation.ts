@@ -7,8 +7,8 @@ import { handleAxiosSuccess } from '../../../lib/axiosSuccess';
 import type { ApiResponseBody } from '../../../types/apiResponse.types';
 
 /**
- * @description Deletes a video. Rejected by the backend (409) if it still has ad placements or
- * recorded playback events. Refetches every video query on success, including this video's own
+ * @description Deletes a video - a soft delete on the backend, so its analytics history stays
+ * intact. Refetches every video query on success, including this video's own
  * single-item one if it's mounted elsewhere (e.g. its details page open in another tab) - that
  * page already renders a clean 404 Result for a missing video, so showing it the fact promptly
  * beats leaving stale, now-broken data on screen.

@@ -7,8 +7,8 @@ import { handleAxiosSuccess } from '../../../lib/axiosSuccess';
 import type { ApiResponseBody } from '../../../types/apiResponse.types';
 
 /**
- * @description Removes an ad placement. Rejected by the backend (409) if playback events still
- * reference it. Also invalidates the video's own query (its adPlacementCount just changed) and
+ * @description Removes an ad placement - a soft delete on the backend, so its playback history
+ * stays intact. Also invalidates the video's own query (its adPlacementCount just changed) and
  * the ads list/details (the removed ad's own placementCount just changed too), on top of this
  * video's placements list.
  */

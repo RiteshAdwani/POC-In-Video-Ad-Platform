@@ -25,7 +25,7 @@ RUN npm run build --workspace=frontend
 # A production build is just static files - `serve` is one well-known package that serves a
 # folder with SPA-fallback support built in (-s: unknown paths get index.html, so a hard refresh
 # on e.g. /videos works), instead of a whole separate web server with its own config file. The
-# backend call itself goes browser-to-backend directly (VITE_API_BASE_URL above).
+# backend call itself goes browser-to-backend directly (VITE_BACKEND_ORIGIN above).
 FROM node:22-alpine AS runtime
 WORKDIR /app
 
