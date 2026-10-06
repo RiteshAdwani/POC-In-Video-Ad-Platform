@@ -12,8 +12,9 @@ import { checkAndUpdateVideoStatus, toVideoDto } from './videos.service';
 import { paginationQuerySchema } from '../../schemas/pagination.schema';
 import { buildPaginationMeta } from '../../lib/pagination';
 
+// Counts live placements only - retired ones no longer play on this video.
 const WITH_AD_PLACEMENT_COUNT = {
-  include: { _count: { select: { adPlacements: true } } },
+  include: { _count: { select: { adPlacements: { where: { deletedAt: null } } } } },
 } as const;
 
 /**

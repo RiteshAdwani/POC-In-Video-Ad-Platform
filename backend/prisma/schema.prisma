@@ -88,6 +88,9 @@ model Advertisement {
   clickThroughUrl String? // nullable - not every ad has a destination link
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+  // Soft-delete only - retired AdPlacement rows still reference this ad (onDelete: Restrict), so a
+  // hard delete would be blocked forever once the ad has ever been placed.
+  deletedAt       DateTime?
   authorId        String
   author          Admin         @relation(fields: [authorId], references: [id])
   adPlacements    AdPlacement[]
