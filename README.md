@@ -48,9 +48,7 @@ Browser ──▶ static frontend (React SPA)
              · daily-count aggregation scheduler (1h)
 ```
 
-The browser calls the backend directly (CORS, not a same-origin proxy) — see
-[DECISIONS.md](DECISIONS.md#why-the-frontend-calls-the-backend-directly-not-via-an-nginx-proxy)
-for why.
+The browser calls the backend directly, with CORS allowing the frontend's origin.
 
 The full data model, request flows, and module-by-module breakdown live in
 **[ARCHITECTURE.md](ARCHITECTURE.md)**. The reasoning behind every non-obvious choice — the
@@ -110,7 +108,7 @@ Two accounts exist specifically so cross-admin ownership scoping is demonstrable
 ```bash
 npm install
 npm run dev:backend    # tsx watch, port 8000 — needs Postgres reachable via DATABASE_URL
-npm run dev:frontend   # vite dev server, port 5173, proxies /api and /public to :8000
+npm run dev:frontend   # vite dev server, port 5173, proxies /api to :8000
 ```
 
 `npm run typecheck` / `npm run lint` run across both workspaces from the repo root.

@@ -6,10 +6,9 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      // Same-origin from the browser's point of view - no CORS to deal with in dev, matching
-      // how nginx proxies these same two prefixes in the production container.
+      // Same-origin from the browser's point of view - no CORS to deal with in dev. Every
+      // backend route (public ones included) lives under /api.
       '/api': 'http://localhost:8000',
-      '/public': 'http://localhost:8000',
     },
   },
 });
