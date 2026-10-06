@@ -1,7 +1,11 @@
 import { generatePath, Link } from 'react-router-dom';
 import { Button, Tooltip, Typography } from 'antd';
 import { DeleteOutlined, EditOutlined, LinkOutlined, PlayCircleFilled } from '@ant-design/icons';
-import { AssetType } from '../../../../constants/ad.constants';
+import {
+  AssetType,
+  DELETE_AD_BLOCKED_TOOLTIP,
+  DELETE_AD_TOOLTIP,
+} from '../../../../constants/ad.constants';
 import { Routes } from '../../../../constants/routes.constants';
 import { formatRelativeTime } from '../../../../lib/formatRelativeTime';
 import { getVideoThumbnailUrl } from '../../../../lib/videoThumbnail';
@@ -75,11 +79,14 @@ export const AdsGrid = ({ ads, onEdit, onDelete }: AdsGridProps) => (
                   aria-label="Edit ad"
                 />
               </Tooltip>
-              <Tooltip title="Delete ad">
+              <Tooltip
+                title={ad.adPlacementCount > 0 ? DELETE_AD_BLOCKED_TOOLTIP : DELETE_AD_TOOLTIP}
+              >
                 <Button
                   type="text"
                   size="small"
                   danger
+                  disabled={ad.adPlacementCount > 0}
                   icon={<DeleteOutlined />}
                   onClick={() => onDelete(ad)}
                   aria-label="Delete ad"

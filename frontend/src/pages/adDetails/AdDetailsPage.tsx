@@ -1,9 +1,9 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import dayjs from 'dayjs';
-import { Button, Empty, Flex, Result, Typography } from 'antd';
+import { Button, Empty, Flex, Result, Tooltip, Typography } from 'antd';
 import { ArrowLeftOutlined, DeleteOutlined, EditOutlined, LinkOutlined } from '@ant-design/icons';
-import { AssetType } from '../../constants/ad.constants';
+import { AssetType, DELETE_AD_BLOCKED_TOOLTIP } from '../../constants/ad.constants';
 import { ModalMode } from '../../constants/modalMode.constants';
 import { Routes } from '../../constants/routes.constants';
 import {
@@ -61,8 +61,7 @@ export const AdDetailsPage = () => {
   };
 
   /**
-   * @description Confirms before permanently deleting this ad and its uploaded creative -
-   * rejected by the backend if it's still placed on any video.
+   * @description Confirms before deleting this ad, then returns to the ads list.
    */
   const handleDelete = () => {
     confirmDeleteAd(ad!, { onSuccess: () => navigate(Routes.ADS) });
@@ -86,6 +85,9 @@ export const AdDetailsPage = () => {
       />
     );
   }
+
+  // Backend rejects deleting an ad that's still live on any video - block it here up front.
+  const isPlaced = ad.adPlacementCount > 0;
 
   return (
     <div className="ad-details-page">
@@ -118,9 +120,11 @@ export const AdDetailsPage = () => {
               <Button icon={<EditOutlined />} onClick={handleOpen}>
                 Edit ad
               </Button>
-              <Button danger icon={<DeleteOutlined />} onClick={handleDelete}>
-                Delete
-              </Button>
+              <Tooltip title={isPlaced ? DELETE_AD_BLOCKED_TOOLTIP : undefined}>
+                <Button danger icon={<DeleteOutlined />} disabled={isPlaced} onClick={handleDelete}>
+                  Delete
+                </Button>
+              </Tooltip>
             </Flex>
           </Flex>
 

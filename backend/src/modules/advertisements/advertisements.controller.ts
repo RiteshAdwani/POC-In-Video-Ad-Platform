@@ -2,7 +2,7 @@ import type { RequestHandler } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { prisma } from '../../lib/prisma';
 import { uploadAdAsset } from '../../lib/cloudinary';
-import { Prisma, type Advertisement } from '../../generated/prisma/client.js';
+import type { Advertisement } from '../../generated/prisma/client.js';
 import { AssetType } from '../../generated/prisma/enums';
 import { ConflictError, UpstreamServiceError, ValidationError } from '../../errors/AppError';
 import { ErrorMessages } from '../../constants/errorMessages.constants';
@@ -12,8 +12,9 @@ import { toAdvertisementDto } from './advertisements.service';
 import { paginationQuerySchema } from '../../schemas/pagination.schema';
 import { buildPaginationMeta } from '../../lib/pagination';
 
+// Counts live placements only - a retired placement no longer puts this ad on any video.
 const WITH_AD_PLACEMENT_COUNT = {
-  include: { _count: { select: { adPlacements: true } } },
+  include: { _count: { select: { adPlacements: { where: { deletedAt: null } } } } },
 } as const;
 
 /**
@@ -59,6 +60,7 @@ export const listAdvertisements: RequestHandler = async (req, res) => {
   const { page, pageSize, search } = paginationQuerySchema.parse(req.query);
   const where = {
     authorId: req.admin!.id,
+    deletedAt: null,
     ...(search ? { title: { contains: search, mode: 'insensitive' as const } } : {}),
   };
 
@@ -120,20 +122,23 @@ export const updateAdvertisement: RequestHandler = async (req, res) => {
 };
 
 /**
- * @description Deletes an advertisement. requireOwnership already fetched and verified it.
+ * @description Retires an advertisement - a soft delete (sets deletedAt), so its placement and
+ * event history stays intact. Rejected while it's still live on any video.
  */
 export const deleteAdvertisement: RequestHandler = async (req, res) => {
   const existing = req.resource as Advertisement;
 
-  try {
-    await prisma.advertisement.delete({ where: { id: existing.id } });
-  } catch (error) {
-    // P2003: foreign key constraint failed - this ad is still referenced by an AdPlacement.
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
-      throw new ConflictError(ErrorMessages.ADVERTISEMENT_IN_USE);
-    }
-    throw error;
+  const livePlacementCount = await prisma.adPlacement.count({
+    where: { advertisementId: existing.id, deletedAt: null },
+  });
+  if (livePlacementCount > 0) {
+    throw new ConflictError(ErrorMessages.ADVERTISEMENT_IN_USE);
   }
+
+  await prisma.advertisement.update({
+    where: { id: existing.id },
+    data: { deletedAt: new Date() },
+  });
 
   res
     .status(StatusCodes.OK)

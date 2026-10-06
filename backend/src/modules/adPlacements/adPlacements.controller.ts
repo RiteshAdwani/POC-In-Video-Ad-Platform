@@ -17,8 +17,10 @@ export const createAdPlacement: RequestHandler = async (req, res) => {
   const video = req.resource as Video;
   const { advertisementId, ...placementData } = createAdPlacementSchema.parse(req.body);
 
-  // Fetch Ad details from the DB
-  const advertisement = await prisma.advertisement.findUnique({ where: { id: advertisementId } });
+  // A retired ad can't be placed again - treated as not found, same as one that never existed.
+  const advertisement = await prisma.advertisement.findFirst({
+    where: { id: advertisementId, deletedAt: null },
+  });
   if (advertisement?.authorId !== req.admin!.id) {
     throw new NotFoundError(ErrorMessages.ADVERTISEMENT_NOT_FOUND);
   }

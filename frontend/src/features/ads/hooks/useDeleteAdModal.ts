@@ -16,7 +16,7 @@ export const useDeleteAdModal = () => {
   return (ad: Advertisement, options?: { onSuccess?: () => void }) => {
     modal.confirm({
       title: 'Delete this ad?',
-      content: `"${ad.title}" and its uploaded creative will be permanently removed. This can't be undone.`,
+      content: `"${ad.title}" will be removed from your ads. Its past performance stays in your dashboard totals. This can't be undone.`,
       okText: 'Delete',
       okButtonProps: { danger: true },
       onOk: () => deleteMutation.mutateAsync(ad.id).then(options?.onSuccess),

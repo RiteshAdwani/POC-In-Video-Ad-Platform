@@ -14,8 +14,9 @@ import { listAdPlacementsForAdvertisement } from '../adPlacements/adPlacements.c
 
 export const advertisementsRouter = Router();
 
+// findFirst, not findUnique - a retired (soft-deleted) ad must 404 like one that never existed.
 const requireAdvertisementOwnership = requireOwnership((id) =>
-  prisma.advertisement.findUnique({ where: { id } }),
+  prisma.advertisement.findFirst({ where: { id, deletedAt: null } }),
 );
 
 advertisementsRouter.post('/', requireAuth, adAssetUpload.single('assetFile'), createAdvertisement);
