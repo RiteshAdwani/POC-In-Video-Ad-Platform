@@ -9,7 +9,7 @@ import { ErrorMessages } from '../../constants/errorMessages.constants';
 import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants';
 import { createVideoSchema, updateVideoSchema } from './videos.schema';
 import { checkAndUpdateVideoStatus, toVideoDto } from './videos.service';
-import { paginationQuerySchema } from '../../schemas/pagination.schema';
+import { adminListQuerySchema } from '../../schemas/pagination.schema';
 import { buildPaginationMeta } from '../../lib/pagination';
 
 // Counts live placements only - retired ones no longer play on this video.
@@ -73,22 +73,21 @@ export const getVideoStatus: RequestHandler = async (req, res) => {
 };
 
 /**
- * @description Lists every currently-active video owned by the calling admin (excludes
- * retired/soft-deleted ones - see deleteVideo) - never other admins' videos. Paginated: page/
- * pageSize come from the query string, defaulted and bounded by paginationQuerySchema.
+ * @description Lists the calling admin's videos, paginated and searchable - active ones by
+ * default, or only retired (soft-deleted) ones with `deleted=true`, most recently deleted first.
  */
 export const listVideos: RequestHandler = async (req, res) => {
-  const { page, pageSize, search } = paginationQuerySchema.parse(req.query);
+  const { page, pageSize, search, deleted } = adminListQuerySchema.parse(req.query);
   const where = {
     authorId: req.admin!.id,
-    deletedAt: null,
+    deletedAt: deleted ? { not: null } : null,
     ...(search ? { title: { contains: search, mode: 'insensitive' as const } } : {}),
   };
 
   const [videos, totalItems] = await Promise.all([
     prisma.video.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: deleted ? { deletedAt: 'desc' } : { createdAt: 'desc' },
       skip: (page - 1) * pageSize,
       take: pageSize,
       ...WITH_AD_PLACEMENT_COUNT,
@@ -142,19 +141,21 @@ export const updateVideo: RequestHandler = async (req, res) => {
 };
 
 /**
- * @description Retires a video - a soft delete (sets deletedAt), never a real row deletion. A
- * hard delete would be permanently blocked by onDelete: Restrict the moment any AdPlacement/
- * PlaybackEvent/DailyCount row references it (i.e. any video that's ever actually been watched),
- * and physically removing the row was never actually necessary either way: every admin- and
- * public-facing query already filters deletedAt: null, so a retired video simply stops appearing
- * anywhere active while its history stays intact. requireOwnership already fetched and verified
- * it. The Cloudinary asset cleanup below still runs the same as before - the file itself is a
- * storage cost with no analytics value once nothing can reach it anymore.
+ * @description Retires a video and its live placements together - soft deletes, so all playback
+ * history stays intact. Retiring the placements frees their ads to be deleted; the Cloudinary file
+ * itself is deleted, since nothing can play it anymore.
  */
 export const deleteVideo: RequestHandler = async (req, res) => {
   const existing = req.resource as Video;
+  const deletedAt = new Date();
 
-  await prisma.video.update({ where: { id: existing.id }, data: { deletedAt: new Date() } });
+  await prisma.$transaction([
+    prisma.video.update({ where: { id: existing.id }, data: { deletedAt } }),
+    prisma.adPlacement.updateMany({
+      where: { videoId: existing.id, deletedAt: null },
+      data: { deletedAt },
+    }),
+  ]);
 
   if (existing.externalId) {
     try {

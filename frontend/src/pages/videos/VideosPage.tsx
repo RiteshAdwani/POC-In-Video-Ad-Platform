@@ -1,25 +1,25 @@
 import { useState } from 'react';
-import { Button, Empty, Flex, Input, Pagination, Result, Typography } from 'antd';
-import { SearchOutlined, UploadOutlined } from '@ant-design/icons';
+import { Flex, Segmented } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
 import { CreateEditVideoModal } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal';
 import { ModalMode } from '../../constants/modalMode.constants';
 import { VideoFormFields } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal.constants';
 import type { VideoFormType } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal.types';
-import { VideosGrid } from '../../features/videos/components/VideosGrid/VideosGrid';
-import { PageSpinner } from '../../components/PageSpinner/PageSpinner';
+import { VideosListContent } from '../../features/videos/components/VideosListContent/VideosListContent';
 import { useVideosQuery } from '../../features/videos/hooks/useVideosQuery';
 import { useUploadVideoMutation } from '../../features/videos/hooks/useUploadVideoMutation';
 import { useUpdateVideoMutation } from '../../features/videos/hooks/useUpdateVideoMutation';
 import { useDeleteVideoModal } from '../../features/videos/hooks/useDeleteVideoModal';
 import { useModalState } from '../../hooks/useModalState';
 import { usePaginationParam } from '../../hooks/usePaginationParam';
-import { useDebouncedValue } from '../../hooks/useDebouncedValue';
-import { SEARCH_DEBOUNCE_MS } from '../../constants/search.constants';
+import { useListViewParam } from '../../hooks/useListViewParam';
+import { useListSearchParam } from '../../hooks/useListSearchParam';
+import { LIST_VIEW_OPTIONS, ListView } from '../../constants/listView.constants';
+import { ListPageHeader } from '../../components/ListPageHeader/ListPageHeader';
+import { SearchInput } from '../../components/SearchInput/SearchInput';
 import type { Video } from '../../types/video.types';
 import type { UpdateVideoRequestDto } from '../../dtos/video.dto';
 import './VideosPage.css';
-
-const { Title, Text } = Typography;
 
 /**
  * @description Admin video library - lists every uploaded video with its processing status and
@@ -31,19 +31,11 @@ export const VideosPage = () => {
   const [editingVideo, setEditingVideo] = useState<Video | undefined>(undefined);
 
   const { page, onPageChange } = usePaginationParam();
-  const [search, setSearch] = useState('');
-  const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
-  const { data, isLoading, isError } = useVideosQuery(page, debouncedSearch);
+  const { view, onViewChange } = useListViewParam();
+  const isDeletedView = view === ListView.DELETED;
+  const { search, onSearch } = useListSearchParam();
+  const { data, isLoading, isError } = useVideosQuery(page, search, view);
 
-  /**
-   * @description Jumps back to page 1 as soon as the search term changes - otherwise a search
-   * typed while on, say, page 3 would show "page 3 of filtered results" (likely nonexistent)
-   * instead of starting from the top of the new results.
-   */
-  const handleSearchChange = (value: string) => {
-    setSearch(value);
-    onPageChange(1);
-  };
   const { mutate: uploadVideoMutation, isPending: isUploadVideoMutationPending } =
     useUploadVideoMutation();
   const { mutate: updateVideoMutation, isPending: isUpdateVideoMutationPending } =
@@ -104,62 +96,43 @@ export const VideosPage = () => {
     }
   };
 
-  let content;
-  if (isLoading) {
-    content = <PageSpinner />;
-  } else if (isError) {
-    content = (
-      <Result status="error" title="Couldn't load videos" subTitle="Please try again shortly." />
-    );
-  } else if (!data || data.pagination.totalItems === 0) {
-    content = debouncedSearch ? (
-      <Empty description={`No videos match "${debouncedSearch}"`} />
-    ) : (
-      <Empty description="No videos yet">
-        <Button type="primary" icon={<UploadOutlined />} onClick={openCreateModal}>
-          Upload your first video
-        </Button>
-      </Empty>
-    );
-  } else {
-    content = (
-      <>
-        <VideosGrid videos={data.videos} onEdit={openEditModal} onDelete={confirmDeleteVideo} />
-        <Flex justify="flex-end" className="videos-page__pagination">
-          <Pagination
-            current={data.pagination.page}
-            pageSize={data.pagination.pageSize}
-            total={data.pagination.totalItems}
-            onChange={onPageChange}
-            showSizeChanger={false}
-          />
-        </Flex>
-      </>
-    );
-  }
-
   return (
     <div className="videos-page">
-      <Flex justify="space-between" align="center" className="videos-page__header">
-        <Flex vertical gap={4}>
-          <Title level={2}>Videos</Title>
-          <Text type="secondary">{data?.pagination.totalItems ?? 0} videos in your library</Text>
-        </Flex>
-        <Button type="primary" size="large" icon={<UploadOutlined />} onClick={openCreateModal}>
-          Upload video
-        </Button>
-      </Flex>
-
-      <Input
-        placeholder="Search videos by title"
-        prefix={<SearchOutlined />}
-        allowClear
-        value={search}
-        onChange={(event) => handleSearchChange(event.target.value)}
-        className="videos-page__search"
+      <ListPageHeader
+        title="Videos"
+        subtitle={`${data?.pagination.totalItems ?? 0} ${isDeletedView ? 'deleted videos' : 'videos in your library'}`}
+        actionLabel="Upload video"
+        actionIcon={<UploadOutlined />}
+        onAction={openCreateModal}
       />
 
-      <div className="videos-page__body">{content}</div>
+      <Flex justify="space-between" align="center" gap={16} wrap className="videos-page__toolbar">
+        <SearchInput
+          placeholder="Search videos by title"
+          onSearch={onSearch}
+          initialValue={search}
+          className="videos-page__search"
+        />
+        <Segmented
+          options={LIST_VIEW_OPTIONS}
+          value={view}
+          onChange={(value) => onViewChange(value as ListView)}
+        />
+      </Flex>
+
+      <div className="videos-page__body">
+        <VideosListContent
+          data={data}
+          isLoading={isLoading}
+          isError={isError}
+          search={search}
+          isDeletedView={isDeletedView}
+          onUpload={openCreateModal}
+          onEdit={openEditModal}
+          onDelete={confirmDeleteVideo}
+          onPageChange={onPageChange}
+        />
+      </div>
 
       {open && (
         <CreateEditVideoModal

@@ -78,14 +78,18 @@ ever been placed always has at least one placement row pointing at it.
 are soft deletes.** `Video.deletedAt`/`AdPlacement.deletedAt`/`Advertisement.deletedAt` (nullable,
 unset by default) get stamped with the current time instead of the row being removed. Deleting an
 ad is still rejected with `409` while it has any live placement — the admin removes those first,
-so retiring an ad never silently pulls it off a video. Every admin-facing query (`listVideos`,
-`listAdvertisements`, `listAdPlacements`, `listAdPlacementsForAdvertisement`, the placement-create
-ad lookup, the ad-placement counts on both grids, and the ownership-check fetchers behind
-`requireOwnership` for all three models) filters `deletedAt: null`, and so does every public-facing one
-(`listPublicVideos`, `getPlaybackConfig`'s video lookup and its nested `adPlacements` fetch) — so a
-retired video or placement simply stops appearing anywhere active, is never served to a new
-viewer, and 404s exactly like something that never existed if fetched directly by id. The row
-itself, and every `PlaybackEvent`/`DailyCount` row that references it, stays completely intact.
+so retiring an ad never silently pulls it off a video. Removing a video retires its live
+placements in the same transaction, so an ad is never left "placed" on a video nobody can open.
+
+Every active view filters `deletedAt: null`: the default admin lists, the placement-create ad
+lookup, the ad-placement counts on both grids, every write route's ownership check, event
+ingestion, and every public-facing query (`listPublicVideos`, `getPlaybackConfig`) — so a retired
+item stops appearing anywhere active, is never served to a new viewer, and can't be edited.
+Retired items stay **readable** to their owner: the video/ad lists take `deleted=true` for a
+"Deleted" view, and get-by-id plus the placement lists use a separate read-access ownership check
+that doesn't filter `deletedAt` — a retired video's or ad's placement list then includes its
+retired placements too, as a record of what ran where. The row itself, and every
+`PlaybackEvent`/`DailyCount` row that references it, stays completely intact.
 This is what actually resolves the tension the `Restrict` constraint above creates: something with
 real history genuinely can never be hard-deleted, but retiring a video or an ad that's run its
 course was never supposed to require that — soft delete gets you both "gone from every active
@@ -141,7 +145,9 @@ Prisma `skip`/`take` on the existing owner/scope-filtered `findMany`, plus a par
 where })` for the total, with the response carrying the array alongside a `{ page, pageSize, total,
 totalPages }` meta block. `search` does a case-insensitive `contains` match on `title`, added to the
 same `where` clause the ownership/scope filter already builds — a search term narrows the result
-set, it never replaces the owner scoping.
+set, it never replaces the owner scoping. The two admin lists extend this with `deleted`
+(`adminListQuerySchema`): `true` swaps the `deletedAt: null` filter for `deletedAt: { not: null }`
+and sorts by removal date, newest first.
 
 ### Video upload → ready pipeline
 
@@ -226,6 +232,10 @@ placement of one owned advertisement, on any video — the per-ad view an ad's o
 
 - Grouped by `eventType` only, summed across the range → the headline totals.
 - Grouped by `[day, eventType]` → the per-day trend series.
+- Grouped by `eventType`, limited to rows whose video or placement is retired → the
+  `deletedContribution` — the deleted share of every count (impressions, completions, skips,
+  clicks, plays, video completions). Retired items stay in the totals — they really happened —
+  and this just says how much of each total they account for.
 
 Both get pivoted by the same function (`extractDashboardStats`) into named metrics (`impressions`,
 `completions`, `skips`, `clicks`, `videoViews`, `videoCompletions`) plus derived
@@ -315,11 +325,25 @@ instead uses TanStack Query's `useInfiniteQuery`, with an `IntersectionObserver`
 (`useInfiniteScrollTrigger`) at the bottom of `PublicVideosGrid` triggering `fetchNextPage()` — a
 better fit for a browsing/discovery page with no mutations and no "page number" worth remembering.
 
-All three pages share the same search mechanics: a text input debounced via `useDebouncedValue`
-(400ms) before the typed value joins the query key, so a search doesn't refetch on every keystroke.
-On the admin pages, changing the search term also resets the page param back to 1; on the public
-page, changing the query key naturally drops any accumulated pages, so `useInfiniteQuery` restarts
-from page 1 with no manual reset needed.
+All three pages search through one shared `SearchInput`: it holds what's typed, debounces it via
+`useDebouncedValue` (400ms), and reports only the settled term through `onSearch` — so a search
+doesn't refetch on every keystroke, and pages never see per-keystroke updates. On the admin pages,
+the term lives in the URL (`useListSearchParam`, `?search=`), and setting it drops the page param in the
+same URL update — one refetch, from page 1 — and survives a refresh; on the public page, changing
+the query key
+naturally drops any accumulated pages, so `useInfiniteQuery` restarts from page 1 with no manual
+reset needed.
+
+The two admin pages share a `ListPageHeader` (title, count subtitle, primary create action),
+then a filter row of `SearchInput` beside an Active / Deleted `Segmented` switch
+(`useListViewParam`, `?view=` in the URL like `page`; switching drops the page param so the other
+list starts from page 1), then a per-feature `VideosListContent` / `AdsListContent` that renders
+whichever of loading / error / empty / grid-with-pagination applies.
+Deleted cards (only ever shown under the Deleted tab) drop their status, counts, and actions, and
+link to a **read-only** details page:
+`DeletedBanner` at the top, no edit/delete/placement management, the existing stats widget for its
+history, and every placement it ever had. A deleted video's Cloudinary file
+is deleted, so its card and preview show a placeholder rather than a broken thumbnail/player.
 
 ### The public player's ad-playback engine (`useVideoPlaybackController`)
 
@@ -382,6 +406,9 @@ completions, as line charts), `DashboardRateBreakdown` (completion rate / skip r
 `DashboardOutcomeBreakdown`/`VideoOutcomeBreakdown` (completed/skipped/"no outcome yet" and
 finished/left-early donuts, CTR overlaid in the ad donut's own hollow center since a click isn't
 mutually exclusive with completing or skipping and so can't be one of its slices).
+When deleted items contributed to the range, every `DashboardStatsGrid` tile splits its total
+into active vs deleted: a thin bar (active in the tile's accent, deleted muted) and a legend
+("555 active · 311 deleted"). With no deleted contribution, the tiles show the plain total only.
 
 A video or ad's own detail page adds a narrower, per-item view of the same data:
 `VideoStatsWidget`/`AdStatsWidget` (plays-or-impressions with a sparkline, completion/skip/CTR

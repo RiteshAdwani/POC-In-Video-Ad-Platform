@@ -11,4 +11,10 @@ export type DashboardStats = {
   videoCompletionRate: number;
 };
 
+// How much of each total count came from since-deleted videos/placements.
+export type DeletedContribution = Pick<
+  DashboardStats,
+  'impressions' | 'completions' | 'skips' | 'clicks' | 'videoViews' | 'videoCompletions'
+>;
+
 export type DashboardSeriesPoint = DashboardStats & { day: string };

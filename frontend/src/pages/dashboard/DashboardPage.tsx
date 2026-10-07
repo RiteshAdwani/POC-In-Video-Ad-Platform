@@ -35,7 +35,7 @@ export const DashboardPage = () => {
   } else {
     content = (
       <>
-        <DashboardStatsGrid stats={data} />
+        <DashboardStatsGrid stats={data} deleted={data.deletedContribution} />
         <Flex vertical gap={16} className="dashboard-page__trend-charts">
           <DashboardTrendChart series={data.series} />
           <VideoTrendChart series={data.series} />

@@ -13,25 +13,28 @@ import {
 // would only see this router's own params (:id), not the parent's :videoId.
 export const adPlacementsRouter = Router({ mergeParams: true });
 
-// findFirst, not findUnique - a retired (soft-deleted) video must be treated as not found here
-// too, same as videos.routes.ts's own instance of this same fetcher.
+// Writes: a retired (soft-deleted) video 404s like one that never existed.
 const requireVideoOwnership = requireOwnership(
   (id) => prisma.video.findFirst({ where: { id, deletedAt: null } }),
   'videoId',
 );
+// Reads: a retired video's placements stay viewable (read-only).
+const requireVideoReadAccess = requireOwnership(
+  (id) => prisma.video.findUnique({ where: { id } }),
+  'videoId',
+);
 
-// Ownership of an Ad placement derives from its parent video, not a field on AdPlacement itself.
-// advertisement is included too so updatePlacement can re-validate the placement constraints
-// (which depend on the advertisement's assetType) without a second query.
+// Ownership derives from the parent video. Only a live placement on a live video can be edited or
+// removed; advertisement is included so updatePlacement can re-validate without a second query.
 const requireAdPlacementOwnership = requireOwnership(async (id) => {
-  const adPlacement = await prisma.adPlacement.findUnique({
-    where: { id },
+  const adPlacement = await prisma.adPlacement.findFirst({
+    where: { id, deletedAt: null, video: { deletedAt: null } },
     include: { video: true, advertisement: true },
   });
   return adPlacement && { ...adPlacement, authorId: adPlacement.video.authorId };
 });
 
 adPlacementsRouter.post('/', requireAuth, requireVideoOwnership, createAdPlacement);
-adPlacementsRouter.get('/', requireAuth, requireVideoOwnership, listAdPlacements);
+adPlacementsRouter.get('/', requireAuth, requireVideoReadAccess, listAdPlacements);
 adPlacementsRouter.patch('/:id', requireAuth, requireAdPlacementOwnership, updateAdPlacement);
 adPlacementsRouter.delete('/:id', requireAuth, requireAdPlacementOwnership, deleteAdPlacement);

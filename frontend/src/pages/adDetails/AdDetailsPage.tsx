@@ -17,6 +17,8 @@ import { CreateEditAdModal } from '../../features/ads/components/CreateEditAdMod
 import { AdFormFields } from '../../features/ads/components/CreateEditAdModal/CreateEditAdModal.constants';
 import type { AdFormType } from '../../features/ads/components/CreateEditAdModal/CreateEditAdModal.types';
 import { PageSpinner } from '../../components/PageSpinner/PageSpinner';
+import { DeletedBanner } from '../../components/DeletedBanner/DeletedBanner';
+import { LIST_VIEW_PARAM, ListView } from '../../constants/listView.constants';
 import { useAdQuery } from '../../features/ads/hooks/useAdQuery';
 import { useAdPlacementsByAdQuery } from '../../features/ads/hooks/useAdPlacementsByAdQuery';
 import { useUpdateAdMutation } from '../../features/ads/hooks/useUpdateAdMutation';
@@ -30,7 +32,8 @@ const { Title, Text } = Typography;
 
 /**
  * @description One ad's full detail view - a plain asset preview, metadata, edit/delete actions,
- * and every video it's placed on.
+ * and every video it's placed on. A deleted ad opens read-only: a banner, no actions, and every
+ * placement it ever had.
  */
 export const AdDetailsPage = () => {
   const { adId } = useParams<{ adId: string }>();
@@ -88,12 +91,17 @@ export const AdDetailsPage = () => {
 
   // Backend rejects deleting an ad that's still live on any video - block it here up front.
   const isPlaced = ad.adPlacementCount > 0;
+  const isDeleted = Boolean(ad.deletedAt);
+  // A deleted ad's page is reached from the Deleted list, so "back" returns there.
+  const backTo = isDeleted ? `${Routes.ADS}?${LIST_VIEW_PARAM}=${ListView.DELETED}` : Routes.ADS;
 
   return (
     <div className="ad-details-page">
-      <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate(Routes.ADS)}>
+      <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate(backTo)}>
         Back to ads
       </Button>
+
+      {isDeleted && <DeletedBanner itemLabel="ad" deletedAt={ad.deletedAt!} />}
 
       <Flex gap={24} align="flex-start" className="ad-details-page__header">
         <div className="ad-details-page__asset">
@@ -116,16 +124,23 @@ export const AdDetailsPage = () => {
               <Text type="secondary">Created {formatDate(ad.createdAt)}</Text>
             </Flex>
 
-            <Flex gap={8}>
-              <Button icon={<EditOutlined />} onClick={handleOpen}>
-                Edit ad
-              </Button>
-              <Tooltip title={isPlaced ? DELETE_AD_BLOCKED_TOOLTIP : undefined}>
-                <Button danger icon={<DeleteOutlined />} disabled={isPlaced} onClick={handleDelete}>
-                  Delete
+            {!isDeleted && (
+              <Flex gap={8}>
+                <Button icon={<EditOutlined />} onClick={handleOpen}>
+                  Edit ad
                 </Button>
-              </Tooltip>
-            </Flex>
+                <Tooltip title={isPlaced ? DELETE_AD_BLOCKED_TOOLTIP : undefined}>
+                  <Button
+                    danger
+                    icon={<DeleteOutlined />}
+                    disabled={isPlaced}
+                    onClick={handleDelete}
+                  >
+                    Delete
+                  </Button>
+                </Tooltip>
+              </Flex>
+            )}
           </Flex>
 
           <Text>{ad.description ?? 'No description'}</Text>
@@ -149,7 +164,9 @@ export const AdDetailsPage = () => {
         <Title level={4}>Placed on ({adPlacementVideos?.length ?? 0})</Title>
 
         {!adPlacementVideos || adPlacementVideos.length === 0 ? (
-          <Empty description="Not placed on any video yet" />
+          <Empty
+            description={isDeleted ? 'Was never placed on a video' : 'Not placed on any video yet'}
+          />
         ) : (
           <AdPlacementVideosList
             items={adPlacementVideos}

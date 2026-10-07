@@ -9,4 +9,5 @@ export type Video = {
   durationSeconds: number | null;
   adPlacementCount: number;
   createdAt: string;
+  deletedAt: string | null;
 };

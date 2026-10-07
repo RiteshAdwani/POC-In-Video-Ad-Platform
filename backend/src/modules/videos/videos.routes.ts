@@ -15,15 +15,16 @@ import {
 
 export const videosRouter = Router();
 
-// findFirst, not findUnique - a retired (soft-deleted) video must be treated as not found by
-// every route this guards, the same as one that doesn't exist or isn't owned by the caller.
+// Writes: a retired (soft-deleted) video 404s like one that never existed.
 const requireVideoOwnership = requireOwnership((id) =>
   prisma.video.findFirst({ where: { id, deletedAt: null } }),
 );
+// Reads: a retired video stays viewable (read-only) so its history can still be looked up.
+const requireVideoReadAccess = requireOwnership((id) => prisma.video.findUnique({ where: { id } }));
 
 videosRouter.post('/', requireAuth, videoUpload.single('video'), uploadVideoHandler);
 videosRouter.get('/', requireAuth, listVideos);
-videosRouter.get('/:id', requireAuth, requireVideoOwnership, getVideo);
+videosRouter.get('/:id', requireAuth, requireVideoReadAccess, getVideo);
 videosRouter.get('/:id/status', requireAuth, requireVideoOwnership, getVideoStatus);
 videosRouter.patch('/:id', requireAuth, requireVideoOwnership, updateVideo);
 videosRouter.delete('/:id', requireAuth, requireVideoOwnership, deleteVideo);

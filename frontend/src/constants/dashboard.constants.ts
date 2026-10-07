@@ -92,3 +92,10 @@ export const VIDEO_TREND_METRIC_COLORS: Record<VideoTrendMetric, string> = {
   [VideoTrendMetric.PLAYS]: CHART_CATEGORICAL_COLORS[0],
   [VideoTrendMetric.VIDEO_COMPLETIONS]: CHART_CATEGORICAL_COLORS[1],
 };
+
+// KPI tile active/deleted split bar - active takes the tile's own section accent, deleted is muted.
+export const STATS_SPLIT_COLORS = {
+  primary: '#2563eb',
+  success: '#059669',
+  deleted: '#cbd5e1',
+} as const;

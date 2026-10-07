@@ -39,15 +39,14 @@ export const createAdPlacement: RequestHandler = async (req, res) => {
 };
 
 /**
- * @description Lists every currently-active ad placement on a video (excludes retired/soft-
- * deleted ones - see deleteAdPlacement). requireOwnership already verified the video.
+ * @description Lists a video's live ad placements - or, for a retired video, every placement it
+ * ever had (retired ones included), as a read-only record of what ran on it.
  */
 export const listAdPlacements: RequestHandler = async (req, res) => {
   const video = req.resource as Video;
 
-  // Fetch all Ad placements
   const adPlacements = await prisma.adPlacement.findMany({
-    where: { videoId: video.id, deletedAt: null },
+    where: { videoId: video.id, ...(video.deletedAt ? {} : { deletedAt: null }) },
     include: { advertisement: true },
     orderBy: { startOffsetSeconds: 'asc' },
   });
@@ -58,15 +57,17 @@ export const listAdPlacements: RequestHandler = async (req, res) => {
 };
 
 /**
- * @description Lists every currently-active placement of one advertisement, across all the
- * videos it's on - the mirror of listAdPlacements. requireOwnership already verified the
- * advertisement.
+ * @description Lists an ad's live placements across videos - or, for a retired ad, every placement
+ * it ever had, as a read-only record of where it ran. The mirror of listAdPlacements.
  */
 export const listAdPlacementsForAdvertisement: RequestHandler = async (req, res) => {
   const advertisement = req.resource as Advertisement;
 
   const adPlacements = await prisma.adPlacement.findMany({
-    where: { advertisementId: advertisement.id, deletedAt: null },
+    where: {
+      advertisementId: advertisement.id,
+      ...(advertisement.deletedAt ? {} : { deletedAt: null }),
+    },
     include: { video: true },
     orderBy: { createdAt: 'desc' },
   });

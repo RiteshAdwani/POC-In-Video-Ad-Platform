@@ -24,6 +24,7 @@ type AdPlacementsListProps = {
   endDate: string;
   onEdit: (adPlacement: AdPlacement) => void;
   onDelete: (adPlacement: AdPlacement) => void;
+  readOnly?: boolean;
 };
 
 /**
@@ -33,6 +34,7 @@ type AdPlacementsListProps = {
  * behavior render as a type tag plus small labeled chips rather than a single string of plain
  * text - a bare timestamp is easy to misread as the ad's own duration rather than when it starts.
  * Each row also carries its own performance line for the given window, via AdPlacementRowStat.
+ * readOnly hides the edit/remove actions.
  */
 export const AdPlacementsList = ({
   adPlacements,
@@ -41,6 +43,7 @@ export const AdPlacementsList = ({
   endDate,
   onEdit,
   onDelete,
+  readOnly = false,
 }: AdPlacementsListProps) => (
   <div className="ad-placements-list">
     {adPlacements.map((adPlacement) => {
@@ -84,27 +87,29 @@ export const AdPlacementsList = ({
             />
           </div>
 
-          <span className="ad-placements-list__actions">
-            <Tooltip title="Edit placement">
-              <Button
-                type="text"
-                size="small"
-                icon={<EditOutlined />}
-                onClick={() => onEdit(adPlacement)}
-                aria-label="Edit placement"
-              />
-            </Tooltip>
-            <Tooltip title="Remove placement">
-              <Button
-                type="text"
-                size="small"
-                danger
-                icon={<DeleteOutlined />}
-                onClick={() => onDelete(adPlacement)}
-                aria-label="Remove placement"
-              />
-            </Tooltip>
-          </span>
+          {!readOnly && (
+            <span className="ad-placements-list__actions">
+              <Tooltip title="Edit placement">
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<EditOutlined />}
+                  onClick={() => onEdit(adPlacement)}
+                  aria-label="Edit placement"
+                />
+              </Tooltip>
+              <Tooltip title="Remove placement">
+                <Button
+                  type="text"
+                  size="small"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={() => onDelete(adPlacement)}
+                  aria-label="Remove placement"
+                />
+              </Tooltip>
+            </span>
+          )}
         </div>
       );
     })}

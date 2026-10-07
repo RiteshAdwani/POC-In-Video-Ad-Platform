@@ -24,11 +24,13 @@ type AdsGridProps = {
 /**
  * @description Card-grid listing of ads - an image ad's real creative renders as its own
  * thumbnail, while a video ad gets a colored tile since previewing the whole video isn't worth it
- * here. The thumbnail and title/description link to that ad's details page.
+ * here. The thumbnail and title/description link to that ad's details page. A deleted ad (shown only
+ * under the Deleted tab) drops its placement count and actions.
  */
 export const AdsGrid = ({ ads, onEdit, onDelete }: AdsGridProps) => (
   <div className="ads-grid">
     {ads.map((ad) => {
+      const isDeleted = Boolean(ad.deletedAt);
       const videoThumbnailUrl =
         ad.assetType === AssetType.VIDEO ? getVideoThumbnailUrl(ad.assetUrl) : null;
 
@@ -47,9 +49,11 @@ export const AdsGrid = ({ ads, onEdit, onDelete }: AdsGridProps) => (
                 </>
               )}
               <AssetTypeTag assetType={ad.assetType} />
-              <span className="ads-grid__ad-placement-count">
-                {ad.adPlacementCount} {ad.adPlacementCount === 1 ? 'video' : 'videos'}
-              </span>
+              {!isDeleted && (
+                <span className="ads-grid__ad-placement-count">
+                  {ad.adPlacementCount} {ad.adPlacementCount === 1 ? 'video' : 'videos'}
+                </span>
+              )}
               {ad.clickThroughUrl && (
                 <Tooltip title="Has a click-through link">
                   <LinkOutlined className="ads-grid__click-through" />
@@ -68,31 +72,37 @@ export const AdsGrid = ({ ads, onEdit, onDelete }: AdsGridProps) => (
           </Link>
 
           <div className="ads-grid__footer">
-            <span>{formatRelativeTime(ad.createdAt)}</span>
-            <span className="ads-grid__actions">
-              <Tooltip title="Edit ad">
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<EditOutlined />}
-                  onClick={() => onEdit(ad)}
-                  aria-label="Edit ad"
-                />
-              </Tooltip>
-              <Tooltip
-                title={ad.adPlacementCount > 0 ? DELETE_AD_BLOCKED_TOOLTIP : DELETE_AD_TOOLTIP}
-              >
-                <Button
-                  type="text"
-                  size="small"
-                  danger
-                  disabled={ad.adPlacementCount > 0}
-                  icon={<DeleteOutlined />}
-                  onClick={() => onDelete(ad)}
-                  aria-label="Delete ad"
-                />
-              </Tooltip>
+            <span>
+              {isDeleted
+                ? `Deleted ${formatRelativeTime(ad.deletedAt!)}`
+                : formatRelativeTime(ad.createdAt)}
             </span>
+            {!isDeleted && (
+              <span className="ads-grid__actions">
+                <Tooltip title="Edit ad">
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<EditOutlined />}
+                    onClick={() => onEdit(ad)}
+                    aria-label="Edit ad"
+                  />
+                </Tooltip>
+                <Tooltip
+                  title={ad.adPlacementCount > 0 ? DELETE_AD_BLOCKED_TOOLTIP : DELETE_AD_TOOLTIP}
+                >
+                  <Button
+                    type="text"
+                    size="small"
+                    danger
+                    disabled={ad.adPlacementCount > 0}
+                    icon={<DeleteOutlined />}
+                    onClick={() => onDelete(ad)}
+                    aria-label="Delete ad"
+                  />
+                </Tooltip>
+              </span>
+            )}
           </div>
         </div>
       );
