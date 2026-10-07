@@ -9,7 +9,7 @@ import { ErrorMessages } from '../../constants/errorMessages.constants';
 import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants';
 import { createAdvertisementSchema, updateAdvertisementSchema } from './advertisements.schema';
 import { toAdvertisementDto } from './advertisements.service';
-import { paginationQuerySchema } from '../../schemas/pagination.schema';
+import { adminListQuerySchema } from '../../schemas/pagination.schema';
 import { buildPaginationMeta } from '../../lib/pagination';
 
 // Counts live placements only - a retired placement no longer puts this ad on any video.
@@ -52,22 +52,21 @@ export const createAdvertisement: RequestHandler = async (req, res) => {
 };
 
 /**
- * @description Lists advertisements owned by the calling admin - never other admins' ads.
- * Paginated: page/pageSize come from the query string, defaulted and bounded by
- * paginationQuerySchema.
+ * @description Lists the calling admin's ads, paginated and searchable - active ones by default,
+ * or only retired (soft-deleted) ones with `deleted=true`, most recently deleted first.
  */
 export const listAdvertisements: RequestHandler = async (req, res) => {
-  const { page, pageSize, search } = paginationQuerySchema.parse(req.query);
+  const { page, pageSize, search, deleted } = adminListQuerySchema.parse(req.query);
   const where = {
     authorId: req.admin!.id,
-    deletedAt: null,
+    deletedAt: deleted ? { not: null } : null,
     ...(search ? { title: { contains: search, mode: 'insensitive' as const } } : {}),
   };
 
   const [advertisements, totalItems] = await Promise.all([
     prisma.advertisement.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: deleted ? { deletedAt: 'desc' } : { createdAt: 'desc' },
       skip: (page - 1) * pageSize,
       take: pageSize,
       ...WITH_AD_PLACEMENT_COUNT,

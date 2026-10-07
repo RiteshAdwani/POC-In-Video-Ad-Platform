@@ -21,7 +21,8 @@ type VideosGridProps = {
  * @description Card-grid listing of videos - thumbnail placeholder with status and ad-placement
  * count overlaid, since a real thumbnail isn't part of the video model yet. The thumbnail and
  * title/description link to that video's details page; the action buttons stay outside that link
- * so a <button> is never nested inside an <a>.
+ * so a <button> is never nested inside an <a>. A deleted video (shown only under the Deleted tab)
+ * drops its status, count, actions, and thumbnail - its file is deleted.
  */
 export const VideosGrid = ({ videos, onEdit, onDelete }: VideosGridProps) => {
   const navigate = useNavigate();
@@ -29,7 +30,9 @@ export const VideosGrid = ({ videos, onEdit, onDelete }: VideosGridProps) => {
   return (
     <div className="videos-grid">
       {videos.map((video) => {
-        const thumbnailUrl = video.playbackUrl ? getVideoThumbnailUrl(video.playbackUrl) : null;
+        const isDeleted = Boolean(video.deletedAt);
+        const thumbnailUrl =
+          video.playbackUrl && !isDeleted ? getVideoThumbnailUrl(video.playbackUrl) : null;
 
         return (
           <div className="videos-grid__card" key={video.id}>
@@ -41,10 +44,14 @@ export const VideosGrid = ({ videos, onEdit, onDelete }: VideosGridProps) => {
                 {thumbnailUrl && (
                   <img src={thumbnailUrl} alt="" className="videos-grid__thumb-image" />
                 )}
-                <VideoStatusTag status={video.status} />
-                <span className="videos-grid__ad-count">
-                  {video.adPlacementCount} {video.adPlacementCount === 1 ? 'ad' : 'ads'}
-                </span>
+                {!isDeleted && (
+                  <>
+                    <VideoStatusTag status={video.status} />
+                    <span className="videos-grid__ad-count">
+                      {video.adPlacementCount} {video.adPlacementCount === 1 ? 'ad' : 'ads'}
+                    </span>
+                  </>
+                )}
                 <PlayCircleFilled className="videos-grid__play" />
               </div>
 
@@ -59,40 +66,46 @@ export const VideosGrid = ({ videos, onEdit, onDelete }: VideosGridProps) => {
             </Link>
 
             <div className="videos-grid__footer">
-              <span>{formatRelativeTime(video.createdAt)}</span>
-              <span className="videos-grid__actions">
-                <Tooltip title="Edit video">
-                  <Button
-                    type="text"
-                    size="small"
-                    icon={<EditOutlined />}
-                    onClick={() => onEdit(video)}
-                    aria-label="Edit video"
-                  />
-                </Tooltip>
-                <Tooltip title="Manage ad placements">
-                  <Button
-                    type="text"
-                    size="small"
-                    icon={<TagsOutlined />}
-                    disabled={video.status !== VideoStatus.READY}
-                    onClick={() =>
-                      navigate(generatePath(Routes.VIDEO_DETAILS, { videoId: video.id }))
-                    }
-                    aria-label="Manage ad placements"
-                  />
-                </Tooltip>
-                <Tooltip title="Delete video">
-                  <Button
-                    type="text"
-                    size="small"
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={() => onDelete(video)}
-                    aria-label="Delete video"
-                  />
-                </Tooltip>
+              <span>
+                {isDeleted
+                  ? `Deleted ${formatRelativeTime(video.deletedAt!)}`
+                  : formatRelativeTime(video.createdAt)}
               </span>
+              {!isDeleted && (
+                <span className="videos-grid__actions">
+                  <Tooltip title="Edit video">
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<EditOutlined />}
+                      onClick={() => onEdit(video)}
+                      aria-label="Edit video"
+                    />
+                  </Tooltip>
+                  <Tooltip title="Manage ad placements">
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<TagsOutlined />}
+                      disabled={video.status !== VideoStatus.READY}
+                      onClick={() =>
+                        navigate(generatePath(Routes.VIDEO_DETAILS, { videoId: video.id }))
+                      }
+                      aria-label="Manage ad placements"
+                    />
+                  </Tooltip>
+                  <Tooltip title="Delete video">
+                    <Button
+                      type="text"
+                      size="small"
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={() => onDelete(video)}
+                      aria-label="Delete video"
+                    />
+                  </Tooltip>
+                </span>
+              )}
             </div>
           </div>
         );

@@ -37,7 +37,7 @@ export const recordPlaybackEvent: RequestHandler = async (req, res) => {
   const logContext = { sessionId, eventType, adId };
 
   // No ownership concept on the public side, so an unknown video is invalid input (400), not 404.
-  // A removed video counts as unknown - the player is never served config for one.
+  // A deleted video counts as unknown - the player is never served config for one.
   const video = await prisma.video.findFirst({ where: { id: videoId, deletedAt: null } });
   if (!video) {
     req.log.warn({ ...logContext, outcome: 'rejected' }, 'Playback event rejected: unknown video');
@@ -54,7 +54,7 @@ export const recordPlaybackEvent: RequestHandler = async (req, res) => {
     throw new ValidationError(ErrorMessages.VIDEO_NOT_READY);
   }
 
-  // An adId from a different video, or a removed placement, is invalid, same as a missing one.
+  // An adId from a different video, or a deleted placement, is invalid, same as a missing one.
   let outOfOrder = false;
   if (adId) {
     const adPlacement = await prisma.adPlacement.findFirst({

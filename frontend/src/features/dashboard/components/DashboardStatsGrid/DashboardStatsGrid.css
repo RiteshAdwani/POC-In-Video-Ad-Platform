@@ -87,3 +87,47 @@
   font-size: 12px;
   margin-top: 4px;
 }
+
+.dashboard-stats-grid__split {
+  margin-top: 8px;
+}
+
+.dashboard-stats-grid__split .ant-progress {
+  margin: 0;
+  line-height: 1;
+}
+
+.dashboard-stats-grid__split-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #475569;
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-stats-grid__split-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.dashboard-stats-grid__split-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dashboard-stats-grid__split-dot--primary {
+  background: #2563eb;
+}
+
+.dashboard-stats-grid__split-dot--success {
+  background: #059669;
+}
+
+.dashboard-stats-grid__split-dot--deleted {
+  background: #cbd5e1;
+}

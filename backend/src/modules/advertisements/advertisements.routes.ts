@@ -14,18 +14,22 @@ import { listAdPlacementsForAdvertisement } from '../adPlacements/adPlacements.c
 
 export const advertisementsRouter = Router();
 
-// findFirst, not findUnique - a retired (soft-deleted) ad must 404 like one that never existed.
+// Writes: a retired (soft-deleted) ad 404s like one that never existed.
 const requireAdvertisementOwnership = requireOwnership((id) =>
   prisma.advertisement.findFirst({ where: { id, deletedAt: null } }),
+);
+// Reads: a retired ad stays viewable (read-only) so its history can still be looked up.
+const requireAdvertisementReadAccess = requireOwnership((id) =>
+  prisma.advertisement.findUnique({ where: { id } }),
 );
 
 advertisementsRouter.post('/', requireAuth, adAssetUpload.single('assetFile'), createAdvertisement);
 advertisementsRouter.get('/', requireAuth, listAdvertisements);
-advertisementsRouter.get('/:id', requireAuth, requireAdvertisementOwnership, getAdvertisement);
+advertisementsRouter.get('/:id', requireAuth, requireAdvertisementReadAccess, getAdvertisement);
 advertisementsRouter.get(
   '/:id/placements',
   requireAuth,
-  requireAdvertisementOwnership,
+  requireAdvertisementReadAccess,
   listAdPlacementsForAdvertisement,
 );
 advertisementsRouter.patch('/:id', requireAuth, requireAdvertisementOwnership, updateAdvertisement);

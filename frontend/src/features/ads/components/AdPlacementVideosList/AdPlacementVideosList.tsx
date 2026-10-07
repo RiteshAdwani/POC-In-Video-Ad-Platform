@@ -21,7 +21,7 @@ type AdPlacementVideosListProps = {
  * @description Row-per-video list of everywhere an ad is placed - the mirror image of
  * `AdPlacementsList` (which lists a video's ads), linking each row through to that video's own
  * details page. Each row also carries its own performance line for the given window, via the same
- * AdPlacementRowStat used on the video side.
+ * AdPlacementRowStat used on the video side. A deleted video's row drops its status tag.
  */
 export const AdPlacementVideosList = ({
   items,
@@ -47,7 +47,7 @@ export const AdPlacementVideosList = ({
             <Text strong ellipsis className="ad-placement-videos-list__title">
               {adPlacement.video.title}
             </Text>
-            <VideoStatusTag status={adPlacement.video.status} />
+            {!adPlacement.video.deletedAt && <VideoStatusTag status={adPlacement.video.status} />}
           </Flex>
           <Text type="secondary" className="ad-placement-videos-list__meta">
             {formatDurationOrSkip(adPlacement)}

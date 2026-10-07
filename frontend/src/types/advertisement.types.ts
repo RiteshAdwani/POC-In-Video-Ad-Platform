@@ -9,4 +9,5 @@ export type Advertisement = {
   clickThroughUrl: string | null;
   adPlacementCount: number;
   createdAt: string;
+  deletedAt: string | null;
 };

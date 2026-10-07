@@ -121,6 +121,27 @@ export const getDashboardStats: RequestHandler = async (req, res) => {
     _sum: { count: true },
   });
 
+  // The share of the totals that came from since-deleted videos/placements - kept in the totals
+  // (it really happened), surfaced separately so a total never looks unexplained. Retiring an ad
+  // requires all its placements retired first, so the placement check covers deleted ads too.
+  const deletedRows = await prisma.dailyCount.groupBy({
+    by: ['eventType'],
+    where: {
+      ...scope,
+      OR: [{ video: { deletedAt: { not: null } } }, { adPlacement: { deletedAt: { not: null } } }],
+    },
+    _sum: { count: true },
+  });
+  const deleted = extractDashboardStats(deletedRows);
+  const deletedContribution = {
+    impressions: deleted.impressions,
+    completions: deleted.completions,
+    skips: deleted.skips,
+    clicks: deleted.clicks,
+    videoViews: deleted.videoViews,
+    videoCompletions: deleted.videoCompletions,
+  };
+
   // dailyRows is flat - one row per (day, eventType). Bucket it by day so each day's eventType
   // rows end up together, e.g. "2026-09-16" -> [AD_SHOWN row, AD_COMPLETED row, ...].
   const rowsByDay = new Map<string, EventTypeCount[]>();
@@ -141,7 +162,11 @@ export const getDashboardStats: RequestHandler = async (req, res) => {
     .map(([day, rows]) => ({ day, ...extractDashboardStats(rows) }));
 
   res.status(StatusCodes.OK).json({
-    data: { ...extractDashboardStats(totalRows), series },
+    data: {
+      ...extractDashboardStats(totalRows),
+      series,
+      deletedContribution,
+    },
     message: ApiSuccessMessages.DASHBOARD_STATS_FETCHED,
   });
 };

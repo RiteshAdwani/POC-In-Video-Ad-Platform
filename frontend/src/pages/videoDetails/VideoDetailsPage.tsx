@@ -15,6 +15,8 @@ import { ModalMode } from '../../constants/modalMode.constants';
 import type { VideoFormType } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal.types';
 import { VideoFormFields } from '../../features/videos/components/CreateEditVideoModal/CreateEditVideoModal.constants';
 import { PageSpinner } from '../../components/PageSpinner/PageSpinner';
+import { DeletedBanner } from '../../components/DeletedBanner/DeletedBanner';
+import { LIST_VIEW_PARAM, ListView } from '../../constants/listView.constants';
 import { useInfiniteAdsQuery } from '../../features/ads/hooks/useInfiniteAdsQuery';
 import { useVideoQuery } from '../../features/videos/hooks/useVideoQuery';
 import { useUpdateVideoMutation } from '../../features/videos/hooks/useUpdateVideoMutation';
@@ -33,7 +35,8 @@ import type { AdPlacement } from '../../types/adPlacement.types';
 
 /**
  * @description One video's full detail view - a plain preview player (no ad injection, unlike
- * the public playback page), metadata, edit/delete actions, and its ad placements.
+ * the public playback page), metadata, edit/delete actions, and its ad placements. A deleted video
+ * opens read-only: a banner, no actions, and every placement it ever had.
  */
 export const VideoDetailsPage = () => {
   const { videoId } = useParams<{ videoId: string }>();
@@ -82,8 +85,7 @@ export const VideoDetailsPage = () => {
   };
 
   /**
-   * @description Confirms before permanently deleting this video and its Cloudinary asset -
-   * rejected by the backend if it still has ad placements or recorded playback events.
+   * @description Confirms before removing this video, then returns to the videos list.
    */
   const handleDelete = () => {
     confirmDeleteVideo(video!, { onSuccess: () => navigate(Routes.VIDEOS) });
@@ -167,11 +169,19 @@ export const VideoDetailsPage = () => {
     );
   }
 
+  const isDeleted = Boolean(video.deletedAt);
+  // A deleted video's page is reached from the Deleted list, so "back" returns there.
+  const backTo = isDeleted
+    ? `${Routes.VIDEOS}?${LIST_VIEW_PARAM}=${ListView.DELETED}`
+    : Routes.VIDEOS;
+
   return (
     <div>
-      <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate(Routes.VIDEOS)}>
+      <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate(backTo)}>
         Back to videos
       </Button>
+
+      {isDeleted && <DeletedBanner itemLabel="video" deletedAt={video.deletedAt!} />}
 
       <VideoPreviewHeader video={video} onEdit={handleOpen} onDelete={handleDelete} />
 
@@ -184,6 +194,7 @@ export const VideoDetailsPage = () => {
         onAdd={handleAddAdPlacement}
         onEdit={handleEditAdPlacement}
         onDelete={confirmDeleteAdPlacement}
+        readOnly={isDeleted}
       />
 
       {/* Edit-video modal */}

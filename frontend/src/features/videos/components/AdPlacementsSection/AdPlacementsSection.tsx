@@ -18,6 +18,7 @@ type AdPlacementsSectionProps = {
   onAdd: () => void;
   onEdit: (adPlacement: AdPlacement) => void;
   onDelete: (adPlacement: AdPlacement) => void;
+  readOnly?: boolean;
 };
 
 /**
@@ -25,7 +26,8 @@ type AdPlacementsSectionProps = {
  * the placements list or an empty state. Managing placements is disabled until the video is
  * READY, since a placement needs a playable video to preview against. Each row in the list also
  * gets its own performance line for a fixed trailing window - kept fixed rather than pickable, to
- * not duplicate VideoStatsWidget's own range control on the same page.
+ * not duplicate VideoStatsWidget's own range control on the same page. readOnly (a deleted video)
+ * hides every management action.
  */
 export const AdPlacementsSection = ({
   adPlacements,
@@ -34,6 +36,7 @@ export const AdPlacementsSection = ({
   onAdd,
   onEdit,
   onDelete,
+  readOnly = false,
 }: AdPlacementsSectionProps) => {
   const endDate = dayjs().format(DASHBOARD_DATE_FORMAT);
   const startDate = dayjs()
@@ -44,15 +47,17 @@ export const AdPlacementsSection = ({
     <div className="ad-placements-section">
       <Flex justify="space-between" align="center">
         <Title level={4}>Ad placements ({adPlacements?.length ?? 0})</Title>
-        <Tooltip title="Manage ad placements">
-          <Button disabled={videoStatus !== VideoStatus.READY} onClick={onAdd}>
-            Manage ad placements
-          </Button>
-        </Tooltip>
+        {!readOnly && (
+          <Tooltip title="Manage ad placements">
+            <Button disabled={videoStatus !== VideoStatus.READY} onClick={onAdd}>
+              Manage ad placements
+            </Button>
+          </Tooltip>
+        )}
       </Flex>
 
       {!adPlacements || adPlacements.length === 0 ? (
-        <Empty description="No ad placements yet" />
+        <Empty description={readOnly ? 'No ad placements' : 'No ad placements yet'} />
       ) : (
         <AdPlacementsList
           adPlacements={adPlacements}
@@ -61,6 +66,7 @@ export const AdPlacementsSection = ({
           endDate={endDate}
           onEdit={onEdit}
           onDelete={onDelete}
+          readOnly={readOnly}
         />
       )}
     </div>

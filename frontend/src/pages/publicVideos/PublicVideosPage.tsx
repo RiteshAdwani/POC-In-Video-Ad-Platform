@@ -1,14 +1,13 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Empty, Flex, Input, Result, Spin, Typography } from 'antd';
-import { LoginOutlined, SearchOutlined } from '@ant-design/icons';
+import { Button, Empty, Flex, Result, Spin, Typography } from 'antd';
+import { LoginOutlined } from '@ant-design/icons';
 import { Routes } from '../../constants/routes.constants';
 import { PublicVideosGrid } from '../../features/publicPlayer/components/PublicVideosGrid/PublicVideosGrid';
 import { PageSpinner } from '../../components/PageSpinner/PageSpinner';
 import { usePublicVideosQuery } from '../../features/publicPlayer/hooks/usePublicVideosQuery';
 import { useInfiniteScrollTrigger } from '../../hooks/useInfiniteScrollTrigger';
-import { useDebouncedValue } from '../../hooks/useDebouncedValue';
-import { SEARCH_DEBOUNCE_MS } from '../../constants/search.constants';
+import { SearchInput } from '../../components/SearchInput/SearchInput';
 import './PublicVideosPage.css';
 
 const { Title, Text } = Typography;
@@ -22,9 +21,8 @@ const { Title, Text } = Typography;
  */
 export const PublicVideosPage = () => {
   const [search, setSearch] = useState('');
-  const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
   const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    usePublicVideosQuery(debouncedSearch);
+    usePublicVideosQuery(search);
 
   const videos = useMemo(() => data?.pages.flatMap((page) => page.videos) ?? [], [data]);
   const totalItems = data?.pages[0]?.pagination.totalItems ?? 0;
@@ -43,11 +41,7 @@ export const PublicVideosPage = () => {
     );
   } else if (videos.length === 0) {
     content = (
-      <Empty
-        description={
-          debouncedSearch ? `No videos match "${debouncedSearch}"` : 'No videos published yet'
-        }
-      />
+      <Empty description={search ? `No videos match "${search}"` : 'No videos published yet'} />
     );
   } else {
     content = (
@@ -80,12 +74,9 @@ export const PublicVideosPage = () => {
           <Text type="secondary">{totalItems} videos to watch</Text>
         </Flex>
 
-        <Input
+        <SearchInput
           placeholder="Search videos by title"
-          prefix={<SearchOutlined />}
-          allowClear
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onSearch={setSearch}
           className="public-videos-page__search"
         />
 

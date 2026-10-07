@@ -6,24 +6,18 @@
   min-height: 100%;
 }
 
-.ads-page__header {
-  margin-bottom: 24px;
-}
-
-.ads-page__search {
-  max-width: 320px;
+.ads-page__toolbar {
   margin-bottom: 20px;
 }
 
-/* Fills the remaining height below the header, so the pagination control below lands at a
-   consistent spot regardless of how many rows the current page's grid happens to have. */
+.ads-page__search {
+  flex: 1;
+  max-width: 320px;
+}
+
+/* Fills the remaining height below the header, so the list's pagination can sit at the bottom. */
 .ads-page__body {
   display: flex;
   flex-direction: column;
   flex: 1;
-}
-
-.ads-page__pagination {
-  margin-top: auto;
-  padding-top: 24px;
 }

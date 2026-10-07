@@ -1,4 +1,8 @@
-import type { DashboardStats, DashboardSeriesPoint } from '../types/dashboard.types';
+import type {
+  DashboardStats,
+  DashboardSeriesPoint,
+  DeletedContribution,
+} from '../types/dashboard.types';
 
 export type GetDashboardRequestDto = {
   startDate: string;
@@ -8,4 +12,7 @@ export type GetDashboardRequestDto = {
   advertisementId?: string;
 };
 
-export type DashboardResponseDto = DashboardStats & { series: DashboardSeriesPoint[] };
+export type DashboardResponseDto = DashboardStats & {
+  series: DashboardSeriesPoint[];
+  deletedContribution: DeletedContribution;
+};

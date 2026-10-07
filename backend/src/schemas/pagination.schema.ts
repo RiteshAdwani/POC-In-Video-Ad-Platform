@@ -15,3 +15,11 @@ export const paginationQuerySchema = z.object({
     .optional()
     .transform((value) => value || undefined),
 });
+
+/**
+ * @description Admin list query - pagination plus a `deleted` flag that switches the list from
+ * active items to retired (soft-deleted) ones.
+ */
+export const adminListQuerySchema = paginationQuerySchema.extend({
+  deleted: z.stringbool().default(false),
+});

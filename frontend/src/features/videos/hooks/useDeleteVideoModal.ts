@@ -16,7 +16,7 @@ export const useDeleteVideoModal = () => {
   return (video: Video, options?: { onSuccess?: () => void }) => {
     modal.confirm({
       title: 'Delete this video?',
-      content: `"${video.title}" and its uploaded file will be permanently removed. This can't be undone.`,
+      content: `"${video.title}" and its uploaded file will be deleted. It stays under Deleted, with its past performance kept as a read-only record. This can't be undone.`,
       okText: 'Delete',
       okButtonProps: { danger: true },
       onOk: () => deleteMutation.mutateAsync(video.id).then(options?.onSuccess),

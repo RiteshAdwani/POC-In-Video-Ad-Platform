@@ -8,6 +8,7 @@ export type AdPlacement = {
   startOffsetSeconds: number;
   durationSeconds: number | null;
   skipAfterSeconds: number | null;
+  deletedAt: string | null;
   advertisement: {
     id: string;
     title: string;
@@ -22,5 +23,5 @@ export type AdPlacement = {
  */
 export type AdPlacementWithVideo = Pick<
   AdPlacement,
-  'id' | 'adType' | 'startOffsetSeconds' | 'durationSeconds' | 'skipAfterSeconds'
+  'id' | 'adType' | 'startOffsetSeconds' | 'durationSeconds' | 'skipAfterSeconds' | 'deletedAt'
 > & { video: Video };
