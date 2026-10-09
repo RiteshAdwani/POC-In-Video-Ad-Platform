@@ -1,0 +1,11 @@
+/* Fills the content area exactly, so the page itself never scrolls - the ad placements section
+   takes whatever height is left and scrolls inside. */
+.video-details-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.video-details-page__back {
+  align-self: flex-start;
+}

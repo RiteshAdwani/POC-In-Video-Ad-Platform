@@ -52,8 +52,12 @@ export const AdStatsWidget = ({ advertisementId }: AdStatsWidgetProps) => {
 
   if (!data || data.impressions === 0) {
     return (
-      <Card title="Ad performance" extra={rangeControl} className="ad-stats-widget">
-        <Empty description="No impressions in this range yet" />
+      <Card title="Ad performance" size="small" extra={rangeControl} className="ad-stats-widget">
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          className="ad-stats-widget__empty"
+          description="No impressions in this range yet"
+        />
       </Card>
     );
   }
@@ -61,7 +65,7 @@ export const AdStatsWidget = ({ advertisementId }: AdStatsWidgetProps) => {
   const sparklineData = data.series.map((point, index) => ({ x: index, y: point.impressions }));
 
   return (
-    <Card title="Ad performance" extra={rangeControl} className="ad-stats-widget">
+    <Card title="Ad performance" size="small" extra={rangeControl} className="ad-stats-widget">
       <Flex gap={24} wrap>
         <div className="ad-stats-widget__tile">
           <div className="ad-stats-widget__icon ad-stats-widget__icon--impressions">

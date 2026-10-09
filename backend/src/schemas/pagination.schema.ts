@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from '../constants/pagination.constants';
+import { ListView } from '../constants/listView.constants';
 
 /**
  * @description Shared page/pageSize/search query validation for every paginated list endpoint -
@@ -17,9 +18,9 @@ export const paginationQuerySchema = z.object({
 });
 
 /**
- * @description Admin list query - pagination plus a `deleted` flag that switches the list from
- * active items to retired (soft-deleted) ones.
+ * @description Admin list query - pagination plus a `view` that switches the list from active
+ * items (the default) to retired (soft-deleted) ones.
  */
 export const adminListQuerySchema = paginationQuerySchema.extend({
-  deleted: z.stringbool().default(false),
+  view: z.enum(ListView).default(ListView.ACTIVE),
 });

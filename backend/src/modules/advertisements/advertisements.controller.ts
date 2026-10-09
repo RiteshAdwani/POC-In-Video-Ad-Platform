@@ -10,6 +10,7 @@ import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants
 import { createAdvertisementSchema, updateAdvertisementSchema } from './advertisements.schema';
 import { toAdvertisementDto } from './advertisements.service';
 import { adminListQuerySchema } from '../../schemas/pagination.schema';
+import { ListView } from '../../constants/listView.constants';
 import { buildPaginationMeta } from '../../lib/pagination';
 
 // Counts live placements only - a retired placement no longer puts this ad on any video.
@@ -53,10 +54,11 @@ export const createAdvertisement: RequestHandler = async (req, res) => {
 
 /**
  * @description Lists the calling admin's ads, paginated and searchable - active ones by default,
- * or only retired (soft-deleted) ones with `deleted=true`, most recently deleted first.
+ * or only retired (soft-deleted) ones with `view=deleted`, most recently deleted first.
  */
 export const listAdvertisements: RequestHandler = async (req, res) => {
-  const { page, pageSize, search, deleted } = adminListQuerySchema.parse(req.query);
+  const { page, pageSize, search, view } = adminListQuerySchema.parse(req.query);
+  const deleted = view === ListView.DELETED;
   const where = {
     authorId: req.admin!.id,
     deletedAt: deleted ? { not: null } : null,

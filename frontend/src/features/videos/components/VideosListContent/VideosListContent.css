@@ -2,5 +2,5 @@
    how many rows the current page's grid has. */
 .videos-list-content__pagination {
   margin-top: auto;
-  padding-top: 24px;
+  padding-top: 16px;
 }

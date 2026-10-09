@@ -1,13 +1,19 @@
 .ad-stats-widget {
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .ad-stats-widget__tile {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1 1 160px;
-  min-width: 160px;
+  /* Icon on the left, label over value beside it, trend/caption on the right - one compact row
+     per stat instead of a tall stack. */
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  grid-template-areas:
+    'icon label extra'
+    'icon value extra';
+  align-items: center;
+  column-gap: 12px;
+  flex: 1 1 220px;
+  min-width: 220px;
   padding-right: 24px;
   border-right: 1px solid #e2e8f0;
 }
@@ -18,12 +24,12 @@
 }
 
 .ad-stats-widget__icon {
+  grid-area: icon;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 32px;
   height: 32px;
-  margin-bottom: 8px;
   border-radius: 50%;
   font-size: 14px;
 }
@@ -49,13 +55,16 @@
 }
 
 .ad-stats-widget__label {
+  grid-area: label;
   font-size: 12px;
   font-weight: 500;
   color: #64748b;
 }
 
 .ad-stats-widget__value {
-  font-size: 22px;
+  grid-area: value;
+  font-size: 20px;
+  line-height: 1.2;
   font-weight: 600;
   font-family: 'IBM Plex Mono', monospace;
   color: #0f172a;
@@ -63,12 +72,26 @@
 }
 
 .ad-stats-widget__sparkline {
+  grid-area: extra;
+  justify-self: end;
   width: 100%;
-  max-width: 280px;
+  max-width: 160px;
   height: 32px;
-  margin-top: 6px;
 }
 
 .ad-stats-widget__caption {
+  grid-area: extra;
+  justify-self: end;
+  align-self: end;
   font-size: 12px;
+}
+
+/* A slim empty state, about the height of the stat row it stands in for. */
+.ad-stats-widget__empty {
+  margin-block: 0;
+}
+
+.ad-stats-widget__empty .ant-empty-image {
+  height: 28px;
+  margin-bottom: 4px;
 }

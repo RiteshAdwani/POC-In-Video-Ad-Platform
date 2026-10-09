@@ -12,8 +12,8 @@
   color: #ffffff;
   font-family: 'Lexend', sans-serif;
   font-weight: 700;
-  font-size: 20px;
-  padding: 20px 24px;
+  font-size: 28px;
+  padding: 14px 24px;
 }
 
 .admin-layout__footer {
@@ -29,5 +29,6 @@
 
 .admin-layout__content {
   overflow: auto;
-  padding: 12px 32px 32px;
+  /* Top padding centers a page's title on the same line as the sidebar brand. */
+  padding: 17px 32px 20px;
 }

@@ -8,7 +8,7 @@ import {
 } from '../../../../constants/ad.constants';
 import { Routes } from '../../../../constants/routes.constants';
 import { formatRelativeTime } from '../../../../lib/formatRelativeTime';
-import { getVideoThumbnailUrl } from '../../../../lib/videoThumbnail';
+import { VideoThumbnail } from '../../../../components/VideoThumbnail/VideoThumbnail';
 import type { Advertisement } from '../../../../types/advertisement.types';
 import { AssetTypeTag } from '../AssetTypeTag/AssetTypeTag';
 import './AdsGrid.css';
@@ -31,8 +31,6 @@ export const AdsGrid = ({ ads, onEdit, onDelete }: AdsGridProps) => (
   <div className="ads-grid">
     {ads.map((ad) => {
       const isDeleted = Boolean(ad.deletedAt);
-      const videoThumbnailUrl =
-        ad.assetType === AssetType.VIDEO ? getVideoThumbnailUrl(ad.assetUrl) : null;
 
       return (
         <div className="ads-grid__card" key={ad.id}>
@@ -42,9 +40,7 @@ export const AdsGrid = ({ ads, onEdit, onDelete }: AdsGridProps) => (
                 <img src={ad.assetUrl} alt={ad.title} className="ads-grid__thumb-image" />
               ) : (
                 <>
-                  {videoThumbnailUrl && (
-                    <img src={videoThumbnailUrl} alt="" className="ads-grid__thumb-image" />
-                  )}
+                  <VideoThumbnail src={ad.assetUrl} className="ads-grid__thumb-image" />
                   <PlayCircleFilled className="ads-grid__play" />
                 </>
               )}

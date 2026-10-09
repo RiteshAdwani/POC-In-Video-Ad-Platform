@@ -1,7 +1,11 @@
 /* No outer padding here - the admin Layout's content area (Layout.css) already provides it. */
 
 .dashboard-page__header {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
+}
+
+.dashboard-page__title.ant-typography {
+  margin: 0;
 }
 
 .dashboard-page__insights-row {
