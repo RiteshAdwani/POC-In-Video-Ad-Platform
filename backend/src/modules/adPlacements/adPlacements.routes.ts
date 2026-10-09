@@ -24,11 +24,12 @@ const requireVideoReadAccess = requireOwnership(
   'videoId',
 );
 
-// Ownership derives from the parent video. Only a live placement on a live video can be edited or
-// removed; advertisement is included so updatePlacement can re-validate without a second query.
-const requireAdPlacementOwnership = requireOwnership(async (id) => {
+// Ownership derives from the parent video, which must be the :videoId in the URL. Only a live
+// placement on a live video can be edited or removed; advertisement is included so
+// updatePlacement can re-validate without a second query.
+const requireAdPlacementOwnership = requireOwnership(async (id, params) => {
   const adPlacement = await prisma.adPlacement.findFirst({
-    where: { id, deletedAt: null, video: { deletedAt: null } },
+    where: { id, videoId: params.videoId, deletedAt: null, video: { deletedAt: null } },
     include: { video: true, advertisement: true },
   });
   return adPlacement && { ...adPlacement, authorId: adPlacement.video.authorId };

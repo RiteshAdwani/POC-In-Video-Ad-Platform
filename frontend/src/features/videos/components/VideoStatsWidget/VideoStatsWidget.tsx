@@ -48,8 +48,17 @@ export const VideoStatsWidget = ({ videoId }: VideoStatsWidgetProps) => {
 
   if (!data || data.videoViews === 0) {
     return (
-      <Card title="Video engagement" extra={rangeControl} className="video-stats-widget">
-        <Empty description="No plays in this range yet" />
+      <Card
+        title="Video engagement"
+        size="small"
+        extra={rangeControl}
+        className="video-stats-widget"
+      >
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          className="video-stats-widget__empty"
+          description="No plays in this range yet"
+        />
       </Card>
     );
   }
@@ -61,7 +70,7 @@ export const VideoStatsWidget = ({ videoId }: VideoStatsWidgetProps) => {
   const sparklineData = data.series.map((point, index) => ({ x: index, y: point.videoViews }));
 
   return (
-    <Card title="Video engagement" extra={rangeControl} className="video-stats-widget">
+    <Card title="Video engagement" size="small" extra={rangeControl} className="video-stats-widget">
       <Flex gap={24} wrap>
         <div className="video-stats-widget__tile">
           <div className="video-stats-widget__icon video-stats-widget__icon--plays">

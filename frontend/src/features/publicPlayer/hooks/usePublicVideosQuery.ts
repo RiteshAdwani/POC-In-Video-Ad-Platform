@@ -1,8 +1,7 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
 import { axiosInstance } from '../../../api/axiosInstance';
 import { ApiRoutes } from '../../../constants/apiRoutes.constants';
 import { QueryKeys } from '../../../constants/queryKeys.constants';
-import { DEFAULT_PAGE_SIZE } from '../../../constants/pagination.constants';
+import { useInfinitePaginatedQuery } from '../../../hooks/useInfinitePaginatedQuery';
 import type { ApiResponseBody } from '../../../types/apiResponse.types';
 import type { PublicVideosResponseDto } from '../../../dtos/playback.dto';
 
@@ -15,18 +14,14 @@ import type { PublicVideosResponseDto } from '../../../dtos/playback.dto';
  * exactly the reset-to-page-1 behavior wanted when the search term changes.
  */
 export const usePublicVideosQuery = (search: string) =>
-  useInfiniteQuery({
-    queryKey: [QueryKeys.PUBLIC_VIDEOS, search],
-    queryFn: async ({ pageParam }) => {
+  useInfinitePaginatedQuery({
+    queryKey: [QueryKeys.PUBLIC_VIDEOS],
+    search,
+    queryFn: async (params) => {
       const response = await axiosInstance.get<ApiResponseBody<PublicVideosResponseDto>>(
         ApiRoutes.getPublicVideos(),
-        { params: { page: pageParam, pageSize: DEFAULT_PAGE_SIZE, search } },
+        { params },
       );
       return response.data.data;
     },
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) =>
-      lastPage.pagination.page < lastPage.pagination.totalPages
-        ? lastPage.pagination.page + 1
-        : undefined,
   });

@@ -7,6 +7,8 @@ import { ErrorMessages } from '../../constants/errorMessages.constants';
 import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants';
 import { createAdPlacementSchema, updateAdPlacementSchema } from './adPlacements.schema';
 import { validatePlacementConstraints } from './adPlacements.validators';
+import { paginationQuerySchema } from '../../schemas/pagination.schema';
+import { buildPaginationMeta } from '../../lib/pagination';
 
 /**
  * @description Attaches an advertisement to a video at a position. requireOwnership already
@@ -39,42 +41,58 @@ export const createAdPlacement: RequestHandler = async (req, res) => {
 };
 
 /**
- * @description Lists a video's live ad placements - or, for a retired video, every placement it
- * ever had (retired ones included), as a read-only record of what ran on it.
+ * @description Lists a video's live ad placements, paginated - or, for a retired video, every
+ * placement it ever had (retired ones included), as a read-only record of what ran on it.
  */
 export const listAdPlacements: RequestHandler = async (req, res) => {
   const video = req.resource as Video;
+  const { page, pageSize } = paginationQuerySchema.parse(req.query);
+  const where = { videoId: video.id, ...(video.deletedAt ? {} : { deletedAt: null }) };
 
-  const adPlacements = await prisma.adPlacement.findMany({
-    where: { videoId: video.id, ...(video.deletedAt ? {} : { deletedAt: null }) },
-    include: { advertisement: true },
-    orderBy: { startOffsetSeconds: 'asc' },
+  const [adPlacements, totalItems] = await Promise.all([
+    prisma.adPlacement.findMany({
+      where,
+      include: { advertisement: true },
+      orderBy: { startOffsetSeconds: 'asc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.adPlacement.count({ where }),
+  ]);
+
+  res.status(StatusCodes.OK).json({
+    data: { adPlacements, pagination: buildPaginationMeta(page, pageSize, totalItems) },
+    message: ApiSuccessMessages.AD_PLACEMENTS_FETCHED,
   });
-
-  res
-    .status(StatusCodes.OK)
-    .json({ data: { adPlacements }, message: ApiSuccessMessages.AD_PLACEMENTS_FETCHED });
 };
 
 /**
- * @description Lists an ad's live placements across videos - or, for a retired ad, every placement
- * it ever had, as a read-only record of where it ran. The mirror of listAdPlacements.
+ * @description Lists an ad's live placements across videos, paginated - or, for a retired ad,
+ * every placement it ever had, as a read-only record of where it ran. Mirrors listAdPlacements.
  */
 export const listAdPlacementsForAdvertisement: RequestHandler = async (req, res) => {
   const advertisement = req.resource as Advertisement;
+  const { page, pageSize } = paginationQuerySchema.parse(req.query);
+  const where = {
+    advertisementId: advertisement.id,
+    ...(advertisement.deletedAt ? {} : { deletedAt: null }),
+  };
 
-  const adPlacements = await prisma.adPlacement.findMany({
-    where: {
-      advertisementId: advertisement.id,
-      ...(advertisement.deletedAt ? {} : { deletedAt: null }),
-    },
-    include: { video: true },
-    orderBy: { createdAt: 'desc' },
+  const [adPlacements, totalItems] = await Promise.all([
+    prisma.adPlacement.findMany({
+      where,
+      include: { video: true },
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.adPlacement.count({ where }),
+  ]);
+
+  res.status(StatusCodes.OK).json({
+    data: { adPlacements, pagination: buildPaginationMeta(page, pageSize, totalItems) },
+    message: ApiSuccessMessages.AD_PLACEMENTS_FETCHED,
   });
-
-  res
-    .status(StatusCodes.OK)
-    .json({ data: { adPlacements }, message: ApiSuccessMessages.AD_PLACEMENTS_FETCHED });
 };
 
 /**

@@ -1,3 +1,7 @@
 .list-page-header {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
+}
+
+.list-page-header__title.ant-typography {
+  margin: 0;
 }

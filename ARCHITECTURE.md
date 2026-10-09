@@ -85,7 +85,7 @@ Every active view filters `deletedAt: null`: the default admin lists, the placem
 lookup, the ad-placement counts on both grids, every write route's ownership check, event
 ingestion, and every public-facing query (`listPublicVideos`, `getPlaybackConfig`) — so a retired
 item stops appearing anywhere active, is never served to a new viewer, and can't be edited.
-Retired items stay **readable** to their owner: the video/ad lists take `deleted=true` for a
+Retired items stay **readable** to their owner: the video/ad lists take `view=deleted` for a
 "Deleted" view, and get-by-id plus the placement lists use a separate read-access ownership check
 that doesn't filter `deletedAt` — a retired video's or ad's placement list then includes its
 retired placements too, as a record of what ran where. The row itself, and every
@@ -136,18 +136,38 @@ context and never leaks its internals to the client.
 paramName)` (fetches the resource, throws `NotFoundError` — 404, not 403 — if it doesn't exist
 **or** isn't owned by the caller, so a guessing admin can't distinguish the two). A nested
 resource like `AdPlacement` has no `authorId` of its own — ownership is derived transitively
-through its parent video.
+through its parent video, and that video must be the `:videoId` in the URL (the fetcher receives
+every route param), so `/videos/A/placements/<a placement on B>` 404s rather than editing B's.
 
-### List pagination & search (`videos`, `advertisements`, `public/videos`)
+The shared Pino logger redacts `req.headers.authorization` and `req.headers.cookie`, so the
+per-request access log never records a reusable admin token.
 
-All three list endpoints share one `paginationQuerySchema` (`page`, `pageSize`, optional `search`):
+### List pagination & search (`videos`, `advertisements`, `public/videos`, placements)
+
+Every list endpoint shares one `paginationQuerySchema` (`page`, `pageSize`, optional `search`):
 Prisma `skip`/`take` on the existing owner/scope-filtered `findMany`, plus a parallel `count({
 where })` for the total, with the response carrying the array alongside a `{ page, pageSize, total,
 totalPages }` meta block. `search` does a case-insensitive `contains` match on `title`, added to the
 same `where` clause the ownership/scope filter already builds — a search term narrows the result
-set, it never replaces the owner scoping. The two admin lists extend this with `deleted`
-(`adminListQuerySchema`): `true` swaps the `deletedAt: null` filter for `deletedAt: { not: null }`
+set, it never replaces the owner scoping. The two admin lists extend this with `view`
+(`adminListQuerySchema`): `deleted` swaps the `deletedAt: null` filter for `deletedAt: { not: null }`
 and sorts by removal date, newest first.
+The two placement lists (`/videos/:videoId/placements`, `/advertisements/:id/placements`) are
+paginated the same way, minus `search`; their details pages load them as infinite lists (10 per
+batch, via `useInfinitePaginatedQuery`), with a `useInfiniteScrollTrigger` marker at the bottom fetching
+the next batch as it scrolls into view - a section of a page has no page number worth putting in
+its URL. Each list sits in a card (title and count, the list under a sticky column header, a
+"Showing N of M" footer): the details page fills the window and never scrolls itself, and the
+card scrolls inside whatever height is left below the header and the compact stats card.
+
+Every page-level paginated list (the two library pages) fetches through one shared hook,
+`usePaginatedQuery`: it keeps the list's page, search term, and filters (each declared with a
+default, e.g. `view`) in the URL (`?page=`, `?search=`, `?view=`), adds them to the query key, and
+passes them to the list's fetcher as ready-to-send query params - filters are named after the
+API's own params (`view`), so they go through as-is. Changing the search term or a filter drops the
+page param in the same URL update, so the list refetches once, from page 1. When the current page
+stops existing (e.g. after removing the only item on it), the hook steps back to the last real
+page.
 
 ### Video upload → ready pipeline
 
@@ -318,26 +338,27 @@ destination) and nested under a shared `<Layout>` (sidebar shell).
 
 ### List pages: pagination, infinite scroll, search (`VideosPage`, `AdsPage`, `PublicVideosPage`)
 
-Admin `VideosPage`/`AdsPage` hold `page` in a URL search param and render antd's `Pagination` below
+Admin `VideosPage`/`AdsPage` hold `page` in a URL search param (`usePaginatedQuery`) and render antd's `Pagination` below
 the grid — numbered pages suit a management task (find _this_ item and act on it), and pair cleanly
 with the `onSuccess` → `invalidateQueries` pattern every mutation already uses. The public catalog
-instead uses TanStack Query's `useInfiniteQuery`, with an `IntersectionObserver` sentinel
+instead uses TanStack Query's `useInfiniteQuery` (through the shared `useInfinitePaginatedQuery`,
+which every scroll-to-load list uses), with an `IntersectionObserver` sentinel
 (`useInfiniteScrollTrigger`) at the bottom of `PublicVideosGrid` triggering `fetchNextPage()` — a
 better fit for a browsing/discovery page with no mutations and no "page number" worth remembering.
 
 All three pages search through one shared `SearchInput`: it holds what's typed, debounces it via
 `useDebouncedValue` (400ms), and reports only the settled term through `onSearch` — so a search
 doesn't refetch on every keystroke, and pages never see per-keystroke updates. On the admin pages,
-the term lives in the URL (`useListSearchParam`, `?search=`), and setting it drops the page param in the
-same URL update — one refetch, from page 1 — and survives a refresh; on the public page, changing
+the term lives in the URL (`?search=`, via `usePaginatedQuery`), and setting it drops the page
+param in the same URL update — one refetch, from page 1 — and survives a refresh; on the public page, changing
 the query key
 naturally drops any accumulated pages, so `useInfiniteQuery` restarts from page 1 with no manual
 reset needed.
 
 The two admin pages share a `ListPageHeader` (title, count subtitle, primary create action),
 then a filter row of `SearchInput` beside an Active / Deleted `Segmented` switch
-(`useListViewParam`, `?view=` in the URL like `page`; switching drops the page param so the other
-list starts from page 1), then a per-feature `VideosListContent` / `AdsListContent` that renders
+(a `usePaginatedQuery` filter, `?view=` in the URL like `page`; switching drops the page param so
+the other list starts from page 1), then a per-feature `VideosListContent` / `AdsListContent` that renders
 whichever of loading / error / empty / grid-with-pagination applies.
 Deleted cards (only ever shown under the Deleted tab) drop their status, counts, and actions, and
 link to a **read-only** details page:
@@ -386,14 +407,21 @@ The native `<video>` element's own chrome is fully replaced, not just skinned:
   anything on top of it — the only way to show ad positions directly on a seekable timeline is to
   own the timeline.
 
-### Thumbnails (`lib/videoThumbnail.ts`)
+### Thumbnails (`lib/videoThumbnail.ts`, `components/VideoThumbnail`)
 
 `getVideoThumbnailUrl` derives a still-frame JPG from a Cloudinary-hosted video's own URL via
 Cloudinary's URL-based transforms (`so_1,w_400,h_225,c_fill` — grabs the 1-second frame, since 0s
-is often black/mid-fade) — no extra upload, storage, or backend call. Returns `null` for a
-non-Cloudinary URL, so every caller (`VideosGrid`, `AdsGrid`, `PublicVideosGrid`,
-`AdPlacementsList`, `PrePlayOverlay`) falls back to a fixed brand-color gradient tile instead
-(colored per `adType` in `AdPlacementsList`, a single fixed gradient elsewhere).
+is often black/mid-fade) — no extra upload, storage, or backend call. It returns `null` for a
+non-Cloudinary URL.
+
+`VideoThumbnail` wraps it for any video URL: the Cloudinary JPG where available, otherwise a muted,
+non-interactive `<video preload="metadata">` at `#t=1`, which the browser loads just far enough to
+draw the same 1-second frame — so an externally hosted ad still gets a real preview. It's used for
+ad creatives (`AdsGrid`, `AdPlacementsList`) and the videos in an ad's "Placed on" list
+(`AdPlacementVideosList`). The main-video callers (`VideosGrid`, `PublicVideosGrid`,
+`PrePlayOverlay`) call `getVideoThumbnailUrl` directly — uploaded videos are always on Cloudinary
+— and fall back to a fixed brand-color gradient tile when there's no frame (a still-processing or
+deleted video).
 
 ### Dashboard features
 

@@ -11,9 +11,6 @@ import { useUploadVideoMutation } from '../../features/videos/hooks/useUploadVid
 import { useUpdateVideoMutation } from '../../features/videos/hooks/useUpdateVideoMutation';
 import { useDeleteVideoModal } from '../../features/videos/hooks/useDeleteVideoModal';
 import { useModalState } from '../../hooks/useModalState';
-import { usePaginationParam } from '../../hooks/usePaginationParam';
-import { useListViewParam } from '../../hooks/useListViewParam';
-import { useListSearchParam } from '../../hooks/useListSearchParam';
 import { LIST_VIEW_OPTIONS, ListView } from '../../constants/listView.constants';
 import { ListPageHeader } from '../../components/ListPageHeader/ListPageHeader';
 import { SearchInput } from '../../components/SearchInput/SearchInput';
@@ -30,11 +27,9 @@ export const VideosPage = () => {
   const [modalMode, setModalMode] = useState<ModalMode>(ModalMode.CREATE);
   const [editingVideo, setEditingVideo] = useState<Video | undefined>(undefined);
 
-  const { page, onPageChange } = usePaginationParam();
-  const { view, onViewChange } = useListViewParam();
-  const isDeletedView = view === ListView.DELETED;
-  const { search, onSearch } = useListSearchParam();
-  const { data, isLoading, isError } = useVideosQuery(page, search, view);
+  const { data, isLoading, isError, search, filters, onPageChange, onSearch, onFilterChange } =
+    useVideosQuery();
+  const isDeletedView = filters.view === ListView.DELETED;
 
   const { mutate: uploadVideoMutation, isPending: isUploadVideoMutationPending } =
     useUploadVideoMutation();
@@ -115,8 +110,8 @@ export const VideosPage = () => {
         />
         <Segmented
           options={LIST_VIEW_OPTIONS}
-          value={view}
-          onChange={(value) => onViewChange(value as ListView)}
+          value={filters.view}
+          onChange={(value) => onFilterChange({ view: value as ListView })}
         />
       </Flex>
 

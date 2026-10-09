@@ -1,0 +1,4 @@
+/* A still preview, never an interactive player - clicks pass through to the card/row link. */
+.video-thumbnail {
+  pointer-events: none;
+}

@@ -20,3 +20,7 @@ export const POLL_WHILE_VIDEO_NOT_READY_MS = 5000;
 // video URL: so_1 grabs the 1s frame (0s is often black/mid-fade), c_fill crops to exactly
 // w_400/h_225 without distorting.
 export const VIDEO_THUMBNAIL_TRANSFORM = 'so_1,w_400,h_225,c_fill';
+
+// Media-fragment suffix that makes a <video> preload just enough to show its 1-second frame - the
+// same frame the Cloudinary thumbnail transform picks (VIDEO_THUMBNAIL_TRANSFORM's so_1).
+export const VIDEO_FRAME_FRAGMENT = '#t=1';

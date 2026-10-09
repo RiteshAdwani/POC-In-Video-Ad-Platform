@@ -17,7 +17,7 @@ import { VideoFormFields } from '../../features/videos/components/CreateEditVide
 import { PageSpinner } from '../../components/PageSpinner/PageSpinner';
 import { DeletedBanner } from '../../components/DeletedBanner/DeletedBanner';
 import { LIST_VIEW_PARAM, ListView } from '../../constants/listView.constants';
-import { useInfiniteAdsQuery } from '../../features/ads/hooks/useInfiniteAdsQuery';
+import { useAdOptionsQuery } from '../../features/ads/hooks/useAdOptionsQuery';
 import { useVideoQuery } from '../../features/videos/hooks/useVideoQuery';
 import { useUpdateVideoMutation } from '../../features/videos/hooks/useUpdateVideoMutation';
 import { useDeleteVideoModal } from '../../features/videos/hooks/useDeleteVideoModal';
@@ -32,6 +32,7 @@ import type {
   UpdateAdPlacementRequestDto,
 } from '../../dtos/adPlacement.dto';
 import type { AdPlacement } from '../../types/adPlacement.types';
+import './VideoDetailsPage.css';
 
 /**
  * @description One video's full detail view - a plain preview player (no ad injection, unlike
@@ -64,9 +65,14 @@ export const VideoDetailsPage = () => {
     fetchNextPage: fetchNextAdsPage,
     hasNextPage: hasMoreAds,
     isFetchingNextPage: isLoadingMoreAds,
-  } = useInfiniteAdsQuery(adPlacementModalOpen);
+  } = useAdOptionsQuery(adPlacementModalOpen);
   const ads = useMemo(() => adsData?.pages.flatMap((page) => page.advertisements) ?? [], [adsData]);
-  const { data: adPlacements } = useAdPlacementsQuery(videoId);
+  const {
+    data: adPlacementsData,
+    fetchNextPage: fetchNextAdPlacements,
+    hasNextPage: hasMoreAdPlacements,
+    isFetchingNextPage: isLoadingMoreAdPlacements,
+  } = useAdPlacementsQuery(videoId);
   const { mutate: createAdPlacementMutation, isPending: isCreateAdPlacementMutationPending } =
     useCreateAdPlacementMutation(videoId!);
   const { mutate: updateAdPlacementMutation, isPending: isUpdateAdPlacementMutationPending } =
@@ -176,8 +182,13 @@ export const VideoDetailsPage = () => {
     : Routes.VIDEOS;
 
   return (
-    <div>
-      <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate(backTo)}>
+    <div className="video-details-page">
+      <Button
+        type="text"
+        icon={<ArrowLeftOutlined />}
+        onClick={() => navigate(backTo)}
+        className="video-details-page__back"
+      >
         Back to videos
       </Button>
 
@@ -188,7 +199,13 @@ export const VideoDetailsPage = () => {
       <VideoStatsWidget videoId={video.id} />
 
       <AdPlacementsSection
-        adPlacements={adPlacements}
+        adPlacements={adPlacementsData?.adPlacements}
+        totalItems={adPlacementsData?.totalItems ?? 0}
+        loadMore={{
+          hasNextPage: hasMoreAdPlacements,
+          isFetchingNextPage: isLoadingMoreAdPlacements,
+          fetchNextPage: fetchNextAdPlacements,
+        }}
         videoId={video.id}
         videoStatus={video.status}
         onAdd={handleAddAdPlacement}

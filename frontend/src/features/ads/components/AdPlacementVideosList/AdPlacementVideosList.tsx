@@ -1,15 +1,9 @@
-import { generatePath, Link } from 'react-router-dom';
-import { Flex, Typography } from 'antd';
-import { VideoCameraOutlined } from '@ant-design/icons';
-import { VideoStatusTag } from '../../../../components/VideoStatusTag/VideoStatusTag';
+import { generatePath, useNavigate } from 'react-router-dom';
+import { Table } from 'antd';
 import { Routes } from '../../../../constants/routes.constants';
-import { formatDuration } from '../../../../lib/formatDuration';
-import { formatDurationOrSkip } from '../../../../lib/formatDurationOrSkip';
 import type { AdPlacementWithVideo } from '../../../../types/adPlacement.types';
-import { AdPlacementRowStat } from '../../../../components/AdPlacementRowStat/AdPlacementRowStat';
+import { getAdPlacementVideoColumns } from './AdPlacementVideosList.columns';
 import './AdPlacementVideosList.css';
-
-const { Text } = Typography;
 
 type AdPlacementVideosListProps = {
   items: AdPlacementWithVideo[];
@@ -18,48 +12,36 @@ type AdPlacementVideosListProps = {
 };
 
 /**
- * @description Row-per-video list of everywhere an ad is placed - the mirror image of
- * `AdPlacementsList` (which lists a video's ads), linking each row through to that video's own
- * details page. Each row also carries its own performance line for the given window, via the same
- * AdPlacementRowStat used on the video side. A deleted video's row drops its status tag.
+ * @description Table of everywhere an ad is placed - the mirror image of `AdPlacementsList`
+ * (which lists a video's ads), with the same columns: the video, when the ad starts in it, how
+ * long it runs or when it can be skipped, and that placement's own performance for the given
+ * window (AdPlacementRowStat). Clicking a row opens the video's details page. The tile shows a
+ * frame from the video where one can be derived; a deleted video's row drops its status tag and
+ * frame (its file is gone).
  */
 export const AdPlacementVideosList = ({
   items,
   startDate,
   endDate,
-}: AdPlacementVideosListProps) => (
-  <div className="ad-placement-videos-list">
-    {items.map((adPlacement) => (
-      <Link
-        to={generatePath(Routes.VIDEO_DETAILS, { videoId: adPlacement.video.id })}
-        className="ad-placement-videos-list__row"
-        key={adPlacement.id}
-      >
-        <div className="ad-placement-videos-list__thumb">
-          <VideoCameraOutlined />
-          <span className="ad-placement-videos-list__offset">
-            {formatDuration(adPlacement.startOffsetSeconds)}
-          </span>
-        </div>
+}: AdPlacementVideosListProps) => {
+  const navigate = useNavigate();
 
-        <div className="ad-placement-videos-list__info">
-          <Flex align="center" gap={8}>
-            <Text strong ellipsis className="ad-placement-videos-list__title">
-              {adPlacement.video.title}
-            </Text>
-            {!adPlacement.video.deletedAt && <VideoStatusTag status={adPlacement.video.status} />}
-          </Flex>
-          <Text type="secondary" className="ad-placement-videos-list__meta">
-            {formatDurationOrSkip(adPlacement)}
-          </Text>
-          <AdPlacementRowStat
-            videoId={adPlacement.video.id}
-            adPlacementId={adPlacement.id}
-            startDate={startDate}
-            endDate={endDate}
-          />
-        </div>
-      </Link>
-    ))}
-  </div>
-);
+  const columns = getAdPlacementVideoColumns(startDate, endDate);
+
+  /**
+   * @description Opens a placement's video - the whole row acts as its link.
+   */
+  const openVideo = (videoId: string) => navigate(generatePath(Routes.VIDEO_DETAILS, { videoId }));
+
+  return (
+    <Table
+      rowKey="id"
+      columns={columns}
+      dataSource={items}
+      pagination={false}
+      className="ad-placement-videos-list"
+      rowClassName="ad-placement-videos-list__row"
+      onRow={({ video }) => ({ onClick: () => openVideo(video.id) })}
+    />
+  );
+};

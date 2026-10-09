@@ -25,7 +25,9 @@ export const ListPageHeader = ({
 }: ListPageHeaderProps) => (
   <Flex justify="space-between" align="center" className="list-page-header">
     <Flex vertical gap={4}>
-      <Title level={2}>{title}</Title>
+      <Title level={2} className="list-page-header__title">
+        {title}
+      </Title>
       <Text type="secondary">{subtitle}</Text>
     </Flex>
     <Button type="primary" size="large" icon={actionIcon} onClick={onAction}>

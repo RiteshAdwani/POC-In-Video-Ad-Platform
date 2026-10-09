@@ -1,16 +1,11 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import dayjs from 'dayjs';
-import { Button, Empty, Flex, Result, Tooltip, Typography } from 'antd';
+import { Button, Flex, Result, Tooltip, Typography } from 'antd';
 import { ArrowLeftOutlined, DeleteOutlined, EditOutlined, LinkOutlined } from '@ant-design/icons';
 import { AssetType, DELETE_AD_BLOCKED_TOOLTIP } from '../../constants/ad.constants';
 import { ModalMode } from '../../constants/modalMode.constants';
 import { Routes } from '../../constants/routes.constants';
-import {
-  DASHBOARD_DATE_FORMAT,
-  PLACEMENT_STATS_WINDOW_DAYS,
-} from '../../constants/dashboard.constants';
-import { AdPlacementVideosList } from '../../features/ads/components/AdPlacementVideosList/AdPlacementVideosList';
+import { AdPlacementVideosSection } from '../../features/ads/components/AdPlacementVideosSection/AdPlacementVideosSection';
 import { AdStatsWidget } from '../../features/ads/components/AdStatsWidget/AdStatsWidget';
 import { AssetTypeTag } from '../../features/ads/components/AssetTypeTag/AssetTypeTag';
 import { CreateEditAdModal } from '../../features/ads/components/CreateEditAdModal/CreateEditAdModal';
@@ -20,7 +15,6 @@ import { PageSpinner } from '../../components/PageSpinner/PageSpinner';
 import { DeletedBanner } from '../../components/DeletedBanner/DeletedBanner';
 import { LIST_VIEW_PARAM, ListView } from '../../constants/listView.constants';
 import { useAdQuery } from '../../features/ads/hooks/useAdQuery';
-import { useAdPlacementsByAdQuery } from '../../features/ads/hooks/useAdPlacementsByAdQuery';
 import { useUpdateAdMutation } from '../../features/ads/hooks/useUpdateAdMutation';
 import { useDeleteAdModal } from '../../features/ads/hooks/useDeleteAdModal';
 import { useModalState } from '../../hooks/useModalState';
@@ -43,12 +37,6 @@ export const AdDetailsPage = () => {
   const { data: ad, isLoading, isError, error } = useAdQuery(adId);
   const { mutate: updateAdMutation, isPending: isUpdateAdMutationPending } = useUpdateAdMutation();
   const confirmDeleteAd = useDeleteAdModal();
-  const { data: adPlacementVideos } = useAdPlacementsByAdQuery(adId);
-
-  const placementStatsEndDate = dayjs().format(DASHBOARD_DATE_FORMAT);
-  const placementStatsStartDate = dayjs()
-    .subtract(PLACEMENT_STATS_WINDOW_DAYS - 1, 'day')
-    .format(DASHBOARD_DATE_FORMAT);
 
   /**
    * @description Editing an ad only ever touches title/description/click-through URL.
@@ -97,7 +85,12 @@ export const AdDetailsPage = () => {
 
   return (
     <div className="ad-details-page">
-      <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate(backTo)}>
+      <Button
+        type="text"
+        icon={<ArrowLeftOutlined />}
+        onClick={() => navigate(backTo)}
+        className="ad-details-page__back"
+      >
         Back to ads
       </Button>
 
@@ -160,21 +153,7 @@ export const AdDetailsPage = () => {
 
       <AdStatsWidget advertisementId={ad.id} />
 
-      <div className="ad-details-page__ad-placements">
-        <Title level={4}>Placed on ({adPlacementVideos?.length ?? 0})</Title>
-
-        {!adPlacementVideos || adPlacementVideos.length === 0 ? (
-          <Empty
-            description={isDeleted ? 'Was never placed on a video' : 'Not placed on any video yet'}
-          />
-        ) : (
-          <AdPlacementVideosList
-            items={adPlacementVideos}
-            startDate={placementStatsStartDate}
-            endDate={placementStatsEndDate}
-          />
-        )}
-      </div>
+      <AdPlacementVideosSection adId={ad.id} isDeleted={isDeleted} />
 
       {open && (
         <CreateEditAdModal

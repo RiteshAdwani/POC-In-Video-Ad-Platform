@@ -59,7 +59,9 @@ export const DashboardPage = () => {
     <div className="dashboard-page">
       <Flex justify="space-between" align="center" className="dashboard-page__header">
         <Flex vertical gap={4}>
-          <Title level={2}>Dashboard</Title>
+          <Title level={2} className="dashboard-page__title">
+            Dashboard
+          </Title>
           <Text type="secondary">
             Impressions, completions, and click-through across your videos.
           </Text>

@@ -11,9 +11,6 @@ import { useCreateAdMutation } from '../../features/ads/hooks/useCreateAdMutatio
 import { useUpdateAdMutation } from '../../features/ads/hooks/useUpdateAdMutation';
 import { useDeleteAdModal } from '../../features/ads/hooks/useDeleteAdModal';
 import { useModalState } from '../../hooks/useModalState';
-import { usePaginationParam } from '../../hooks/usePaginationParam';
-import { useListViewParam } from '../../hooks/useListViewParam';
-import { useListSearchParam } from '../../hooks/useListSearchParam';
 import { LIST_VIEW_OPTIONS, ListView } from '../../constants/listView.constants';
 import { ListPageHeader } from '../../components/ListPageHeader/ListPageHeader';
 import { SearchInput } from '../../components/SearchInput/SearchInput';
@@ -30,11 +27,9 @@ export const AdsPage = () => {
   const [modalMode, setModalMode] = useState<ModalMode>(ModalMode.CREATE);
   const [editingAd, setEditingAd] = useState<Advertisement | undefined>(undefined);
 
-  const { page, onPageChange } = usePaginationParam();
-  const { view, onViewChange } = useListViewParam();
-  const isDeletedView = view === ListView.DELETED;
-  const { search, onSearch } = useListSearchParam();
-  const { data, isLoading, isError } = useAdsQuery(page, search, view);
+  const { data, isLoading, isError, search, filters, onPageChange, onSearch, onFilterChange } =
+    useAdsQuery();
+  const isDeletedView = filters.view === ListView.DELETED;
 
   const { mutate: createAdMutation, isPending: isCreateAdMutationPending } = useCreateAdMutation();
   const { mutate: updateAdMutation, isPending: isUpdateAdMutationPending } = useUpdateAdMutation();
@@ -119,8 +114,8 @@ export const AdsPage = () => {
         />
         <Segmented
           options={LIST_VIEW_OPTIONS}
-          value={view}
-          onChange={(value) => onViewChange(value as ListView)}
+          value={filters.view}
+          onChange={(value) => onFilterChange({ view: value as ListView })}
         />
       </Flex>
 

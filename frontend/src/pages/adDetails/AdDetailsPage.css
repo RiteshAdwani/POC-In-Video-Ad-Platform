@@ -1,5 +1,17 @@
+/* Fills the content area exactly, so the page itself never scrolls - the "Placed on" section
+   takes whatever height is left and scrolls inside. */
+.ad-details-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.ad-details-page__back {
+  align-self: flex-start;
+}
+
 .ad-details-page__header {
-  margin: 16px 0 32px;
+  margin: 16px 0 24px;
 }
 
 .ad-details-page__title {
@@ -32,10 +44,4 @@
 
 .ad-details-page__click-through {
   color: #0369a1;
-}
-
-.ad-details-page__ad-placements {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
 }

@@ -1,13 +1,13 @@
 /* As tall as its rows, up to the page's remaining height - past that, the list scrolls inside.
    Never squeezed below a couple of rows; the page scrolls instead. */
-.ad-placements-section {
+.ad-placement-videos-section {
   display: flex;
   flex-direction: column;
   flex: 0 1 auto;
   min-height: 260px;
 }
 
-.ad-placements-section__body {
+.ad-placement-videos-section__body {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -15,7 +15,7 @@
   padding: 0 !important;
 }
 
-.ad-placements-section__scroll {
+.ad-placement-videos-section__scroll {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -23,23 +23,23 @@
 }
 
 /* Marker at the bottom of the list - scrolling it into view loads the next batch. */
-.ad-placements-section__load-more {
+.ad-placement-videos-section__load-more {
   display: flex;
   justify-content: center;
   min-height: 1px;
 }
 
-.ad-placements-section__load-more:not(:empty) {
+.ad-placement-videos-section__load-more:not(:empty) {
   padding: 12px 0;
 }
 
-.ad-placements-section__footer {
+.ad-placement-videos-section__footer {
   padding: 8px 16px;
   border-top: 1px solid #e2e8f0;
   font-size: 12px;
 }
 
-.ad-placements-section__empty {
+.ad-placement-videos-section__empty {
   margin: auto;
   padding: 24px 0;
 }
