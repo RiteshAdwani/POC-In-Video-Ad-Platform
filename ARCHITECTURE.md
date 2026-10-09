@@ -14,19 +14,22 @@ what). This doc is the "what" — the actual shape of the system.
 
 ## Data model
 
-Postgres via Prisma (`@prisma/adapter-pg`), schema at `backend/prisma/schema.prisma`.
+Postgres via Prisma (`@prisma/adapter-pg`), schema at `backend/prisma/schema.prisma`. Models and
+fields keep Prisma's `PascalCase`/`camelCase` in code and map to `snake_case` in the database
+(`@@map`/`@map` - e.g. `AdPlacement.startOffsetSeconds` is `ad_placements.start_offset_seconds`);
+constraint and index names follow the same `{table}_{column}_{pkey|fkey|key|idx}` pattern.
 
 ### Entities
 
-| Model            | Purpose                                                                                     | Key fields                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| ---------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Admin`          | Owns videos and advertisements; everything else is scoped to one of these, transitively     | `email` (unique), `passwordHash`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| `Video`          | Metadata only — the file itself lives at Cloudinary                                         | `status` (PROCESSING/READY/FAILED), `externalId` (Cloudinary `public_id`), `playbackUrl` (null until READY), `durationSeconds` (captured from Cloudinary at the PROCESSING→READY transition, or on a later on-demand `GET /:id/status` call if it was still missing then — see `checkAndUpdateVideoStatus`; only ever backfilled if that endpoint happens to be hit again for the video, since the background poller stops tracking a video once it's READY), `authorId`, `deletedAt` (soft-delete only — see [Deletion behavior](#deletion-behavior)) |
-| `Advertisement`  | A reusable ad creative — an image or video asset, placeable on many videos                  | `assetType` (IMAGE/VIDEO), `assetUrl`, `clickThroughUrl` (nullable), `authorId`, `deletedAt` (soft-delete only — see [Deletion behavior](#deletion-behavior))                                                                                                                                                                                                                                                                                                                                                                                          |
-| `AdPlacement`    | One instance of an `Advertisement` on one `Video`, at one position                          | `adType` (PRE_ROLL/MID_ROLL/BANNER_OVERLAY — the placement's own role, independent of the creative's fixed asset type), `startOffsetSeconds`, `durationSeconds` (banner-only), `skipAfterSeconds` (null = not skippable), `deletedAt` (soft-delete only — see [Deletion behavior](#deletion-behavior))                                                                                                                                                                                                                                                 |
-| `PlaybackEvent`  | Raw, append-only log — source of truth for every dashboard number                           | `videoId`, `adPlacementId` (nullable), `sessionId`, `eventType`, `occurredAt` (client-reported), `receivedAt` (server-set)                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `DailyCount`     | Derived, read-optimized aggregate — one row per (video, placement-or-none, event type, day) | `day` (`@db.Date`), `count`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `AggregationRun` | Audit trail — one row per aggregation execution                                             | `day`, `status`, `startedAt`/`completedAt`, `rowsUpserted`, `error`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Model            | Purpose                                                                                     | Key fields                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Admin`          | Owns videos and advertisements; everything else is scoped to one of these, transitively     | `email` (unique), `passwordHash`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `Video`          | Metadata only — the file itself lives at Cloudinary                                         | `status` (PROCESSING/READY/FAILED), `externalId` (Cloudinary `public_id`), `playbackUrl` (null until READY), `durationSeconds` (captured from Cloudinary at the PROCESSING→READY transition, or on a later on-demand `GET /:id/status` call if it was still missing then — see `checkAndUpdateVideoStatus`; only ever backfilled if that endpoint happens to be hit again for the video, since the background poller stops tracking a video once it's READY), `adminId`, `deletedAt` (soft-delete only — see [Deletion behavior](#deletion-behavior)) |
+| `Advertisement`  | A reusable ad creative — an image or video asset, placeable on many videos                  | `assetType` (IMAGE/VIDEO), `assetUrl`, `clickThroughUrl` (nullable), `adminId`, `deletedAt` (soft-delete only — see [Deletion behavior](#deletion-behavior))                                                                                                                                                                                                                                                                                                                                                                                          |
+| `AdPlacement`    | One instance of an `Advertisement` on one `Video`, at one position                          | `adType` (PRE_ROLL/MID_ROLL/BANNER_OVERLAY — the placement's own role, independent of the creative's fixed asset type), `startOffsetSeconds`, `durationSeconds` (banner-only), `skipAfterSeconds` (null = not skippable), `deletedAt` (soft-delete only — see [Deletion behavior](#deletion-behavior))                                                                                                                                                                                                                                                |
+| `PlaybackEvent`  | Raw, append-only log — source of truth for every dashboard number                           | `videoId`, `adPlacementId` (nullable), `sessionId`, `eventType`, `occurredAt` (client-reported), `receivedAt` (server-set)                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `DailyCount`     | Derived, read-optimized aggregate — one row per (video, placement-or-none, event type, day) | `eventDate` (`@db.Date`), `eventCount`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `AggregationRun` | Audit trail — one row per aggregation execution                                             | `eventDate`, `status`, `startedAt`/`completedAt`, `rowsUpserted`, `error`                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 Six `PlaybackEventType` values: `VIDEO_STARTED`, `VIDEO_FINISHED`, `AD_SHOWN`, `AD_SKIPPED`,
 `AD_COMPLETED`, `AD_CLICKED` (why a 6th event beyond the original spec's five: [DECISIONS.md](DECISIONS.md#event-vocabulary)).
@@ -36,8 +39,8 @@ Six `PlaybackEventType` values: `VIDEO_STARTED`, `VIDEO_FINISHED`, `AD_SHOWN`, `
 `PlaybackEvent` carries two **partial** unique indexes instead of one plain one:
 
 ```prisma
-@@unique([sessionId, eventType, adPlacementId], where: raw("\"adPlacementId\" IS NOT NULL"), map: "PlaybackEvent_session_ad_event_dedup")
-@@unique([sessionId, videoId, eventType], where: raw("\"adPlacementId\" IS NULL"), map: "PlaybackEvent_session_video_event_dedup")
+@@unique([sessionId, eventType, adPlacementId], where: raw("ad_placement_id IS NOT NULL"), map: "playback_events_ad_event_dedup_key")
+@@unique([sessionId, videoId, eventType], where: raw("ad_placement_id IS NULL"), map: "playback_events_video_event_dedup_key")
 ```
 
 - **Ad-scoped events** (`adPlacementId` set): the same session posting the same event type for the
@@ -51,12 +54,12 @@ Six `PlaybackEventType` values: `VIDEO_STARTED`, `VIDEO_FINISHED`, `AD_SHOWN`, `
 
 Why two _partial_ indexes rather than one `@@unique([sessionId, eventType, adPlacementId])`:
 Postgres treats `NULL` as distinct from every other `NULL` in a unique constraint. Without the
-`WHERE adPlacementId IS NULL` partial index, two separate `VIDEO_STARTED` events in the same
+`WHERE ad_placement_id IS NULL` partial index, two separate `VIDEO_STARTED` events in the same
 session (both with a null `adPlacementId`) would never collide, and dedup would silently fail for
 every video-level event. Full reasoning in [DECISIONS.md](DECISIONS.md#event-identity--the-dedup-constraint).
 
-`DailyCount` uses the identical partial-index pattern (`DailyCount_ad_scoped_key` /
-`DailyCount_video_scoped_key`) for the same reason, one calendar day at a time.
+`DailyCount` uses the identical partial-index pattern (`daily_counts_ad_scoped_key` /
+`daily_counts_video_scoped_key`) for the same reason, one calendar day at a time.
 
 A plain `[occurredAt]` index backs the aggregation job's scans — both the per-day recount and the
 late-arrival check filter on an `occurredAt` range across every video. Two more,
@@ -135,7 +138,7 @@ context and never leaks its internals to the client.
 `requireAuth` (verifies the JWT, attaches `req.admin`) then `requireOwnership(fetchResource,
 paramName)` (fetches the resource, throws `NotFoundError` — 404, not 403 — if it doesn't exist
 **or** isn't owned by the caller, so a guessing admin can't distinguish the two). A nested
-resource like `AdPlacement` has no `authorId` of its own — ownership is derived transitively
+resource like `AdPlacement` has no `adminId` of its own — ownership is derived transitively
 through its parent video, and that video must be the `:videoId` in the URL (the fetcher receives
 every route param), so `/videos/A/placements/<a placement on B>` 404s rather than editing B's.
 
@@ -244,14 +247,14 @@ page.
 
 `GET /api/v1/dashboard?startDate&endDate&videoId?&adPlacementId?&advertisementId?` runs two
 `prisma.dailyCount.groupBy` queries — never touches `PlaybackEvent` — scoped by a
-`video: { authorId }` relation filter (the actual per-admin isolation) plus the date range and
+`video: { adminId }` relation filter (the actual per-admin isolation) plus the date range and
 optional narrowing. `videoId`/`adPlacementId` narrow to one owned video (and, further, one of its
 placements); `advertisementId` is mutually exclusive with those two and instead sums across every
 placement of one owned advertisement, on any video — the per-ad view an ad's own detail page needs
 (`assertOwnsScope` checks whichever of the three were given before the query runs):
 
 - Grouped by `eventType` only, summed across the range → the headline totals.
-- Grouped by `[day, eventType]` → the per-day trend series.
+- Grouped by `[eventDate, eventType]` → the per-day trend series.
 - Grouped by `eventType`, limited to rows whose video or placement is retired → the
   `deletedContribution` — the deleted share of every count (impressions, completions, skips,
   clicks, plays, video completions). Retired items stay in the totals — they really happened —

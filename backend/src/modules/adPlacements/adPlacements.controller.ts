@@ -23,7 +23,7 @@ export const createAdPlacement: RequestHandler = async (req, res) => {
   const advertisement = await prisma.advertisement.findFirst({
     where: { id: advertisementId, deletedAt: null },
   });
-  if (advertisement?.authorId !== req.admin!.id) {
+  if (advertisement?.adminId !== req.admin!.id) {
     throw new NotFoundError(ErrorMessages.ADVERTISEMENT_NOT_FOUND);
   }
 
@@ -97,7 +97,7 @@ export const listAdPlacementsForAdvertisement: RequestHandler = async (req, res)
 
 /**
  * @description Updates an Ad placement's type/position/timing. requireOwnership already fetched
- * and verified it (ownership derives from the parent video's authorId), and it comes with its
+ * and verified it (ownership derives from the parent video's adminId), and it comes with its
  * advertisement attached so the placement constraints can be re-checked against the resulting
  * state - a partial patch could otherwise leave a pre-roll at a nonzero offset just by not
  * touching the field a naive per-field check would have looked at.

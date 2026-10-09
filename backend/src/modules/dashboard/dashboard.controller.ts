@@ -7,7 +7,7 @@ import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants
 import { PlaybackEventType } from '../../generated/prisma/enums';
 import { dashboardQuerySchema } from './dashboard.schema';
 
-type EventTypeCount = { eventType: PlaybackEventType; _sum: { count: number | null } };
+type EventTypeCount = { eventType: PlaybackEventType; _sum: { eventCount: number | null } };
 
 /**
  * @description Pivots a set of DailyCount rows (grouped by eventType, optionally also by day)
@@ -17,7 +17,7 @@ type EventTypeCount = { eventType: PlaybackEventType; _sum: { count: number | nu
  */
 const extractDashboardStats = (rows: EventTypeCount[]) => {
   const sumForEventType = (eventType: PlaybackEventType) =>
-    rows.find((row) => row.eventType === eventType)?._sum.count ?? 0;
+    rows.find((row) => row.eventType === eventType)?._sum.eventCount ?? 0;
 
   const impressions = sumForEventType(PlaybackEventType.AD_SHOWN);
   const completions = sumForEventType(PlaybackEventType.AD_COMPLETED);
@@ -41,7 +41,7 @@ const extractDashboardStats = (rows: EventTypeCount[]) => {
 };
 
 type DashboardScopeParams = {
-  authorId: string;
+  adminId: string;
   videoId?: string;
   adPlacementId?: string;
   advertisementId?: string;
@@ -52,14 +52,14 @@ type DashboardScopeParams = {
  * advertisementId were given, throwing a 404 rather than leaking another admin's stats.
  */
 const assertOwnsScope = async ({
-  authorId,
+  adminId,
   videoId,
   adPlacementId,
   advertisementId,
 }: DashboardScopeParams) => {
   if (videoId) {
     const video = await prisma.video.findUnique({ where: { id: videoId } });
-    if (video?.authorId !== authorId) {
+    if (video?.adminId !== adminId) {
       throw new NotFoundError(ErrorMessages.VIDEO_NOT_FOUND);
     }
   }
@@ -75,7 +75,7 @@ const assertOwnsScope = async ({
     const advertisement = await prisma.advertisement.findUnique({
       where: { id: advertisementId },
     });
-    if (advertisement?.authorId !== authorId) {
+    if (advertisement?.adminId !== adminId) {
       throw new NotFoundError(ErrorMessages.ADVERTISEMENT_NOT_FOUND);
     }
   }
@@ -94,13 +94,13 @@ const assertOwnsScope = async ({
 export const getDashboardStats: RequestHandler = async (req, res) => {
   const { startDate, endDate, videoId, adPlacementId, advertisementId } =
     dashboardQuerySchema.parse(req.query);
-  const authorId = req.admin!.id;
+  const adminId = req.admin!.id;
 
-  await assertOwnsScope({ authorId, videoId, adPlacementId, advertisementId });
+  await assertOwnsScope({ adminId, videoId, adPlacementId, advertisementId });
 
   const scope = {
-    day: { gte: startDate, lte: endDate },
-    video: { authorId },
+    eventDate: { gte: startDate, lte: endDate },
+    video: { adminId },
     ...(videoId && { videoId }),
     ...(adPlacementId && { adPlacementId }),
     ...(advertisementId && { adPlacement: { advertisementId } }),
@@ -111,14 +111,14 @@ export const getDashboardStats: RequestHandler = async (req, res) => {
   const totalRows = await prisma.dailyCount.groupBy({
     by: ['eventType'],
     where: scope,
-    _sum: { count: true },
+    _sum: { eventCount: true },
   });
 
   // One row per eventType per day (days not summed together) - the per-day trend chart data.
   const dailyRows = await prisma.dailyCount.groupBy({
-    by: ['day', 'eventType'],
+    by: ['eventDate', 'eventType'],
     where: scope,
-    _sum: { count: true },
+    _sum: { eventCount: true },
   });
 
   // The share of the totals that came from since-deleted videos/placements - kept in the totals
@@ -130,7 +130,7 @@ export const getDashboardStats: RequestHandler = async (req, res) => {
       ...scope,
       OR: [{ video: { deletedAt: { not: null } } }, { adPlacement: { deletedAt: { not: null } } }],
     },
-    _sum: { count: true },
+    _sum: { eventCount: true },
   });
   const deleted = extractDashboardStats(deletedRows);
   const deletedContribution = {
@@ -146,7 +146,7 @@ export const getDashboardStats: RequestHandler = async (req, res) => {
   // rows end up together, e.g. "2026-09-16" -> [AD_SHOWN row, AD_COMPLETED row, ...].
   const rowsByDay = new Map<string, EventTypeCount[]>();
   for (const row of dailyRows) {
-    const key = row.day.toISOString().slice(0, 10);
+    const key = row.eventDate.toISOString().slice(0, 10);
     const existing = rowsByDay.get(key);
     if (existing) {
       existing.push(row);
