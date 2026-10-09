@@ -147,7 +147,7 @@ it's the mechanism for the grace window, not the bucketing key.
 **The question:** can an admin reach another admin's video/ad by guessing its id?
 
 **The answer:** no — every video, advertisement, and ad placement is scoped to the admin who
-created it (`authorId`, transitively for `AdPlacement` through its parent video), and every
+created it (`adminId`, transitively for `AdPlacement` through its parent video), and every
 per-resource admin route runs `requireOwnership` after `requireAuth`. A mismatch returns **404,
 not 403** — deliberately, so a guessing admin can't distinguish "this id doesn't exist" from
 "this id exists but isn't yours," which a 403 would leak.

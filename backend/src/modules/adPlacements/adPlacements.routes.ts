@@ -32,7 +32,7 @@ const requireAdPlacementOwnership = requireOwnership(async (id, params) => {
     where: { id, videoId: params.videoId, deletedAt: null, video: { deletedAt: null } },
     include: { video: true, advertisement: true },
   });
-  return adPlacement && { ...adPlacement, authorId: adPlacement.video.authorId };
+  return adPlacement && { ...adPlacement, adminId: adPlacement.video.adminId };
 });
 
 adPlacementsRouter.post('/', requireAuth, requireVideoOwnership, createAdPlacement);

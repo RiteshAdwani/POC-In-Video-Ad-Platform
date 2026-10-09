@@ -31,7 +31,7 @@ export const uploadVideo: RequestHandler = async (req, res) => {
   }
 
   // requireAuth ran before this handler and throws if req.admin isn't set, so it's always present here.
-  const authorId = req.admin!.id;
+  const adminId = req.admin!.id;
 
   let publicId: string;
   try {
@@ -45,13 +45,13 @@ export const uploadVideo: RequestHandler = async (req, res) => {
     // and retry, rather than the upload just vanishing.
 
     await prisma.video.create({
-      data: { title, description, authorId, status: VideoStatus.FAILED },
+      data: { title, description, adminId, status: VideoStatus.FAILED },
     });
     throw new UpstreamServiceError(ErrorMessages.VIDEO_UPLOAD_FAILED);
   }
 
   const video = await prisma.video.create({
-    data: { title, description, authorId, status: VideoStatus.PROCESSING, externalId: publicId },
+    data: { title, description, adminId, status: VideoStatus.PROCESSING, externalId: publicId },
   });
 
   res
@@ -81,7 +81,7 @@ export const listVideos: RequestHandler = async (req, res) => {
   const { page, pageSize, search, view } = adminListQuerySchema.parse(req.query);
   const deleted = view === ListView.DELETED;
   const where = {
-    authorId: req.admin!.id,
+    adminId: req.admin!.id,
     deletedAt: deleted ? { not: null } : null,
     ...(search ? { title: { contains: search, mode: 'insensitive' as const } } : {}),
   };

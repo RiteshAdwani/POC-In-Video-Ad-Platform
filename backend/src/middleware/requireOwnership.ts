@@ -10,7 +10,7 @@ import { ErrorMessages } from '../constants/errorMessages.constants';
  * routes (e.g. /videos/:videoId/placements) need a different param name - and get every route
  * param, so they can also scope the lookup to the parent in the URL.
  */
-export const requireOwnership = <T extends { authorId: string }>(
+export const requireOwnership = <T extends { adminId: string }>(
   fetchResource: (id: string, params: Record<string, string>) => Promise<T | null>,
   paramName = 'id',
 ): RequestHandler => {
@@ -19,7 +19,7 @@ export const requireOwnership = <T extends { authorId: string }>(
     const params = req.params as Record<string, string>;
     const resource = await fetchResource(params[paramName], params);
 
-    if (!resource || resource.authorId !== req.admin!.id) {
+    if (!resource || resource.adminId !== req.admin!.id) {
       throw new NotFoundError(ErrorMessages.RESOURCE_NOT_FOUND);
     }
 

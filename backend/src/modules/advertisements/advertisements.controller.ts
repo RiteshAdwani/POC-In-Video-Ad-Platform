@@ -26,7 +26,7 @@ const WITH_AD_PLACEMENT_COUNT = {
  */
 export const createAdvertisement: RequestHandler = async (req, res) => {
   const data = createAdvertisementSchema.parse(req.body);
-  const authorId = req.admin!.id;
+  const adminId = req.admin!.id;
 
   if (!req.file) {
     throw new ValidationError(ErrorMessages.MISSING_AD_ASSET_FILE);
@@ -44,7 +44,7 @@ export const createAdvertisement: RequestHandler = async (req, res) => {
   }
 
   const advertisement = await prisma.advertisement.create({
-    data: { ...data, assetUrl, assetType, authorId },
+    data: { ...data, assetUrl, assetType, adminId },
   });
 
   res
@@ -60,7 +60,7 @@ export const listAdvertisements: RequestHandler = async (req, res) => {
   const { page, pageSize, search, view } = adminListQuerySchema.parse(req.query);
   const deleted = view === ListView.DELETED;
   const where = {
-    authorId: req.admin!.id,
+    adminId: req.admin!.id,
     deletedAt: deleted ? { not: null } : null,
     ...(search ? { title: { contains: search, mode: 'insensitive' as const } } : {}),
   };

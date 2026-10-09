@@ -4,7 +4,7 @@ import { AggregationRunStatus } from '../../generated/prisma/enums';
 import { Prisma, type AggregationRun } from '../../generated/prisma/client.js';
 import { AGGREGATION_GRACE_WINDOW_HOURS, ONE_DAY_MS } from '../../constants/aggregation.constants';
 
-/** Normalizes any Date to midnight UTC of its calendar day - the bucketing rule for `day`. */
+/** Normalizes any Date to midnight UTC of its calendar day - the bucketing rule for `eventDate`. */
 const toUtcDayStart = (date: Date): Date =>
   new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 
@@ -22,7 +22,7 @@ export const recomputeDailyCounts = async (day: Date): Promise<AggregationRun> =
   // Audit row first, marked RUNNING - so even a crash before this function returns leaves a
   // visible trace of the attempt.
   const run = await prisma.aggregationRun.create({
-    data: { day: dayStart, status: AggregationRunStatus.RUNNING },
+    data: { eventDate: dayStart, status: AggregationRunStatus.RUNNING },
   });
 
   try {
@@ -41,25 +41,25 @@ export const recomputeDailyCounts = async (day: Date): Promise<AggregationRun> =
       // DailyCount has two compound keys - pick whichever matches this group's shape.
       const where = group.adPlacementId
         ? {
-            videoId_adPlacementId_eventType_day: {
+            videoId_adPlacementId_eventType_eventDate: {
               videoId: group.videoId,
               adPlacementId: group.adPlacementId,
               eventType: group.eventType,
-              day: dayStart,
+              eventDate: dayStart,
             },
           }
         : {
-            videoId_eventType_day: {
+            videoId_eventType_eventDate: {
               videoId: group.videoId,
               eventType: group.eventType,
-              day: dayStart,
+              eventDate: dayStart,
             },
           };
 
       // Already aggregated before - just overwrite the count, nothing else to do for this group.
       const existing = await prisma.dailyCount.findUnique({ where });
       if (existing) {
-        await prisma.dailyCount.update({ where: { id: existing.id }, data: { count } });
+        await prisma.dailyCount.update({ where: { id: existing.id }, data: { eventCount: count } });
         continue;
       }
 
@@ -70,8 +70,8 @@ export const recomputeDailyCounts = async (day: Date): Promise<AggregationRun> =
             videoId: group.videoId,
             adPlacementId: group.adPlacementId,
             eventType: group.eventType,
-            day: dayStart,
-            count,
+            eventDate: dayStart,
+            eventCount: count,
           },
         });
       } catch (error) {
@@ -79,7 +79,10 @@ export const recomputeDailyCounts = async (day: Date): Promise<AggregationRun> =
         // to updating the row it won.
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
           const raceWinner = await prisma.dailyCount.findUniqueOrThrow({ where });
-          await prisma.dailyCount.update({ where: { id: raceWinner.id }, data: { count } });
+          await prisma.dailyCount.update({
+            where: { id: raceWinner.id },
+            data: { eventCount: count },
+          });
           continue;
         }
         throw error;
@@ -130,7 +133,7 @@ export const runScheduledAggregation = async (): Promise<void> => {
     const dayEnd = new Date(day.getTime() + ONE_DAY_MS);
 
     const lastRun = await prisma.aggregationRun.findFirst({
-      where: { day, status: AggregationRunStatus.SUCCEEDED },
+      where: { eventDate: day, status: AggregationRunStatus.SUCCEEDED },
       orderBy: { startedAt: 'desc' },
     });
 
