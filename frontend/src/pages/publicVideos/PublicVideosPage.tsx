@@ -8,6 +8,7 @@ import { PageSpinner } from '../../components/PageSpinner/PageSpinner';
 import { usePublicVideosQuery } from '../../features/publicPlayer/hooks/usePublicVideosQuery';
 import { useInfiniteScrollTrigger } from '../../hooks/useInfiniteScrollTrigger';
 import { SearchInput } from '../../components/SearchInput/SearchInput';
+import { ThemeToggle } from '../../components/ThemeToggle/ThemeToggle';
 import './PublicVideosPage.css';
 
 const { Title, Text } = Typography;
@@ -60,9 +61,12 @@ export const PublicVideosPage = () => {
       <div className="public-videos-page__topbar">
         <Flex justify="space-between" align="center" className="public-videos-page__topbar-inner">
           <span className="public-videos-page__brand">FrameCue</span>
-          <Link to={Routes.LOGIN}>
-            <Button icon={<LoginOutlined />}>Admin login</Button>
-          </Link>
+          <Flex align="center" gap={8}>
+            <ThemeToggle />
+            <Link to={Routes.LOGIN}>
+              <Button icon={<LoginOutlined />}>Admin login</Button>
+            </Link>
+          </Flex>
         </Flex>
       </div>
 

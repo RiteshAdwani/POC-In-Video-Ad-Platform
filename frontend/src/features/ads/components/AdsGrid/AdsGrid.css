@@ -70,7 +70,7 @@
   right: 10px;
   background: rgba(15, 23, 42, 0.55);
   color: #ffffff;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--fc-font-mono);
   font-size: 12px;
   padding: 2px 8px;
   border-radius: 6px;
@@ -95,7 +95,7 @@
 }
 
 .ads-grid__title {
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--fc-font-sans);
   font-weight: 600;
   font-size: 15px;
 }

@@ -53,6 +53,6 @@
 }
 
 .ad-placements-list__time {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--fc-font-mono);
   font-variant-numeric: tabular-nums;
 }

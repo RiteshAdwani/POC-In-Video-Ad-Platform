@@ -22,7 +22,7 @@
 }
 
 .public-videos-page__brand {
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--fc-font-sans);
   font-weight: 700;
   font-size: 20px;
   letter-spacing: -0.01em;

@@ -12,6 +12,7 @@ import { VideoStatus } from '../../constants/video.constants';
 import { PlaybackScreenStatus } from '../../constants/playback.constants';
 import { Routes } from '../../constants/routes.constants';
 import { getVideoThumbnailUrl } from '../../lib/videoThumbnail';
+import { ThemeToggle } from '../../components/ThemeToggle/ThemeToggle';
 import './PublicPlayerPage.css';
 
 const { Title, Text } = Typography;
@@ -51,9 +52,12 @@ export const PublicPlayerPage = () => {
     <div className="player-page">
       <Flex justify="space-between" align="center" className="player-page__topbar">
         <span className="player-page__brand">FrameCue</span>
-        <Link to={Routes.HOME} className="player-page__back">
-          <ArrowLeftOutlined /> All videos
-        </Link>
+        <Flex align="center" gap={12}>
+          <ThemeToggle />
+          <Link to={Routes.HOME} className="player-page__back">
+            <ArrowLeftOutlined /> All videos
+          </Link>
+        </Flex>
       </Flex>
 
       <div className="player-page__video-wrap">
