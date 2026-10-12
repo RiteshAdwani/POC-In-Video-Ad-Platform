@@ -88,7 +88,7 @@
 }
 
 .public-videos-grid__title {
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--fc-font-sans);
   font-weight: 600;
   font-size: 15px;
 }

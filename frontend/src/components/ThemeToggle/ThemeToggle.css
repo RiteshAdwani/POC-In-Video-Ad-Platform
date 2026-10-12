@@ -1,0 +1,27 @@
+.theme-toggle.ant-segmented {
+  padding: 2px;
+  border: 1px solid var(--fc-border);
+  border-radius: 999px;
+  background: var(--fc-surface);
+}
+
+.theme-toggle.ant-segmented .ant-segmented-item,
+.theme-toggle.ant-segmented .ant-segmented-thumb {
+  border-radius: 999px;
+}
+
+.theme-toggle.ant-segmented .ant-segmented-item {
+  color: var(--fc-text-subtle);
+}
+
+.theme-toggle.ant-segmented .ant-segmented-item-label {
+  padding-inline: 8px;
+}
+
+/* The active side is filled with the brand gradient, like the selected nav item. */
+.theme-toggle.ant-segmented .ant-segmented-item-selected,
+.theme-toggle.ant-segmented .ant-segmented-thumb {
+  background: var(--fc-primary-gradient);
+  color: #ffffff;
+  box-shadow: var(--fc-primary-glow);
+}

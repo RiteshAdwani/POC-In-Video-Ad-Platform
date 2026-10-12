@@ -1,16 +1,16 @@
 import { RouterProvider } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { App as AntApp, ConfigProvider } from 'antd';
+import { App as AntApp } from 'antd';
 import { Toaster } from 'react-hot-toast';
 import { router } from './routes';
 import { queryClient } from './api/queryClient';
-import { antdTheme } from './theme/antdTheme';
 import { AuthProvider } from './features/auth/context/AuthProvider';
+import { ThemeModeProvider } from './features/theme/context/ThemeModeProvider';
 import './index.css';
 
 export const App = () => {
   return (
-    <ConfigProvider theme={antdTheme}>
+    <ThemeModeProvider>
       {/* antd's own App context - lets Modal.confirm/message/notification (via App.useApp())
           consume the theme above, which the static antd functions can't do on their own. */}
       <AntApp>
@@ -23,17 +23,18 @@ export const App = () => {
             toastOptions={{
               style: {
                 borderRadius: 12,
-                fontFamily: "'Source Sans 3', sans-serif",
-                border: '1px solid #e2e8f0',
-                boxShadow: '0 8px 20px rgba(15, 23, 42, 0.1)',
-                color: '#0f172a',
+                fontFamily: 'var(--fc-font-sans)',
+                border: '1px solid var(--fc-border)',
+                boxShadow: 'var(--fc-shadow-tooltip)',
+                background: 'var(--fc-surface)',
+                color: 'var(--fc-text)',
               },
-              success: { style: { borderLeft: '4px solid #16a34a' } },
-              error: { style: { borderLeft: '4px solid #dc2626' } },
+              success: { style: { borderLeft: '4px solid #1f9d55' } },
+              error: { style: { borderLeft: '4px solid #d64545' } },
             }}
           />
         </QueryClientProvider>
       </AntApp>
-    </ConfigProvider>
+    </ThemeModeProvider>
   );
 };

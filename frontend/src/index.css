@@ -1,26 +1,101 @@
-/* antd's fontFamily token (theme/antdTheme.ts) only styles antd's own components - this covers
-   plain HTML too, so raw text doesn't fall back to the browser's default serif. `margin: 0`
-   removes the browser's default body margin, which otherwise insets full-height layouts like the
-   admin sidebar from the edge of the viewport. */
-body {
-  margin: 0;
-  font-family: 'Source Sans 3', sans-serif;
+/* Design tokens. Palette colours are the same in both themes; only the neutrals switch. antd's own
+   components read the matching tokens from theme/antdTheme.ts. */
+:root {
+  --fc-font-sans: 'Geist', sans-serif;
+  --fc-font-mono: 'Geist Mono', monospace;
+
+  --fc-primary: #7827e6;
+  --fc-primary-gradient: linear-gradient(135deg, #7827e6, #635ad9);
+  --fc-primary-glow: 0 6px 14px -6px rgba(120, 39, 230, 0.55);
+  --fc-accent: #d85cf2;
+  --fc-accent-soft: rgba(216, 92, 242, 0.12);
+  --fc-primary-soft: rgba(120, 39, 230, 0.1);
+
+  /* One colour per dashboard metric - mirrored in dashboard.constants.ts for the charts. */
+  --fc-metric-impressions: #d85cf2;
+  --fc-metric-completions: #635ad9;
+  --fc-metric-skips: #8ea6ec;
+  --fc-metric-clicks: #4fd1b8;
+  --fc-metric-plays: #7827e6;
+  --fc-metric-video-completions: #219be4;
+
+  --fc-canvas: #fbfbfd;
+  --fc-surface: #ffffff;
+  --fc-border: #e3e5ea;
+  --fc-border-soft: #eef0f3;
+  --fc-text: #191a2e;
+  --fc-text-muted: #5d6270;
+  --fc-text-subtle: #8a8f9c;
+
+  --fc-sidebar-bg: #eff0f4;
+  --fc-sidebar-border: #e4e5eb;
+  --fc-sidebar-text: #4b4f5c;
+  --fc-sidebar-label: #9a9eaa;
+  --fc-sidebar-hover: rgba(25, 26, 46, 0.05);
+
+  --fc-deleted-stripes: repeating-linear-gradient(135deg, #d5d8df 0 2px, #eceef2 2px 4px);
+  --fc-track: #eef0f3;
+  --fc-shadow-tooltip: 0 8px 20px -6px rgba(25, 26, 46, 0.25);
 }
 
-/* This overrides the heading role to Lexend, since antd has no token for "a different font per
-   element," and adds a mono utility for tabular data. `!important` is needed because antd's
-   Typography component sets font-family via its own generated class, which outweighs a plain
-   element selector. */
+[data-theme='dark'] {
+  --fc-accent-soft: rgba(216, 92, 242, 0.18);
+  --fc-primary-soft: rgba(154, 93, 236, 0.18);
+  --fc-metric-completions: #7a73df;
+  --fc-metric-plays: #9a5dec;
 
+  --fc-canvas: #0e1016;
+  --fc-surface: #161922;
+  --fc-border: #272b37;
+  --fc-border-soft: #1f2330;
+  --fc-text: #e8eaf0;
+  --fc-text-muted: #a0a6b4;
+  --fc-text-subtle: #6e7483;
+
+  --fc-sidebar-bg: #111218;
+  --fc-sidebar-border: #22242d;
+  --fc-sidebar-text: #b7bbc5;
+  --fc-sidebar-label: #6e7483;
+  --fc-sidebar-hover: rgba(255, 255, 255, 0.05);
+
+  --fc-deleted-stripes: repeating-linear-gradient(135deg, #2c313d 0 2px, #1e222c 2px 4px);
+  --fc-track: #232733;
+  --fc-shadow-tooltip: 0 8px 20px -6px rgba(0, 0, 0, 0.6);
+}
+
+/* `margin: 0` removes the browser's default body margin, which otherwise insets full-height
+   layouts like the admin sidebar from the edge of the viewport. */
+body {
+  margin: 0;
+  font-family: var(--fc-font-sans);
+  background: var(--fc-canvas);
+  color: var(--fc-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* antd's Typography sets font-family via its own generated class, which outweighs a plain element
+   selector - hence `!important`. */
 h1,
 h2,
 h3,
 h4,
 h5 {
-  font-family: 'Lexend', sans-serif !important;
+  font-family: var(--fc-font-sans) !important;
+  letter-spacing: -0.02em;
 }
 
 .mono {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--fc-font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+/* Every primary button carries the brand gradient instead of antd's flat colorPrimary. */
+.ant-btn-color-primary.ant-btn-variant-solid:not(:disabled) {
+  background: var(--fc-primary-gradient);
+  border-color: transparent;
+  box-shadow: var(--fc-primary-glow);
+}
+
+.ant-btn-color-primary.ant-btn-variant-solid:not(:disabled):hover {
+  filter: brightness(1.08);
 }

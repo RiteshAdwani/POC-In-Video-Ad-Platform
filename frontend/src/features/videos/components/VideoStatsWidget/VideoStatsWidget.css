@@ -61,7 +61,7 @@
   font-size: 20px;
   line-height: 1.2;
   font-weight: 600;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--fc-font-mono);
   color: #0f172a;
   font-variant-numeric: tabular-nums;
 }
