@@ -23,7 +23,10 @@ app.set('trust proxy', env.TRUST_PROXY);
 
 // Security headers first, before anything else touches the request/response.
 app.use(helmet());
-app.use(cors({ origin: env.CORS_ORIGIN }));
+// credentials: the player records events with navigator.sendBeacon, which always sends in
+// credentials mode - without this header the browser drops every cross-origin beacon. Auth is a
+// Bearer token, not a cookie, so allowing credentials exposes no session to other sites.
+app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
 app.use(express.json());
 
 // Logs every request/response (method, path, status, duration) automatically - one line per
