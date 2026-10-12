@@ -1,3 +1,6 @@
+import dayjs from 'dayjs';
+import { BrandColor, BrandColorOnDark, ThemeMode } from './theme.constants';
+
 // Default date-range width the dashboard opens with, before the admin picks their own.
 export const DEFAULT_RANGE_DAYS = 7;
 
@@ -18,48 +21,15 @@ export const STATS_WIDGET_RANGE_OPTIONS = [
   { label: '90 days', value: 90 },
 ];
 
-export const CHART_CATEGORICAL_COLORS = ['#2563EB', '#EC4899', '#7C3AED', '#EF4444'] as const;
-
-// What happened to an ad impression, for DashboardOutcomeBreakdown's donut - a frontend-derived
-// grouping of impressions/completions/skips, not a backend enum.
+// What happened to an ad impression, for DashboardOutcomeBreakdown - a frontend-derived grouping
+// of impressions/completions/skips, not a backend enum.
 export const Outcome = {
-  COMPLETED: 'Completed',
+  COMPLETED: 'Watched to the end',
   SKIPPED: 'Skipped',
   NO_OUTCOME_YET: 'No outcome yet',
 } as const;
 
 export type Outcome = (typeof Outcome)[keyof typeof Outcome];
-
-export const OUTCOME_COLORS: Record<Outcome, string> = {
-  [Outcome.COMPLETED]: CHART_CATEGORICAL_COLORS[0],
-  [Outcome.SKIPPED]: CHART_CATEGORICAL_COLORS[1],
-  [Outcome.NO_OUTCOME_YET]: CHART_CATEGORICAL_COLORS[2],
-};
-
-export const OUTCOME_DOT_CLASS: Record<Outcome, string> = {
-  [Outcome.COMPLETED]: 'dashboard-outcome-breakdown__dot--completed',
-  [Outcome.SKIPPED]: 'dashboard-outcome-breakdown__dot--skipped',
-  [Outcome.NO_OUTCOME_YET]: 'dashboard-outcome-breakdown__dot--pending',
-};
-
-// What happened to a video play, for VideoOutcomeBreakdown's donut - binary (a play either
-// finishes or it doesn't), unlike the ad outcome's three states.
-export const VideoOutcome = {
-  FINISHED: 'Finished',
-  LEFT_EARLY: 'Left early',
-} as const;
-
-export type VideoOutcome = (typeof VideoOutcome)[keyof typeof VideoOutcome];
-
-export const VIDEO_OUTCOME_COLORS: Record<VideoOutcome, string> = {
-  [VideoOutcome.FINISHED]: CHART_CATEGORICAL_COLORS[0],
-  [VideoOutcome.LEFT_EARLY]: CHART_CATEGORICAL_COLORS[1],
-};
-
-export const VIDEO_OUTCOME_DOT_CLASS: Record<VideoOutcome, string> = {
-  [VideoOutcome.FINISHED]: 'video-outcome-breakdown__dot--finished',
-  [VideoOutcome.LEFT_EARLY]: 'video-outcome-breakdown__dot--early',
-};
 
 // The four series DashboardTrendChart plots - also each metric's own display label/legend text.
 export const AdTrendMetric = {
@@ -71,15 +41,6 @@ export const AdTrendMetric = {
 
 export type AdTrendMetric = (typeof AdTrendMetric)[keyof typeof AdTrendMetric];
 
-// One color per metric, in the same fixed slot order as DashboardStatsGrid's four ad-performance
-// tiles - see CHART_CATEGORICAL_COLORS for why the order matters.
-export const AD_TREND_METRIC_COLORS: Record<AdTrendMetric, string> = {
-  [AdTrendMetric.IMPRESSIONS]: CHART_CATEGORICAL_COLORS[0],
-  [AdTrendMetric.COMPLETIONS]: CHART_CATEGORICAL_COLORS[1],
-  [AdTrendMetric.SKIPS]: CHART_CATEGORICAL_COLORS[2],
-  [AdTrendMetric.CLICKS]: CHART_CATEGORICAL_COLORS[3],
-};
-
 // The two series VideoTrendChart plots - the video-side mirror of AdTrendMetric.
 export const VideoTrendMetric = {
   PLAYS: 'Plays',
@@ -88,14 +49,57 @@ export const VideoTrendMetric = {
 
 export type VideoTrendMetric = (typeof VideoTrendMetric)[keyof typeof VideoTrendMetric];
 
-export const VIDEO_TREND_METRIC_COLORS: Record<VideoTrendMetric, string> = {
-  [VideoTrendMetric.PLAYS]: CHART_CATEGORICAL_COLORS[0],
-  [VideoTrendMetric.VIDEO_COMPLETIONS]: CHART_CATEGORICAL_COLORS[1],
+// Every metric keeps one colour across its tile, split bar and chart line. These mirror the
+// --fc-metric-* CSS variables in index.css, which the non-chart elements use.
+export const AD_TREND_METRIC_COLORS: Record<ThemeMode, Record<AdTrendMetric, string>> = {
+  [ThemeMode.LIGHT]: {
+    [AdTrendMetric.IMPRESSIONS]: BrandColor.ORCHID,
+    [AdTrendMetric.COMPLETIONS]: BrandColor.INDIGO,
+    [AdTrendMetric.SKIPS]: BrandColor.PERIWINKLE,
+    [AdTrendMetric.CLICKS]: BrandColor.MINT,
+  },
+  [ThemeMode.DARK]: {
+    [AdTrendMetric.IMPRESSIONS]: BrandColor.ORCHID,
+    [AdTrendMetric.COMPLETIONS]: BrandColorOnDark.INDIGO,
+    [AdTrendMetric.SKIPS]: BrandColor.PERIWINKLE,
+    [AdTrendMetric.CLICKS]: BrandColor.MINT,
+  },
 };
 
-// KPI tile active/deleted split bar - active takes the tile's own section accent, deleted is muted.
-export const STATS_SPLIT_COLORS = {
-  primary: '#2563eb',
-  success: '#059669',
-  deleted: '#cbd5e1',
+export const VIDEO_TREND_METRIC_COLORS: Record<ThemeMode, Record<VideoTrendMetric, string>> = {
+  [ThemeMode.LIGHT]: {
+    [VideoTrendMetric.PLAYS]: BrandColor.VIOLET,
+    [VideoTrendMetric.VIDEO_COMPLETIONS]: BrandColor.BLUE,
+  },
+  [ThemeMode.DARK]: {
+    [VideoTrendMetric.PLAYS]: BrandColorOnDark.VIOLET,
+    [VideoTrendMetric.VIDEO_COMPLETIONS]: BrandColor.BLUE,
+  },
+};
+
+// G2's built-in chart themes, matched to the app's light/dark mode.
+export const CHART_THEME: Record<ThemeMode, string> = {
+  [ThemeMode.LIGHT]: 'classic',
+  [ThemeMode.DARK]: 'classicDark',
+};
+
+export const TREND_CHART_HEIGHT = 300;
+
+// Axis setup shared by both trend charts - short day labels kept level, thinned out when they
+// would overlap, rather than every full date rotated sideways.
+export const TREND_CHART_AXIS = {
+  x: {
+    labelFormatter: (day: string) => dayjs(day).format('MMM D'),
+    labelAutoRotate: false,
+    labelAutoHide: true,
+  },
+  y: { labelFormatter: (value: number) => value.toLocaleString() },
+};
+
+// The dashboard's two halves - each gets its own KPI tiles and charts.
+export const DashboardSection = {
+  ADS: 'ads',
+  VIDEOS: 'videos',
 } as const;
+
+export type DashboardSection = (typeof DashboardSection)[keyof typeof DashboardSection];

@@ -1,11 +1,12 @@
-import { Pie } from '@ant-design/plots';
-import { Card, Empty, Flex, Typography } from 'antd';
-import type { DashboardStats } from '../../../../types/dashboard.types';
+import { Card, Empty, Progress, Typography } from 'antd';
 import {
+  AD_TREND_METRIC_COLORS,
+  AdTrendMetric,
   Outcome,
-  OUTCOME_COLORS,
-  OUTCOME_DOT_CLASS,
 } from '../../../../constants/dashboard.constants';
+import { useThemeMode } from '../../../theme/hooks/useThemeMode';
+import { formatPercent } from '../../../../lib/formatPercent';
+import type { DashboardStats } from '../../../../types/dashboard.types';
 import './DashboardOutcomeBreakdown.css';
 
 const { Text } = Typography;
@@ -15,87 +16,85 @@ type DashboardOutcomeBreakdownProps = {
 };
 
 /**
- * @description Donut breakdown of what happens after an ad impression - Completed vs Skipped vs
- * no outcome recorded yet (impressions minus completions and skips; may include ads still playing,
- * not just abandonment). CTR is overlaid in the donut's own hollow center rather than drawn as a
- * slice, since a click isn't mutually exclusive with completing or skipping - it doesn't partition
- * the ring the way the other three do, so it can't honestly be one of its wedges.
+ * @description How each ad impression ended - watched to the end, skipped, or no outcome yet
+ * (which can include ads still playing) - plus click-through, shown apart since a click can
+ * happen alongside either outcome.
  */
 export const DashboardOutcomeBreakdown = ({ stats }: DashboardOutcomeBreakdownProps) => {
+  const { mode } = useThemeMode();
+  const colors = AD_TREND_METRIC_COLORS[mode];
+
   if (stats.impressions === 0) {
     return (
-      <Card title="Ad outcomes">
+      <Card title="How ads ended" className="dashboard-outcome-breakdown">
         <Empty description="No impressions in this range yet" />
       </Card>
     );
   }
 
   const noOutcomeYet = Math.max(stats.impressions - stats.completions - stats.skips, 0);
-  const slices: { outcome: Outcome; count: number }[] = [
-    { outcome: Outcome.COMPLETED, count: stats.completions },
-    { outcome: Outcome.SKIPPED, count: stats.skips },
-    ...(noOutcomeYet > 0 ? [{ outcome: Outcome.NO_OUTCOME_YET, count: noOutcomeYet }] : []),
+  const rows = [
+    { outcome: Outcome.COMPLETED, count: stats.completions, modifier: 'completed' },
+    { outcome: Outcome.SKIPPED, count: stats.skips, modifier: 'skipped' },
+    { outcome: Outcome.NO_OUTCOME_YET, count: noOutcomeYet, modifier: 'pending' },
   ];
 
   return (
-    <Card title="Ad outcomes">
-      <Flex vertical align="center" gap={12}>
-        <div className="dashboard-outcome-breakdown__chart">
-          <Pie
-            data={slices}
-            angleField="count"
-            colorField="outcome"
-            innerRadius={0.6}
-            scale={{
-              color: {
-                domain: slices.map((slice) => slice.outcome),
-                range: slices.map((slice) => OUTCOME_COLORS[slice.outcome]),
-              },
-            }}
-            legend={false}
-            height={200}
-            tooltip={{
-              items: [
-                (datum: { outcome: Outcome; count: number }) => ({
-                  name: datum.outcome,
-                  value: datum.count.toLocaleString(),
-                }),
-              ],
-            }}
-          />
-          <div className="dashboard-outcome-breakdown__center">
-            <Text strong className="dashboard-outcome-breakdown__center-value">
-              {(stats.ctr * 100).toFixed(1)}%
-            </Text>
-            <Text type="secondary" className="dashboard-outcome-breakdown__center-label">
-              CTR
-            </Text>
-          </div>
-        </div>
-        <Flex wrap justify="center" gap={16}>
-          {slices.map((slice) => (
-            <Flex align="center" gap={6} key={slice.outcome}>
-              <span
-                className={`dashboard-outcome-breakdown__dot ${OUTCOME_DOT_CLASS[slice.outcome]}`}
-              />
-              <Text>
-                {slice.outcome} ({slice.count.toLocaleString()})
-              </Text>
-            </Flex>
-          ))}
-        </Flex>
-        {noOutcomeYet > 0 && (
-          <Text type="secondary" className="dashboard-outcome-breakdown__caption">
-            "No outcome yet" may include ads still playing, not only abandoned ones.
-          </Text>
-        )}
-        <Text type="secondary" className="dashboard-outcome-breakdown__caption">
-          <Text strong className="dashboard-outcome-breakdown__caption-value">
-            {stats.clicks.toLocaleString()}
-          </Text>{' '}
-          clicks recorded - not exclusive with completing or skipping above.
+    <Card
+      title="How ads ended"
+      extra={
+        <Text type="secondary">
+          {stats.impressions.toLocaleString()} {stats.impressions === 1 ? 'ad' : 'ads'}
         </Text>
-      </Flex>
+      }
+      className="dashboard-outcome-breakdown"
+    >
+      {/* Completed shows as the "success" segment, skipped as the rest of the fill, and the
+          empty rail is what has no outcome yet. */}
+      <Progress
+        percent={((stats.completions + stats.skips) / stats.impressions) * 100}
+        success={{
+          percent: stats.completionRate * 100,
+          strokeColor: colors[AdTrendMetric.COMPLETIONS],
+        }}
+        strokeColor={colors[AdTrendMetric.SKIPS]}
+        showInfo={false}
+        size={['100%', 12]}
+        className="dashboard-outcome-breakdown__bar"
+      />
+
+      <ul className="dashboard-outcome-breakdown__rows">
+        {rows.map((row) => (
+          <li key={row.outcome}>
+            <span
+              className={`dashboard-outcome-breakdown__swatch dashboard-outcome-breakdown__swatch--${row.modifier}`}
+            />
+            {row.outcome}
+            <strong>{row.count.toLocaleString()}</strong>
+            <span className="dashboard-outcome-breakdown__share">
+              {formatPercent(row.count / stats.impressions)}
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <div className="dashboard-outcome-breakdown__ctr">
+        <div className="dashboard-outcome-breakdown__ctr-head">
+          <span>Click-through rate</span>
+          <strong>{formatPercent(stats.ctr)}</strong>
+        </div>
+        <Progress
+          percent={stats.ctr * 100}
+          strokeColor={colors[AdTrendMetric.IMPRESSIONS]}
+          showInfo={false}
+          size={['100%', 8]}
+          className="dashboard-outcome-breakdown__bar"
+        />
+        <Text type="secondary" className="dashboard-outcome-breakdown__note">
+          {stats.clicks.toLocaleString()} clicks from {stats.impressions.toLocaleString()}{' '}
+          impressions
+        </Text>
+      </div>
     </Card>
   );
 };
