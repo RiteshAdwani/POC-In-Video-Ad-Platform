@@ -2,9 +2,13 @@ import { Line } from '@ant-design/plots';
 import { Card, Empty } from 'antd';
 import type { DashboardSeriesPoint } from '../../../../types/dashboard.types';
 import {
+  CHART_THEME,
+  TREND_CHART_AXIS,
+  TREND_CHART_HEIGHT,
   VideoTrendMetric,
   VIDEO_TREND_METRIC_COLORS,
 } from '../../../../constants/dashboard.constants';
+import { useThemeMode } from '../../../theme/hooks/useThemeMode';
 
 type VideoTrendChartProps = {
   series: DashboardSeriesPoint[];
@@ -18,6 +22,9 @@ type TrendChartPoint = { day: string; value: number; metric: VideoTrendMetric };
  * already gets, just pivoted to the video-scoped fields instead.
  */
 export const VideoTrendChart = ({ series }: VideoTrendChartProps) => {
+  const { mode } = useThemeMode();
+  const colors = VIDEO_TREND_METRIC_COLORS[mode];
+
   if (series.length === 0) {
     return (
       <Card title="Video engagement over time">
@@ -38,16 +45,17 @@ export const VideoTrendChart = ({ series }: VideoTrendChartProps) => {
         xField="day"
         yField="value"
         colorField="metric"
-        height={300}
+        height={TREND_CHART_HEIGHT}
+        theme={CHART_THEME[mode]}
         scale={{
           color: {
-            domain: Object.keys(VIDEO_TREND_METRIC_COLORS),
-            range: Object.values(VIDEO_TREND_METRIC_COLORS),
+            domain: Object.keys(colors),
+            range: Object.values(colors),
           },
         }}
         style={{ lineWidth: 2.5, shape: 'smooth' }}
         point={{ style: { r: 3 } }}
-        axis={{ y: { labelFormatter: (value: number) => value.toLocaleString() } }}
+        axis={TREND_CHART_AXIS}
         legend={{ color: { position: 'top' } }}
       />
     </Card>

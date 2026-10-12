@@ -1,133 +1,158 @@
-.dashboard-stats-grid__section {
-  margin-bottom: 24px;
+.dashboard-stats-grid {
+  display: grid;
+  gap: 16px;
 }
 
-.dashboard-stats-grid__section-label {
+.dashboard-stats-grid--ads {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.dashboard-stats-grid--videos {
+  grid-template-columns: 1fr;
+}
+
+.dashboard-stats-grid__tile {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px;
+  background: var(--fc-surface);
+  border: 1px solid var(--fc-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.dashboard-stats-grid__label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 7px;
+  color: var(--fc-text-muted);
+  font-size: 13px;
+  font-weight: 500;
 }
 
-.dashboard-stats-grid__section-label-text {
-  text-transform: uppercase;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-}
-
-.dashboard-stats-grid__section-bar {
-  width: 4px;
-  height: 14px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-
-.dashboard-stats-grid__section-bar--primary {
-  background: #2563eb;
-}
-
-.dashboard-stats-grid__section-bar--success {
-  background: #059669;
-}
-
-.dashboard-stats-grid__card {
-  height: 100%;
-  transition: box-shadow 0.2s ease;
-}
-
-.dashboard-stats-grid__card:hover {
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
-}
-
-.dashboard-stats-grid__icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  margin-bottom: 12px;
+.dashboard-stats-grid__marker {
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  font-size: 15px;
+  background: var(--metric-color);
 }
 
-.dashboard-stats-grid__icon--primary {
-  background: #eff6ff;
-  color: #2563eb;
+/* Ads are marked with the cue diamond, videos with a dot. */
+.dashboard-stats-grid--ads .dashboard-stats-grid__label .dashboard-stats-grid__marker {
+  border-radius: 1px;
+  transform: rotate(45deg);
 }
 
-.dashboard-stats-grid__icon--success {
-  background: #ecfdf5;
-  color: #059669;
+.dashboard-stats-grid__marker--impressions {
+  --metric-color: var(--fc-metric-impressions);
+}
+
+.dashboard-stats-grid__marker--completions {
+  --metric-color: var(--fc-metric-completions);
+}
+
+.dashboard-stats-grid__marker--skips {
+  --metric-color: var(--fc-metric-skips);
+}
+
+.dashboard-stats-grid__marker--clicks {
+  --metric-color: var(--fc-metric-clicks);
+}
+
+.dashboard-stats-grid__marker--plays {
+  --metric-color: var(--fc-metric-plays);
+}
+
+.dashboard-stats-grid__marker--video-completions {
+  --metric-color: var(--fc-metric-video-completions);
 }
 
 .dashboard-stats-grid__explainer-icon {
-  color: #94a3b8;
+  color: var(--fc-text-subtle);
   font-size: 12px;
 }
 
-.dashboard-stats-grid__card .ant-statistic-title {
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: #64748b;
-  margin-bottom: 2px;
-}
-
-.dashboard-stats-grid__card .ant-statistic-content {
-  font-size: 24px;
+.dashboard-stats-grid__value {
+  margin: 8px 0 4px;
+  color: var(--fc-text);
+  font-size: 30px;
   font-weight: 600;
-  font-family: 'IBM Plex Mono', monospace;
-  color: #0f172a;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
   font-variant-numeric: tabular-nums;
 }
 
 .dashboard-stats-grid__caption {
-  display: block;
-  font-size: 12px;
-  margin-top: 4px;
+  color: var(--fc-text-muted);
+  font-size: 12.5px;
 }
 
+.dashboard-stats-grid__caption strong,
+.dashboard-stats-grid__split-legend strong {
+  color: var(--fc-text);
+  font-weight: 600;
+}
+
+/* Sits at the card's bottom edge - the negative margin cancels the tile's bottom padding. */
 .dashboard-stats-grid__split {
-  margin-top: 8px;
-}
-
-.dashboard-stats-grid__split .ant-progress {
-  margin: 0;
-  line-height: 1;
+  margin: auto 0 -18px;
+  padding-top: 14px;
 }
 
 .dashboard-stats-grid__split-legend {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px 14px;
-  margin-top: 4px;
+  gap: 14px;
+  padding-bottom: 10px;
+  color: var(--fc-text-muted);
   font-size: 12px;
-  color: #475569;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
 .dashboard-stats-grid__split-legend > span {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  white-space: nowrap;
+  gap: 5px;
 }
 
-.dashboard-stats-grid__split-dot {
+.dashboard-stats-grid__swatch {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: 2px;
+  background: var(--metric-color);
 }
 
-.dashboard-stats-grid__split-dot--primary {
-  background: #2563eb;
+.dashboard-stats-grid__swatch--deleted {
+  background: var(--fc-deleted-stripes);
 }
 
-.dashboard-stats-grid__split-dot--success {
-  background: #059669;
+.dashboard-stats-grid__none {
+  color: var(--fc-text-subtle);
 }
 
-.dashboard-stats-grid__split-dot--deleted {
-  background: #cbd5e1;
+/* The split bar runs the full width of the tile's bottom edge; striped rail = deleted share. */
+.dashboard-stats-grid__bar.ant-progress {
+  display: block;
+  margin: 0 -20px;
+  width: calc(100% + 40px);
+  line-height: 0;
+}
+
+.dashboard-stats-grid__bar .ant-progress-rail {
+  background: var(--fc-deleted-stripes);
+  border-radius: 0;
+}
+
+.dashboard-stats-grid__bar--empty .ant-progress-rail {
+  background: var(--fc-track);
+}
+
+.dashboard-stats-grid__bar .ant-progress-track {
+  border-radius: 0;
+}
+
+@media (max-width: 1100px) {
+  .dashboard-stats-grid--ads {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

@@ -1,13 +1,36 @@
 /* No outer padding here - the admin Layout's content area (Layout.css) already provides it. */
 
 .dashboard-page__header {
-  margin-bottom: 16px;
+  margin-bottom: 22px;
 }
 
 .dashboard-page__title.ant-typography {
   margin: 0;
+  font-weight: 600;
+  letter-spacing: -0.03em;
 }
 
-.dashboard-page__insights-row {
-  margin-top: 24px;
+.dashboard-page__row + .dashboard-section-header {
+  margin-top: 36px;
+}
+
+.dashboard-page__row {
+  display: grid;
+  gap: 20px;
+}
+
+.dashboard-page__row--ads {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  margin-top: 20px;
+}
+
+.dashboard-page__row--videos {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+}
+
+@media (max-width: 1100px) {
+  .dashboard-page__row--ads,
+  .dashboard-page__row--videos {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

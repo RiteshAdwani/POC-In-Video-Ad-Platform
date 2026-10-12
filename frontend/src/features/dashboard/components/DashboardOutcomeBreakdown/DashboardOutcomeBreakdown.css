@@ -1,54 +1,84 @@
-.dashboard-outcome-breakdown__caption {
-  font-size: 12px;
-  text-align: center;
+.dashboard-outcome-breakdown {
+  height: 100%;
 }
 
-.dashboard-outcome-breakdown__caption-value {
-  font-family: 'IBM Plex Mono', monospace;
-  color: #0f172a;
+.dashboard-outcome-breakdown__bar.ant-progress {
+  display: block;
+  margin: 0;
+  line-height: 0;
 }
 
-.dashboard-outcome-breakdown__chart {
-  position: relative;
-  width: 100%;
+.dashboard-outcome-breakdown__bar .ant-progress-rail {
+  background: var(--fc-track);
 }
 
-.dashboard-outcome-breakdown__center {
-  position: absolute;
-  inset: 0;
+.dashboard-outcome-breakdown__rows {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dashboard-outcome-breakdown__rows li {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  pointer-events: none;
+  gap: 10px;
+  color: var(--fc-text);
 }
 
-.dashboard-outcome-breakdown__center-value {
-  font-size: 22px;
-  font-family: 'IBM Plex Mono', monospace;
+.dashboard-outcome-breakdown__rows strong {
+  margin-inline-start: auto;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
-.dashboard-outcome-breakdown__center-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+.dashboard-outcome-breakdown__share {
+  width: 52px;
+  text-align: end;
+  color: var(--fc-text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
-.dashboard-outcome-breakdown__dot {
+.dashboard-outcome-breakdown__swatch {
   width: 10px;
   height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
+  border-radius: 3px;
 }
 
-.dashboard-outcome-breakdown__dot--completed {
-  background-color: #2563eb;
+.dashboard-outcome-breakdown__swatch--completed {
+  background: var(--fc-metric-completions);
 }
 
-.dashboard-outcome-breakdown__dot--skipped {
-  background-color: #ec4899;
+.dashboard-outcome-breakdown__swatch--skipped {
+  background: var(--fc-metric-skips);
 }
 
-.dashboard-outcome-breakdown__dot--pending {
-  background-color: #7c3aed;
+.dashboard-outcome-breakdown__swatch--pending {
+  background: var(--fc-track);
+}
+
+.dashboard-outcome-breakdown__ctr {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--fc-border-soft);
+}
+
+.dashboard-outcome-breakdown__ctr-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: var(--fc-text);
+  font-weight: 500;
+}
+
+.dashboard-outcome-breakdown__ctr-head strong {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-outcome-breakdown__note {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
 }

@@ -1,7 +1,14 @@
 import { Line } from '@ant-design/plots';
 import { Card, Empty } from 'antd';
 import type { DashboardSeriesPoint } from '../../../../types/dashboard.types';
-import { AdTrendMetric, AD_TREND_METRIC_COLORS } from '../../../../constants/dashboard.constants';
+import {
+  AdTrendMetric,
+  AD_TREND_METRIC_COLORS,
+  CHART_THEME,
+  TREND_CHART_AXIS,
+  TREND_CHART_HEIGHT,
+} from '../../../../constants/dashboard.constants';
+import { useThemeMode } from '../../../theme/hooks/useThemeMode';
 
 type DashboardTrendChartProps = {
   series: DashboardSeriesPoint[];
@@ -17,6 +24,9 @@ type TrendChartPoint = { day: string; value: number; metric: AdTrendMetric };
  * long form here.
  */
 export const DashboardTrendChart = ({ series }: DashboardTrendChartProps) => {
+  const { mode } = useThemeMode();
+  const colors = AD_TREND_METRIC_COLORS[mode];
+
   if (series.length === 0) {
     return (
       <Card title="Ad performance over time">
@@ -39,16 +49,17 @@ export const DashboardTrendChart = ({ series }: DashboardTrendChartProps) => {
         xField="day"
         yField="value"
         colorField="metric"
-        height={300}
+        height={TREND_CHART_HEIGHT}
+        theme={CHART_THEME[mode]}
         scale={{
           color: {
-            domain: Object.keys(AD_TREND_METRIC_COLORS),
-            range: Object.values(AD_TREND_METRIC_COLORS),
+            domain: Object.keys(colors),
+            range: Object.values(colors),
           },
         }}
         style={{ lineWidth: 2.5, shape: 'smooth' }}
         point={{ style: { r: 3 } }}
-        axis={{ y: { labelFormatter: (value: number) => value.toLocaleString() } }}
+        axis={TREND_CHART_AXIS}
         legend={{ color: { position: 'top' } }}
       />
     </Card>
