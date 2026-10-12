@@ -3,7 +3,7 @@ import { GlobalOutlined, LogoutOutlined } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { Routes } from '../../constants/routes.constants';
-import { BrandMark } from './BrandMark';
+import { BrandMark } from '../BrandMark/BrandMark';
 import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
 import { NAV_ITEMS, NAV_ROUTES } from './layout.constants';
 import './Layout.css';

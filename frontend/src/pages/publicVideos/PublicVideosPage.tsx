@@ -8,7 +8,7 @@ import { PageSpinner } from '../../components/PageSpinner/PageSpinner';
 import { usePublicVideosQuery } from '../../features/publicPlayer/hooks/usePublicVideosQuery';
 import { useInfiniteScrollTrigger } from '../../hooks/useInfiniteScrollTrigger';
 import { SearchInput } from '../../components/SearchInput/SearchInput';
-import { ThemeToggle } from '../../components/ThemeToggle/ThemeToggle';
+import { PublicTopBar } from '../../features/publicPlayer/components/PublicTopBar/PublicTopBar';
 import './PublicVideosPage.css';
 
 const { Title, Text } = Typography;
@@ -16,9 +16,10 @@ const { Title, Text } = Typography;
 /**
  * @description The public catalog every visitor lands on - every READY video, open to anyone,
  * with a clearly visible way for the platform's own admins to reach the login page from the same
- * screen (mirroring the login page's own "Continue as a guest" link back the other way). Loads
- * further videos as the grid is scrolled near its bottom, rather than numbered pages - this is a
- * browse/discovery feed, not a "find this specific item" management task.
+ * screen (mirroring the login page's own "Browse videos as a guest" link back the other way). The
+ * newest video leads as a hero tile unless a search is active. Loads further videos as the grid is
+ * scrolled near its bottom, rather than numbered pages - this is a browse/discovery feed, not a
+ * "find this specific item" management task.
  */
 export const PublicVideosPage = () => {
   const [search, setSearch] = useState('');
@@ -47,7 +48,7 @@ export const PublicVideosPage = () => {
   } else {
     content = (
       <>
-        <PublicVideosGrid videos={videos} />
+        <PublicVideosGrid videos={videos} featureFirst={!search} />
         <div ref={scrollTriggerRef} className="public-videos-page__load-more">
           {isFetchingNextPage && <Spin />}
           {!hasNextPage && <Text type="secondary">You've reached the end</Text>}
@@ -58,31 +59,34 @@ export const PublicVideosPage = () => {
 
   return (
     <div className="public-videos-page">
-      <div className="public-videos-page__topbar">
-        <Flex justify="space-between" align="center" className="public-videos-page__topbar-inner">
-          <span className="public-videos-page__brand">FrameCue</span>
-          <Flex align="center" gap={8}>
-            <ThemeToggle />
-            <Link to={Routes.LOGIN}>
-              <Button icon={<LoginOutlined />}>Admin login</Button>
-            </Link>
-          </Flex>
-        </Flex>
-      </div>
+      <PublicTopBar>
+        <Link to={Routes.LOGIN}>
+          <Button icon={<LoginOutlined />}>Admin login</Button>
+        </Link>
+      </PublicTopBar>
 
       <div className="public-videos-page__content">
-        <Flex vertical gap={4} className="public-videos-page__header">
-          <Title level={1} className="public-videos-page__title">
-            Watch videos
-          </Title>
-          <Text type="secondary">{totalItems} videos to watch</Text>
+        <Flex
+          justify="space-between"
+          align="flex-end"
+          gap={24}
+          wrap
+          className="public-videos-page__header"
+        >
+          <Flex vertical gap={4}>
+            <Title level={1} className="public-videos-page__title">
+              Watch
+            </Title>
+            <Text type="secondary">
+              {totalItems} {totalItems === 1 ? 'video' : 'videos'}
+            </Text>
+          </Flex>
+          <SearchInput
+            placeholder="Search videos"
+            onSearch={setSearch}
+            className="public-videos-page__search"
+          />
         </Flex>
-
-        <SearchInput
-          placeholder="Search videos by title"
-          onSearch={setSearch}
-          className="public-videos-page__search"
-        />
 
         {content}
       </div>

@@ -1,0 +1,39 @@
+/* Sticky and frosted, so it reads as sitting above the content scrolling underneath. */
+.public-top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 68px;
+  padding: 0 48px;
+  border-bottom: 1px solid var(--fc-border-soft);
+  background: color-mix(in srgb, var(--fc-canvas) 85%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.public-top-bar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--fc-text);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.public-top-bar__brand:hover {
+  color: var(--fc-text);
+}
+
+.public-top-bar__brand .brand-mark {
+  width: 28px;
+  height: 28px;
+}
+
+@media (max-width: 720px) {
+  .public-top-bar {
+    padding: 0 16px;
+  }
+}

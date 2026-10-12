@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
-import { Flex, Typography } from 'antd';
+import { Typography } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { usePlaybackConfigQuery } from '../../features/publicPlayer/hooks/usePlaybackConfigQuery';
 import { useVideoPlaybackController } from '../../features/publicPlayer/hooks/useVideoPlaybackController';
@@ -12,10 +12,10 @@ import { VideoStatus } from '../../constants/video.constants';
 import { PlaybackScreenStatus } from '../../constants/playback.constants';
 import { Routes } from '../../constants/routes.constants';
 import { getVideoThumbnailUrl } from '../../lib/videoThumbnail';
-import { ThemeToggle } from '../../components/ThemeToggle/ThemeToggle';
+import { PublicTopBar } from '../../features/publicPlayer/components/PublicTopBar/PublicTopBar';
 import './PublicPlayerPage.css';
 
-const { Title, Text } = Typography;
+const { Title, Paragraph } = Typography;
 
 /**
  * @description The public, unauthenticated video player - fetches playback config for the
@@ -50,78 +50,83 @@ export const PublicPlayerPage = () => {
 
   return (
     <div className="player-page">
-      <Flex justify="space-between" align="center" className="player-page__topbar">
-        <span className="player-page__brand">FrameCue</span>
-        <Flex align="center" gap={12}>
-          <ThemeToggle />
-          <Link to={Routes.HOME} className="player-page__back">
-            <ArrowLeftOutlined /> All videos
-          </Link>
-        </Flex>
-      </Flex>
+      <PublicTopBar>
+        <Link to={Routes.HOME} className="player-page__back">
+          <ArrowLeftOutlined /> All videos
+        </Link>
+      </PublicTopBar>
 
-      <div className="player-page__video-wrap">
-        <video
-          ref={videoRef}
-          className="player-page__video"
-          onPlay={player.handleMediaPlay}
-          onPause={player.handleMediaPause}
-          onEnded={player.handleMediaEnded}
-          onTimeUpdate={player.handleMediaTimeUpdate}
-          onError={player.handleMediaError}
-          onLoadedMetadata={player.handleMediaLoadedMetadata}
-        />
-
-        {!player.hasEngaged && (
-          <PrePlayOverlay
-            thumbnailUrl={
-              playbackConfig.playbackUrl ? getVideoThumbnailUrl(playbackConfig.playbackUrl) : null
-            }
-            title={playbackConfig.title}
-            onPlay={player.handleTogglePlay}
+      <main className="player-page__main">
+        <div className="player-page__video-wrap">
+          <video
+            ref={videoRef}
+            className="player-page__video"
+            onPlay={player.handleMediaPlay}
+            onPause={player.handleMediaPause}
+            onEnded={player.handleMediaEnded}
+            onTimeUpdate={player.handleMediaTimeUpdate}
+            onError={player.handleMediaError}
+            onLoadedMetadata={player.handleMediaLoadedMetadata}
           />
-        )}
 
-        {player.activeAd && (
-          <AdControls
-            ad={player.activeAd}
-            canSkip={player.canSkip}
-            secondsRemaining={player.adSecondsRemaining}
-            skipInSeconds={player.skipInSeconds}
-            onVisitSite={player.handleAdClick}
-            onSkip={player.handleSkipClick}
-          />
-        )}
+          {!player.hasEngaged && (
+            <PrePlayOverlay
+              thumbnailUrl={
+                playbackConfig.playbackUrl ? getVideoThumbnailUrl(playbackConfig.playbackUrl) : null
+              }
+              title={playbackConfig.title}
+              onPlay={player.handleTogglePlay}
+            />
+          )}
 
-        {player.activeBanner && (
-          <BannerOverlay
-            banner={player.activeBanner}
-            secondsRemaining={player.bannerSecondsRemaining}
-            canSkip={player.bannerCanSkip}
-            skipInSeconds={player.bannerSkipInSeconds}
-            onVisitSite={player.handleBannerClick}
-            onSkip={player.handleBannerSkipClick}
-          />
-        )}
+          {player.activeAd && (
+            <AdControls
+              ad={player.activeAd}
+              canSkip={player.canSkip}
+              secondsRemaining={player.adSecondsRemaining}
+              skipInSeconds={player.skipInSeconds}
+              onVisitSite={player.handleAdClick}
+              onSkip={player.handleSkipClick}
+            />
+          )}
 
-        {player.hasEngaged && !player.activeAd && player.mainVideoDuration && (
-          <PlayerControls
-            ads={playbackConfig.ads}
-            durationSeconds={player.mainVideoDuration}
-            currentTime={player.mainVideoCurrentTime}
-            isPlaying={player.isPlaying}
-            onTogglePlay={player.handleTogglePlay}
-            onSeek={player.handleSeek}
-          />
-        )}
-      </div>
+          {player.activeBanner && (
+            <BannerOverlay
+              banner={player.activeBanner}
+              secondsRemaining={player.bannerSecondsRemaining}
+              canSkip={player.bannerCanSkip}
+              skipInSeconds={player.bannerSkipInSeconds}
+              onVisitSite={player.handleBannerClick}
+              onSkip={player.handleBannerSkipClick}
+            />
+          )}
 
-      <Flex vertical gap={4} className="player-page__meta">
-        <Title level={3} className="player-page__title">
-          {playbackConfig.title}
-        </Title>
-        <Text type="secondary">{playbackConfig.description ?? 'No description'}</Text>
-      </Flex>
+          {player.hasEngaged &&
+            !player.activeAd &&
+            !player.activeBanner &&
+            player.mainVideoDuration && (
+              <PlayerControls
+                ads={playbackConfig.ads}
+                durationSeconds={player.mainVideoDuration}
+                currentTime={player.mainVideoCurrentTime}
+                isPlaying={player.isPlaying}
+                onTogglePlay={player.handleTogglePlay}
+                onSeek={player.handleSeek}
+              />
+            )}
+        </div>
+
+        <div className="player-page__meta">
+          <Title level={1} className="player-page__title">
+            {playbackConfig.title}
+          </Title>
+          {playbackConfig.description && (
+            <Paragraph type="secondary" className="player-page__description">
+              {playbackConfig.description}
+            </Paragraph>
+          )}
+        </div>
+      </main>
     </div>
   );
 };
