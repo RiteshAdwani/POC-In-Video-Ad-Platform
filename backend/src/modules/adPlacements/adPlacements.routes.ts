@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { requireAuth } from '../../middleware/requireAuth';
 import { requireOwnership } from '../../middleware/requireOwnership';
 import { prisma } from '../../lib/prisma';
 import {
@@ -35,7 +34,7 @@ const requireAdPlacementOwnership = requireOwnership(async (id, params) => {
   return adPlacement && { ...adPlacement, adminId: adPlacement.video.adminId };
 });
 
-adPlacementsRouter.post('/', requireAuth, requireVideoOwnership, createAdPlacement);
-adPlacementsRouter.get('/', requireAuth, requireVideoReadAccess, listAdPlacements);
-adPlacementsRouter.patch('/:id', requireAuth, requireAdPlacementOwnership, updateAdPlacement);
-adPlacementsRouter.delete('/:id', requireAuth, requireAdPlacementOwnership, deleteAdPlacement);
+adPlacementsRouter.post('/', requireVideoOwnership, createAdPlacement);
+adPlacementsRouter.get('/', requireVideoReadAccess, listAdPlacements);
+adPlacementsRouter.patch('/:id', requireAdPlacementOwnership, updateAdPlacement);
+adPlacementsRouter.delete('/:id', requireAdPlacementOwnership, deleteAdPlacement);

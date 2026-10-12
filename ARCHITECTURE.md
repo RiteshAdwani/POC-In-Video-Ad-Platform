@@ -113,7 +113,9 @@ split across domains).
 ```
 helmet()  →  cors({ origin: CORS_ORIGIN })  →  express.json()  →  pinoHttp (access log)
   →  GET /health
-  →  /api/v1/{auth, videos, advertisements, dashboard, aggregation, public}
+  →  /api/v1/{auth, public}          (rate limited per route, by IP)
+  →  /api/v1/{videos, advertisements, dashboard, aggregation}
+       →  requireAuth  →  adminApiRateLimiter (by admin)
   →  errorHandler (global, last — 4-arg signature)
 ```
 
@@ -144,6 +146,28 @@ every route param), so `/videos/A/placements/<a placement on B>` 404s rather tha
 
 The shared Pino logger redacts `req.headers.authorization` and `req.headers.cookie`, so the
 per-request access log never records a reusable admin token.
+
+### Rate limiting (`middleware/rateLimit.ts`)
+
+`express-rate-limit`, one limiter per kind of traffic. Limits live in `rateLimit.constants.ts`.
+
+| Limiter                     | Applied to                               | Counted by | Limit                                |
+| --------------------------- | ---------------------------------------- | ---------- | ------------------------------------ |
+| `loginRateLimiter`          | `POST /auth/login`                       | IP         | 10 failed attempts / 15 min          |
+| `playbackEventsRateLimiter` | `POST /public/events`                    | IP         | 300 / min                            |
+| `publicReadRateLimiter`     | `GET /public/videos`, `GET .../playback` | IP         | 120 / min                            |
+| `adminApiRateLimiter`       | every admin route (mounted in `app.ts`)  | admin      | 300 / min                            |
+| `uploadRateLimiter`         | `POST /videos`, `POST /advertisements`   | admin      | 20 / hour, checked before the upload |
+| `aggregationRateLimiter`    | `POST /aggregation/runs`                 | admin      | 5 / min                              |
+
+Over a limit, the request gets a `429` with `RATE_LIMITED` in the standard error body (the message
+says how long to wait), plus `RateLimit`/`Retry-After` headers. Counters are kept in memory, so
+they reset on restart and aren't shared between instances — running more than one backend
+instance would need a shared store (e.g. Redis). `req.ip` reads `X-Forwarded-For` only as many
+hops deep as `TRUST_PROXY` says, so a client can't fake its IP to get a fresh counter.
+
+`/health` is never limited. The player sends events with `sendBeacon`, so a rejected event is
+dropped silently and playback carries on.
 
 ### List pagination & search (`videos`, `advertisements`, `public/videos`, placements)
 
@@ -466,6 +490,9 @@ service's real public origin instead of `http://localhost:<port>`.
 
 The backend's `cors` middleware (`CORS_ORIGIN`) handles the resulting cross-origin calls in both
 environments.
+
+Render puts one proxy in front of the backend, so `TRUST_PROXY=1` there (rate limiting counts by
+the real client IP); locally it stays `0`.
 
 ```
                       docker-compose.yml (local)

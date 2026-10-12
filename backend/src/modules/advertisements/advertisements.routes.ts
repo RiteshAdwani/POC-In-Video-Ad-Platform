@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { requireAuth } from '../../middleware/requireAuth';
 import { requireOwnership } from '../../middleware/requireOwnership';
 import { adAssetUpload } from '../../middleware/upload';
+import { uploadRateLimiter } from '../../middleware/rateLimit';
 import { prisma } from '../../lib/prisma';
 import {
   createAdvertisement,
@@ -23,19 +23,18 @@ const requireAdvertisementReadAccess = requireOwnership((id) =>
   prisma.advertisement.findUnique({ where: { id } }),
 );
 
-advertisementsRouter.post('/', requireAuth, adAssetUpload.single('assetFile'), createAdvertisement);
-advertisementsRouter.get('/', requireAuth, listAdvertisements);
-advertisementsRouter.get('/:id', requireAuth, requireAdvertisementReadAccess, getAdvertisement);
+advertisementsRouter.post(
+  '/',
+  uploadRateLimiter,
+  adAssetUpload.single('assetFile'),
+  createAdvertisement,
+);
+advertisementsRouter.get('/', listAdvertisements);
+advertisementsRouter.get('/:id', requireAdvertisementReadAccess, getAdvertisement);
 advertisementsRouter.get(
   '/:id/placements',
-  requireAuth,
   requireAdvertisementReadAccess,
   listAdPlacementsForAdvertisement,
 );
-advertisementsRouter.patch('/:id', requireAuth, requireAdvertisementOwnership, updateAdvertisement);
-advertisementsRouter.delete(
-  '/:id',
-  requireAuth,
-  requireAdvertisementOwnership,
-  deleteAdvertisement,
-);
+advertisementsRouter.patch('/:id', requireAdvertisementOwnership, updateAdvertisement);
+advertisementsRouter.delete('/:id', requireAdvertisementOwnership, deleteAdvertisement);

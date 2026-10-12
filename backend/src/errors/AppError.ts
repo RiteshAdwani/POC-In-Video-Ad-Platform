@@ -40,6 +40,12 @@ export class ConflictError extends AppError {
   readonly code = ErrorCode.CONFLICT;
 }
 
+/** The caller hit a rate limit. */
+export class TooManyRequestsError extends AppError {
+  readonly statusCode = StatusCodes.TOO_MANY_REQUESTS;
+  readonly code = ErrorCode.RATE_LIMITED;
+}
+
 /** A third-party dependency (Cloudinary, later) failed or timed out. */
 export class UpstreamServiceError extends AppError {
   readonly statusCode = StatusCodes.BAD_GATEWAY;
