@@ -1,56 +1,35 @@
-import { generatePath, Link } from 'react-router-dom';
-import { Typography } from 'antd';
-import { PlayCircleFilled, VideoCameraOutlined } from '@ant-design/icons';
-import { Routes } from '../../../../constants/routes.constants';
-import { formatRelativeTime } from '../../../../lib/formatRelativeTime';
-import { getVideoThumbnailUrl } from '../../../../lib/videoThumbnail';
 import type { PublicVideoSummary } from '../../../../types/playback.types';
+import { PublicVideoCard } from './PublicVideoCard';
+import { PublicVideoHero } from './PublicVideoHero';
 import './PublicVideosGrid.css';
-
-const { Text } = Typography;
 
 type PublicVideosGridProps = {
   videos: PublicVideoSummary[];
+  // Lead with the first (newest) video as a large hero tile - off while searching, where every
+  // result should weigh the same.
+  featureFirst: boolean;
 };
 
 /**
- * @description Card-grid of every video open to the public - the audience-facing mirror of the
- * admin VideosGrid, minus the owner-only actions (edit/delete/status/ad count). Each card links
- * straight into that video's player.
+ * @description The public catalog as a mosaic - optionally the newest video as a 2x2 hero tile,
+ * with every other video as a card flowing around and below it. Each tile opens that video's
+ * player.
  */
-export const PublicVideosGrid = ({ videos }: PublicVideosGridProps) => (
-  <div className="public-videos-grid">
-    {videos.map((video) => {
-      const thumbnailUrl = getVideoThumbnailUrl(video.playbackUrl);
+export const PublicVideosGrid = ({ videos, featureFirst }: PublicVideosGridProps) => {
+  const [first, ...rest] = videos;
 
-      return (
-        <Link
-          to={generatePath(Routes.PLAY, { videoId: video.id })}
-          className="public-videos-grid__card"
-          key={video.id}
-        >
-          <div className="public-videos-grid__thumb">
-            {thumbnailUrl ? (
-              <img src={thumbnailUrl} alt="" className="public-videos-grid__thumb-image" />
-            ) : (
-              <VideoCameraOutlined />
-            )}
-            <PlayCircleFilled className="public-videos-grid__play" />
-          </div>
-
-          <div className="public-videos-grid__body">
-            <Text strong ellipsis className="public-videos-grid__title">
-              {video.title}
-            </Text>
-            <Text type="secondary" ellipsis className="public-videos-grid__description">
-              {video.description ?? 'No description'}
-            </Text>
-            <Text type="secondary" className="public-videos-grid__date">
-              {formatRelativeTime(video.createdAt)}
-            </Text>
-          </div>
-        </Link>
-      );
-    })}
-  </div>
-);
+  return (
+    <div className="public-videos-grid">
+      {featureFirst ? (
+        <>
+          <PublicVideoHero video={first} />
+          {rest.map((video) => (
+            <PublicVideoCard key={video.id} video={video} />
+          ))}
+        </>
+      ) : (
+        videos.map((video) => <PublicVideoCard key={video.id} video={video} />)
+      )}
+    </div>
+  );
+};

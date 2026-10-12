@@ -1,4 +1,4 @@
-import { PlayCircleFilled } from '@ant-design/icons';
+import { CaretRightFilled } from '@ant-design/icons';
 import './PrePlayOverlay.css';
 
 type PrePlayOverlayProps = {
@@ -17,6 +17,8 @@ export const PrePlayOverlay = ({ thumbnailUrl, title, onPlay }: PrePlayOverlayPr
   <button type="button" className="pre-play-overlay" onClick={onPlay} aria-label={`Play ${title}`}>
     {thumbnailUrl && <img src={thumbnailUrl} alt="" className="pre-play-overlay__image" />}
     <span className="pre-play-overlay__scrim" />
-    <PlayCircleFilled className="pre-play-overlay__icon" />
+    <span className="pre-play-overlay__button">
+      <CaretRightFilled />
+    </span>
   </button>
 );

@@ -1,50 +1,60 @@
 .login-page {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
   min-height: 100vh;
+}
+
+.login-page__form-side {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
-  background: #f8fafc;
+  padding: 48px 24px;
+  background: var(--fc-canvas);
 }
 
-.login-page__card {
+.login-page__toggle {
+  position: absolute;
+  top: 24px;
+  right: 32px;
+}
+
+.login-page__form {
   width: 100%;
-  max-width: 380px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 40px 32px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
-}
-
-.login-page__brand {
-  margin-bottom: 32px;
+  max-width: 400px;
 }
 
 .login-page__title.ant-typography {
-  margin: 0;
-  color: #0369a1;
+  margin: 0 0 6px;
+  font-size: 28px;
 }
 
-.login-page__section-label {
+.login-page__subtitle.ant-typography {
   display: block;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 12px;
-  color: rgba(15, 23, 42, 0.45);
-  margin-bottom: 12px;
+  margin-bottom: 28px;
 }
 
-.login-page__divider {
-  margin: 20px 0;
-  font-size: 12px;
-  color: rgba(15, 23, 42, 0.45);
+.login-page__divider.ant-divider {
+  margin: 8px 0 20px;
+  color: var(--fc-text-subtle);
+  font-size: 13px;
 }
 
 .login-page__guest-link {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   font-weight: 500;
+}
+
+/* On a narrow screen the form is the whole page - the showcase is decoration. */
+@media (max-width: 900px) {
+  .login-page {
+    grid-template-columns: 1fr;
+  }
+
+  .login-page .login-showcase {
+    display: none;
+  }
 }

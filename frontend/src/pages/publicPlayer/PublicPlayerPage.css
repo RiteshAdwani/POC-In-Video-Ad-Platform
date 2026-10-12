@@ -1,87 +1,135 @@
 .player-page {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 2rem 1rem;
-}
-
-.player-page__topbar,
-.player-page__meta {
-  width: 100%;
-  max-width: 960px;
-  margin: 0 auto;
-}
-
-.player-page__brand {
-  font-family: var(--fc-font-sans);
-  font-weight: 700;
-  font-size: 18px;
-  color: #0369a1;
+  min-height: 100%;
 }
 
 .player-page__back {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  color: var(--fc-text-muted);
+  font-weight: 500;
+}
+
+.player-page__back:hover {
+  color: var(--fc-text);
+}
+
+/* As wide as fits, but never so tall that the title below drops out of view on a laptop screen -
+   the 16:9 player's width follows the space left under the top bar. */
+.player-page__main {
+  width: min(100% - 96px, 1180px, (100vh - 260px) * 16 / 9);
+  margin: 0 auto;
+  padding: 28px 0 48px;
 }
 
 .player-page__video-wrap {
   position: relative;
-  width: 100%;
-  max-width: 960px;
-  border-radius: 8px;
+  border-radius: 18px;
   /* Hard clip: a banner (or anything else absolutely positioned in here) can never visually
      escape the video's own box, regardless of the source image's natural size. */
   overflow: hidden;
+  background: #000000;
+  box-shadow: 0 30px 60px -30px rgba(25, 10, 60, 0.45);
 }
 
 .player-page__video {
   display: block;
   width: 100%;
-  background: #000;
+  aspect-ratio: 16 / 9;
+  background: #000000;
+}
+
+.player-page__meta {
+  margin-top: 22px;
 }
 
 .player-page__title.ant-typography {
-  margin: 0;
+  margin: 0 0 8px;
+  font-size: 28px;
+  letter-spacing: -0.02em;
 }
 
-/* Shared between AdControls and BannerOverlay - both sit directly in .player-page__video-wrap (or
-   the banner's own full-frame overlay) and use the same "Ad · title · remaining time" badge. */
+.player-page__description.ant-typography {
+  max-width: 760px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Shared between AdControls and BannerOverlay - the frosted "AD · title · remaining time" badge. */
 .player-page__ad-badge {
   position: absolute;
-  top: 1rem;
-  left: 1rem;
-  max-width: calc(100% - 2rem);
+  top: 18px;
+  left: 18px;
+  max-width: calc(100% - 36px);
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 10px;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.65);
+  gap: 10px;
+  padding: 6px 12px 6px 6px;
+  border-radius: 999px;
+  background: rgba(15, 16, 24, 0.72);
+  backdrop-filter: blur(8px);
   color: #ffffff;
   font-size: 13px;
 }
 
 .player-page__ad-badge-label {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--fc-accent);
+  font-size: 11px;
   font-weight: 700;
-  padding-right: 8px;
-  border-right: 1px solid rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .player-page__ad-badge-title {
+  max-width: 260px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 220px;
 }
 
-/* Also shared between AdControls and BannerOverlay - the bottom-right action cluster (visit
-   site / skip). */
+.player-page__ad-badge .mono {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* Also shared between AdControls and BannerOverlay - the visit site / skip buttons. */
 .player-page__ad-controls {
   position: absolute;
-  right: 1rem;
-  bottom: 1rem;
+  right: 18px;
+  bottom: 22px;
   display: flex;
-  gap: 0.5rem;
+  gap: 10px;
+}
+
+.player-page__ad-button.ant-btn {
+  height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.player-page__ad-button--visit.ant-btn {
+  background: #ffffff;
+  color: #191a2e;
+}
+
+.player-page__ad-button--visit.ant-btn:hover {
+  background: #f2eefe;
+  color: #191a2e;
+}
+
+/* Counting down to skippable - frosted and inert, not a greyed-out button. */
+.player-page__ad-button--waiting.ant-btn:disabled {
+  background: rgba(15, 16, 24, 0.72);
+  color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  cursor: default;
+}
+
+@media (max-width: 720px) {
+  .player-page__main {
+    width: calc(100% - 32px);
+  }
 }

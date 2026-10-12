@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { Tooltip } from 'antd';
-import { PauseCircleFilled, PlayCircleFilled } from '@ant-design/icons';
+import { CaretRightFilled, PauseOutlined } from '@ant-design/icons';
 import { AD_TYPE_LABEL } from '../../../../constants/ad.constants';
 import { formatDuration } from '../../../../lib/formatDuration';
 import type { PlaybackAd } from '../../../../types/playback.types';
@@ -21,8 +21,8 @@ type PlayerControlsProps = {
  * while no ad is active, since ads use their own AdControls/BannerOverlay instead and are never
  * seekable. A play/pause toggle, elapsed/total time, and a click-and-drag scrubber with a thin
  * chapter-marker notch per ad placement, YouTube-style - the native scrubber has no way to draw on
- * top of it, so this is the only way to show ad positions directly on a seekable timeline. One
- * uniform marker style regardless of ad type, deliberately - the type is in the tooltip already.
+ * top of it, so this is the only way to show ad positions directly on a seekable timeline. Each ad
+ * is a short yellow segment, YouTube-style, dimming once played past; the type is in its tooltip.
  */
 export const PlayerControls = ({
   ads,
@@ -52,17 +52,10 @@ export const PlayerControls = ({
     seekFromPointer(event.clientX);
   };
 
+  const progressPercent = Math.min(100, (currentTime / durationSeconds) * 100);
+
   return (
     <div className="player-controls">
-      <button
-        type="button"
-        className="player-controls__play"
-        onClick={onTogglePlay}
-        aria-label={isPlaying ? 'Pause' : 'Play'}
-      >
-        {isPlaying ? <PauseCircleFilled /> : <PlayCircleFilled />}
-      </button>
-
       <div
         className="player-controls__hit-area"
         ref={trackRef}
@@ -72,10 +65,7 @@ export const PlayerControls = ({
         <div className="player-controls__track">
           {/* Percentage positions come from live playback data, not static presentation, so
               they're set inline rather than duplicated as a fixed set of CSS classes. */}
-          <div
-            className="player-controls__progress"
-            style={{ width: `${Math.min(100, (currentTime / durationSeconds) * 100)}%` }}
-          />
+          <div className="player-controls__progress" style={{ width: `${progressPercent}%` }} />
           {ads.map((ad) => (
             <Tooltip
               key={ad.id}
@@ -83,18 +73,30 @@ export const PlayerControls = ({
             >
               <span
                 className="player-controls__marker"
+                data-passed={ad.startOffsetSeconds <= currentTime}
                 style={{
                   left: `${Math.min(100, (ad.startOffsetSeconds / durationSeconds) * 100)}%`,
                 }}
               />
             </Tooltip>
           ))}
+          <span className="player-controls__knob" style={{ left: `${progressPercent}%` }} />
         </div>
       </div>
 
-      <span className="player-controls__time mono">
-        {formatDuration(Math.floor(currentTime))} / {formatDuration(Math.floor(durationSeconds))}
-      </span>
+      <div className="player-controls__bar">
+        <button
+          type="button"
+          className="player-controls__play"
+          onClick={onTogglePlay}
+          aria-label={isPlaying ? 'Pause' : 'Play'}
+        >
+          {isPlaying ? <PauseOutlined /> : <CaretRightFilled />}
+        </button>
+        <span className="player-controls__time mono">
+          {formatDuration(Math.floor(currentTime))} / {formatDuration(Math.floor(durationSeconds))}
+        </span>
+      </div>
     </div>
   );
 };

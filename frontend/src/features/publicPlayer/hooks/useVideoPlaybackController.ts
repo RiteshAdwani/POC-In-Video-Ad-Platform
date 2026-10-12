@@ -200,7 +200,8 @@ export const useVideoPlaybackController = (
    */
   const handleTogglePlay = () => {
     const video = videoRef.current;
-    if (!video) return;
+    // The main video stays paused while a banner is up - its own timer resumes playback.
+    if (!video || activeBanner) return;
     if (video.paused) {
       void video.play().catch(() => {});
     } else {

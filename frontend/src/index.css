@@ -45,6 +45,8 @@
   );
   --fc-chip-bg: rgba(255, 255, 255, 0.92);
   --fc-chip-text: #191a2e;
+  /* Ad breaks on the public player's timeline - YouTube's familiar yellow, in both themes. */
+  --fc-ad-marker: #ffcc00;
   --fc-shadow-tooltip: 0 8px 20px -6px rgba(25, 26, 46, 0.25);
   --fc-scrollbar-thumb: rgba(120, 39, 230, 0.32);
   --fc-scrollbar-thumb-hover: linear-gradient(180deg, #7827e6, #635ad9);

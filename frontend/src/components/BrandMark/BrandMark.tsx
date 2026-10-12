@@ -1,3 +1,5 @@
+import './BrandMark.css';
+
 /**
  * @description FrameCue's logo mark - a video frame with a play glyph and the accent cue marker
  * on its top edge. Strokes in the current text colour so it fits either theme.

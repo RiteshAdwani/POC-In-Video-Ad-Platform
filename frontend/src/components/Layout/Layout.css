@@ -25,16 +25,6 @@
   letter-spacing: -0.03em;
 }
 
-.brand-mark {
-  width: 30px;
-  height: 30px;
-  flex: none;
-}
-
-.brand-mark__cue {
-  fill: var(--fc-accent);
-}
-
 .admin-layout__menu.ant-menu.ant-menu-root.ant-menu-inline {
   background: transparent;
   border-inline-end: 0;

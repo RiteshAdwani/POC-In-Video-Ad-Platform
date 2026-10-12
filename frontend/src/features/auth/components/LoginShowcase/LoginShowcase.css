@@ -1,0 +1,171 @@
+/* Near-black in both themes - the cinematic half of the page, where the frames carry the colour. */
+.login-showcase {
+  display: flex;
+  flex-direction: column;
+  padding: 44px 56px;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  background: #111218;
+  color: #ffffff;
+}
+
+.login-showcase__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.login-showcase__brand .brand-mark {
+  width: 28px;
+  height: 28px;
+}
+
+.login-showcase__body {
+  max-width: 640px;
+  margin: auto 0;
+}
+
+.login-showcase__headline {
+  max-width: 540px;
+  margin: 0 0 16px;
+  color: #ffffff;
+  font-size: 46px;
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.login-showcase__headline em {
+  background: linear-gradient(90deg, #d85cf2, #9a5dec);
+  background-clip: text;
+  color: transparent;
+  font-style: normal;
+}
+
+.login-showcase__copy {
+  max-width: 470px;
+  margin: 0 0 34px;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.login-showcase__strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+/* Abstract stand-ins for video frames - soft gradients with a darker "horizon" along the bottom,
+   each a different mix of the palette. */
+.login-showcase__frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.login-showcase__frame::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 38%;
+  background: linear-gradient(transparent, rgba(8, 6, 20, 0.45));
+}
+
+.login-showcase__frame:nth-child(1) {
+  background:
+    radial-gradient(circle at 30% 35%, rgba(255, 255, 255, 0.35), transparent 30%),
+    linear-gradient(135deg, #3b2a8f, #635ad9);
+}
+
+.login-showcase__frame:nth-child(2) {
+  background:
+    radial-gradient(circle at 70% 30%, rgba(255, 214, 153, 0.55), transparent 28%),
+    linear-gradient(180deg, #8ea6ec, #4b3fc4);
+}
+
+.login-showcase__frame:nth-child(3) {
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.3), transparent 40%),
+    linear-gradient(135deg, #d85cf2, #7827e6);
+}
+
+.login-showcase__frame:nth-child(4) {
+  background:
+    radial-gradient(circle at 25% 30%, rgba(255, 255, 255, 0.3), transparent 26%),
+    linear-gradient(160deg, #4fd1b8, #219be4);
+}
+
+.login-showcase__frame:nth-child(5) {
+  background:
+    radial-gradient(circle at 65% 35%, rgba(216, 92, 242, 0.45), transparent 30%),
+    linear-gradient(135deg, #1b1640, #3b2a8f);
+}
+
+/* The ad frame - ringed and tagged, the one the timeline cues. */
+.login-showcase__frame[data-ad='true'] {
+  box-shadow:
+    0 0 0 2px #111218,
+    0 0 0 4px var(--fc-ad-marker);
+}
+
+.login-showcase__ad-tag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 1;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--fc-ad-marker);
+  color: #191a2e;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.login-showcase__timeline {
+  position: relative;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.login-showcase__progress {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 34%;
+  border-radius: 999px;
+  background: var(--fc-primary-gradient);
+}
+
+/* Sits under the ad frame (the middle of five), as a yellow ad-break segment like the player's. */
+.login-showcase__cue {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 4px;
+  border-radius: 1px;
+  background: var(--fc-ad-marker);
+  transform: translateX(-50%);
+}
+
+.login-showcase__knob {
+  position: absolute;
+  top: 50%;
+  left: 34%;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(120, 39, 230, 0.45);
+  transform: translate(-50%, -50%);
+}

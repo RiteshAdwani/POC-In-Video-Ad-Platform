@@ -1,4 +1,5 @@
-import { Button, ConfigProvider } from 'antd';
+import { Button } from 'antd';
+import { ExportOutlined } from '@ant-design/icons';
 import { formatDuration } from '../../../../lib/formatDuration';
 import type { PlaybackAd } from '../../../../types/playback.types';
 
@@ -38,24 +39,25 @@ export const AdControls = ({
       </div>
 
       <div className="player-page__ad-controls">
-        {ad.clickThroughUrl && <Button onClick={onVisitSite}>Visit site ↗</Button>}
+        {ad.clickThroughUrl && (
+          <Button
+            icon={<ExportOutlined />}
+            iconPlacement="end"
+            onClick={onVisitSite}
+            className="player-page__ad-button player-page__ad-button--visit"
+          >
+            Visit site
+          </Button>
+        )}
         {isSkippable &&
           (canSkip ? (
-            <Button type="primary" onClick={onSkip}>
+            <Button type="primary" onClick={onSkip} className="player-page__ad-button">
               Skip ad
             </Button>
           ) : (
-            <ConfigProvider
-              theme={{
-                token: {
-                  colorBgContainerDisabled: 'rgba(0, 0, 0, 0.65)',
-                  colorTextDisabled: 'rgba(255, 255, 255, 0.85)',
-                  colorBorder: 'transparent',
-                },
-              }}
-            >
-              <Button disabled>Skip ad in {skipInSeconds ?? ad.skipAfterSeconds}s</Button>
-            </ConfigProvider>
+            <Button disabled className="player-page__ad-button player-page__ad-button--waiting">
+              Skip ad in {skipInSeconds ?? ad.skipAfterSeconds}s
+            </Button>
           ))}
       </div>
     </>
