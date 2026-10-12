@@ -18,7 +18,8 @@ ends with what to point at if this exact thing gets probed in a walkthrough.
 9. [Event vocabulary](#event-vocabulary)
 10. [Video hosting integration](#video-hosting-integration)
 11. [Indexing for dashboard volume](#indexing-for-dashboard-volume)
-12. [Known gaps](#known-gaps)
+12. [Rate limiting](#rate-limiting)
+13. [Known gaps](#known-gaps)
 
 ---
 
@@ -228,6 +229,27 @@ double as the query's access path, since the dashboard's `groupBy` filters on ex
 columns. The aggregation job's own scan of raw events per day — the recount and the late-arrival
 check, both an `occurredAt` range across every video — is backed by a plain `[occurredAt]` index,
 so recomputing one day never means scanning the whole table.
+
+## Rate limiting
+
+**The question:** what stops someone flooding the API — especially `POST /public/events`, which
+needs no login?
+
+**The answer:** a per-IP limit on every public route and on login, and a per-admin limit on
+every admin route. Counting admins by id rather than IP means one busy admin never uses up
+another's allowance on the same network. The events limit is deliberately generous (300/min,
+where a real viewer sends under ~10) because many viewers can share one public IP; a flood from
+one source is cut off after 300, and dedup still stops repeats being counted twice. Uploads and
+aggregation runs get their own tighter limits because each one is expensive.
+
+Counters are in memory: correct for the single backend instance this runs as, and swapping in
+a Redis store is a one-option change if that ever changes. A per-IP limit doesn't stop an
+attack spread over many IPs, or a raw traffic flood — those belong in front of the app (a CDN or
+WAF).
+
+**Point at:** `backend/src/middleware/rateLimit.ts`, `backend/src/constants/rateLimit.constants.ts`.
+
+---
 
 ## Known gaps
 

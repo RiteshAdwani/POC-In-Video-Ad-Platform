@@ -24,6 +24,9 @@ const envSchema = z.object({
         .map((origin) => origin.trim())
         .filter(Boolean),
     ),
+  // Number of reverse proxies in front of the backend (e.g. 1 on Render) - 0 when clients connect
+  // directly, as in local Docker.
+  TRUST_PROXY: z.coerce.number().int().min(0).default(0),
   DATABASE_URL: z.string().min(1),
   JWT_SECRET: z.string().min(1),
   CLOUDINARY_CLOUD_NAME: z.string().min(1),

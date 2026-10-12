@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { playbackEventsRateLimiter } from '../../middleware/rateLimit';
 import { recordPlaybackEvent } from './events.controller';
 
 // Deliberately no requireAuth - this is the public, unauthenticated event ingestion endpoint
@@ -6,4 +7,4 @@ import { recordPlaybackEvent } from './events.controller';
 // this under.
 export const eventsRouter = Router();
 
-eventsRouter.post('/events', recordPlaybackEvent);
+eventsRouter.post('/events', playbackEventsRateLimiter, recordPlaybackEvent);
