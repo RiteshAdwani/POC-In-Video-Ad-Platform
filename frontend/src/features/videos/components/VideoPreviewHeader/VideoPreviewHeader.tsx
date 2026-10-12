@@ -1,68 +1,86 @@
-import { Button, Flex, Typography } from 'antd';
-import { DeleteOutlined, EditOutlined, VideoCameraOutlined } from '@ant-design/icons';
-import { VIDEO_STATUS_LABEL } from '../../../../constants/video.constants';
+import type { ReactNode } from 'react';
+import { Button, Spin } from 'antd';
+import { DeleteOutlined, EditOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { VideoStatus } from '../../../../constants/video.constants';
+import { DetailsHeader } from '../../../../components/DetailsHeader/DetailsHeader';
 import { VideoStatusTag } from '../../../../components/VideoStatusTag/VideoStatusTag';
 import { formatDate } from '../../../../lib/formatDate';
+import { formatDuration } from '../../../../lib/formatDuration';
 import type { Video } from '../../../../types/video.types';
-import './VideoPreviewHeader.css';
-
-const { Title, Text } = Typography;
 
 type VideoPreviewHeaderProps = {
   video: Video;
   onEdit: () => void;
   onDelete: () => void;
+  // The video's stats panel, shown beside the preview.
+  children?: ReactNode;
 };
 
 /**
- * @description Video details page's top section - the plain preview player (no ad injection,
- * unlike the public playback page) beside the video's title/status/description and its
- * edit/delete actions. A deleted video's file is deleted, so it gets a placeholder and no actions.
+ * @description Video details page's top section - a plain preview player (no ad injection, unlike
+ * the public playback page) beside the video's title, status, upload date, length, description and
+ * stats panel.
+ * Until the video is playable, or once it's deleted with its file, a placeholder says why.
  */
-export const VideoPreviewHeader = ({ video, onEdit, onDelete }: VideoPreviewHeaderProps) => {
+export const VideoPreviewHeader = ({
+  video,
+  onEdit,
+  onDelete,
+  children,
+}: VideoPreviewHeaderProps) => {
   const isDeleted = Boolean(video.deletedAt);
 
+  const placeholder = isDeleted ? (
+    <>
+      <DeleteOutlined />
+      Video file deleted
+    </>
+  ) : video.status === VideoStatus.PROCESSING ? (
+    <>
+      <Spin />
+      Processing upload
+    </>
+  ) : (
+    <>
+      <ExclamationCircleOutlined />
+      Upload failed
+    </>
+  );
+
   return (
-    <Flex gap={24} align="flex-start" className="video-preview-header">
-      <div className="video-preview-header__player">
-        {video.playbackUrl && !isDeleted ? (
+    <DetailsHeader
+      media={
+        video.playbackUrl && !isDeleted ? (
           <video src={video.playbackUrl} controls />
         ) : (
-          <div className="video-preview-header__player-placeholder">
-            <VideoCameraOutlined />
-            <Text type="secondary">
-              {isDeleted ? 'Video file deleted' : VIDEO_STATUS_LABEL[video.status]}
-            </Text>
-          </div>
-        )}
-      </div>
-
-      <Flex vertical gap={8} className="video-preview-header__meta">
-        <Flex justify="space-between" align="center" gap={16}>
-          <Flex vertical gap={8}>
-            <Flex align="flex-start" gap={12}>
-              <Title level={2} className="video-preview-header__title">
-                {video.title}
-              </Title>
-              {!isDeleted && <VideoStatusTag status={video.status} />}
-            </Flex>
-            <Text type="secondary">Uploaded {formatDate(video.createdAt)}</Text>
-          </Flex>
-
-          {!isDeleted && (
-            <Flex gap={8}>
-              <Button icon={<EditOutlined />} onClick={onEdit}>
-                Edit video
-              </Button>
-              <Button danger icon={<DeleteOutlined />} onClick={onDelete}>
-                Delete
-              </Button>
-            </Flex>
-          )}
-        </Flex>
-
-        <Text>{video.description ?? 'No description'}</Text>
-      </Flex>
-    </Flex>
+          <div className="details-header__placeholder">{placeholder}</div>
+        )
+      }
+      title={video.title}
+      meta={[
+        !isDeleted && <VideoStatusTag status={video.status} />,
+        `Uploaded ${formatDate(video.createdAt)}`,
+        video.durationSeconds !== null && (
+          <span>
+            <span className="mono">{formatDuration(video.durationSeconds)}</span> long
+          </span>
+        ),
+      ]}
+      description={video.description}
+      actions={
+        !isDeleted && (
+          <>
+            <Button icon={<EditOutlined />} onClick={onEdit}>
+              Edit details
+            </Button>
+            <Button type="text" danger icon={<DeleteOutlined />} onClick={onDelete}>
+              Delete
+            </Button>
+          </>
+        )
+      }
+    >
+      {children}
+    </DetailsHeader>
   );
 };

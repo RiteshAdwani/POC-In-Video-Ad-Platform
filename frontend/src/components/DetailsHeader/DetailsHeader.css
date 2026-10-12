@@ -1,0 +1,84 @@
+/* Takes a fixed share of the details page's height - the placements section below fills the rest.
+   Never shorter than the title, meta and stats need. */
+.details-header {
+  flex: 0 0 44%;
+  min-height: 300px;
+  margin: 0 0 18px;
+}
+
+/* Scales with the header's height, keeping 16:9, but never crowds out the column beside it. */
+.details-header__media {
+  position: relative;
+  flex: none;
+  height: 100%;
+  max-width: 50%;
+  aspect-ratio: 16 / 9;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--fc-track);
+}
+
+.details-header__media img,
+.details-header__media video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* A video letterboxes on black, like a player; an image sits on the neutral track. */
+.details-header__media video {
+  background: #000000;
+}
+
+/* Stands in for the preview when there's nothing to play - processing, failed or deleted. */
+.details-header__placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--fc-media-placeholder);
+  color: var(--fc-text-muted);
+}
+
+.details-header__placeholder .anticon {
+  font-size: 24px;
+}
+
+.details-header__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.details-header__actions {
+  flex: none;
+}
+
+.details-header__title.ant-typography {
+  margin: 0 0 6px;
+  font-size: 26px;
+}
+
+.details-header__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: var(--fc-text-muted);
+  font-size: 13.5px;
+}
+
+.details-header__description.ant-typography {
+  max-width: 760px;
+  margin: 10px 0 14px;
+  line-height: 1.6;
+}
+
+/* Pinned to the bottom of the column, so it lines up with the preview's bottom edge when the text
+   above is short. */
+.details-header__extra {
+  margin-top: auto;
+}

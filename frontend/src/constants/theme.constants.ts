@@ -31,3 +31,6 @@ export const BrandColorOnDark = {
 } as const;
 
 export const FONT_FAMILY_SANS = "'Geist', sans-serif";
+
+// Large enough to round any control into a full pill, whatever its height.
+export const PILL_BORDER_RADIUS = 999;

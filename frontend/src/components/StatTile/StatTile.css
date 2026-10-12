@@ -1,0 +1,89 @@
+.stat-tile {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 14px 20px 16px;
+}
+
+.stat-tile + .stat-tile {
+  border-left: 1px solid var(--fc-border-soft);
+}
+
+.stat-tile__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--fc-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.stat-tile__marker {
+  width: 8px;
+  height: 8px;
+}
+
+.stat-tile__marker--dot {
+  border-radius: 50%;
+}
+
+.stat-tile__marker--diamond {
+  border-radius: 1.5px;
+  transform: rotate(45deg);
+}
+
+.stat-tile__marker[data-metric='impressions'] {
+  background: var(--fc-metric-impressions);
+}
+
+.stat-tile__marker[data-metric='completions'] {
+  background: var(--fc-metric-completions);
+}
+
+.stat-tile__marker[data-metric='skips'] {
+  background: var(--fc-metric-skips);
+}
+
+.stat-tile__marker[data-metric='clicks'] {
+  background: var(--fc-metric-clicks);
+}
+
+.stat-tile__marker[data-metric='plays'] {
+  background: var(--fc-metric-plays);
+}
+
+.stat-tile__marker[data-metric='video-completions'] {
+  background: var(--fc-metric-video-completions);
+}
+
+.stat-tile__value-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 6px 0 2px;
+}
+
+.stat-tile__value.ant-typography {
+  flex: none;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-tile__sparkline {
+  flex: 1;
+  min-width: 0;
+  max-width: 220px;
+  margin-left: auto;
+}
+
+.stat-tile__caption.ant-typography {
+  font-size: 12.5px;
+}
+
+.stat-tile__bar.ant-progress {
+  margin: 10px 0 0;
+  line-height: 0;
+}

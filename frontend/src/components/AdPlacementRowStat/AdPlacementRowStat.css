@@ -1,4 +1,17 @@
 .ad-placement-row-stat {
-  font-size: 12px;
-  color: #64748b;
+  font-size: 13px;
+}
+
+.ad-placement-row-stat .ant-typography {
+  font-size: inherit;
+}
+
+.ad-placement-row-stat__bar.ant-progress {
+  display: block;
+  margin: 6px 0 0;
+  line-height: 0;
+}
+
+.ad-placement-row-stat__empty.ant-typography {
+  font-size: 13px;
 }

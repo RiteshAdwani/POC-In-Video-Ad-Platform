@@ -1,0 +1,140 @@
+.media-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--fc-surface);
+  border: 1px solid var(--fc-border);
+  border-radius: 14px;
+  overflow: hidden;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.media-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(120, 39, 230, 0.35);
+  box-shadow: 0 14px 30px -14px rgba(120, 39, 230, 0.35);
+}
+
+.media-card__link {
+  display: flex;
+  flex-direction: column;
+  color: inherit;
+  text-decoration: none;
+}
+
+.media-card__thumb {
+  position: relative;
+  height: 148px;
+  background: var(--fc-media-placeholder);
+  overflow: hidden;
+}
+
+/* Whatever fills the thumbnail - image, frame or placeholder - covers it edge to edge. */
+.media-card__thumb > img,
+.media-card__thumb > video,
+.media-card__fill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* A placeholder's icon and message, centred over the thumbnail. */
+.media-card__fill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--fc-text-muted);
+  font-size: 13px;
+}
+
+.media-card__fill .anticon {
+  font-size: 20px;
+}
+
+.media-card__fill--striped {
+  background: var(--fc-deleted-stripes);
+}
+
+.media-card__chip {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Status and type tags become frosted chips over the image. */
+.media-card__chip--top-left {
+  top: 12px;
+  left: 12px;
+  background: var(--fc-chip-bg);
+  color: var(--fc-chip-text);
+  backdrop-filter: blur(6px);
+}
+
+.media-card__chip--top-left > * {
+  padding: 0;
+  background: none;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.media-card__chip--bottom-left {
+  bottom: 12px;
+  left: 12px;
+  color: #ffffff;
+}
+
+.media-card__chip--bottom-right {
+  right: 12px;
+  bottom: 12px;
+  background: rgba(15, 16, 24, 0.72);
+  color: #ffffff;
+  font-family: var(--fc-font-mono);
+  font-weight: 500;
+}
+
+.media-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 52px 15px 16px;
+}
+
+.media-card__title {
+  font-size: 15px;
+}
+
+.media-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--fc-text-subtle);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.media-card__menu-button.ant-btn {
+  position: absolute;
+  right: 12px;
+  bottom: 18px;
+  color: var(--fc-text-subtle);
+}
+
+.media-card__menu-button.ant-btn.ant-dropdown-open {
+  background: var(--fc-primary-soft);
+  color: var(--fc-primary);
+}

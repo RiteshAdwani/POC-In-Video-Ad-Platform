@@ -1,5 +1,6 @@
 import { Flex, Typography, type TableColumnsType } from 'antd';
 import { VideoCameraOutlined } from '@ant-design/icons';
+import { AdTypeTag } from '../../../../components/AdTypeTag/AdTypeTag';
 import { VideoStatusTag } from '../../../../components/VideoStatusTag/VideoStatusTag';
 import { PLACEMENT_STATS_WINDOW_DAYS } from '../../../../constants/dashboard.constants';
 import { formatDuration } from '../../../../lib/formatDuration';
@@ -44,6 +45,12 @@ export const getAdPlacementVideoColumns = (
         </Flex>
       );
     },
+  },
+  {
+    title: 'Ad type',
+    key: 'adType',
+    width: 150,
+    render: (_, adPlacement) => <AdTypeTag adType={adPlacement.adType} />,
   },
   {
     title: 'Starts at',

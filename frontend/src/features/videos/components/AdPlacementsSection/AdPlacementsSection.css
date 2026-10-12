@@ -1,9 +1,9 @@
-/* As tall as its rows, up to the page's remaining height - past that, the list scrolls inside.
-   Never squeezed below a couple of rows; the page scrolls instead. */
+/* Fills the page's remaining height below the header - past that, the list scrolls inside. Never
+   squeezed below a couple of rows; the page scrolls instead. */
 .ad-placements-section {
   display: flex;
   flex-direction: column;
-  flex: 0 1 auto;
+  flex: 1 1 0;
   min-height: 260px;
 }
 
@@ -19,7 +19,6 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  scrollbar-width: thin;
 }
 
 /* Marker at the bottom of the list - scrolling it into view loads the next batch. */
@@ -34,9 +33,9 @@
 }
 
 .ad-placements-section__footer {
-  padding: 8px 16px;
-  border-top: 1px solid #e2e8f0;
-  font-size: 12px;
+  padding: 12px 24px;
+  border-top: 1px solid var(--fc-border-soft);
+  font-size: 12.5px;
 }
 
 .ad-placements-section__empty {

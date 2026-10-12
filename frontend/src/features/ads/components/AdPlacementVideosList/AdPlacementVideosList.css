@@ -3,6 +3,14 @@
   position: sticky;
   top: 0;
   z-index: 2;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ad-placement-videos-list .ant-table-cell:first-child {
+  padding-left: 24px;
 }
 
 .ad-placement-videos-list__row {
@@ -16,16 +24,16 @@
 
 .ad-placement-videos-list__thumb {
   position: relative;
-  flex: 0 0 88px;
-  height: 50px;
-  border-radius: 6px;
+  flex: 0 0 72px;
+  height: 40px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--fc-primary);
   font-size: 18px;
   overflow: hidden;
-  background: linear-gradient(135deg, #0f172a, #0369a1);
+  background: var(--fc-media-placeholder);
 }
 
 .ad-placement-videos-list__thumb-image {

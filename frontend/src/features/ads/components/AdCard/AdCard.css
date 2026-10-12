@@ -1,0 +1,22 @@
+/* Violet with a dot - the same colour and marker videos have on the dashboard. */
+.ad-card__video-count {
+  background: var(--fc-metric-plays);
+}
+
+.ad-card__video-count::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.ad-card__click-through {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--fc-primary);
+}

@@ -10,6 +10,9 @@
   --fc-accent: #d85cf2;
   --fc-accent-soft: rgba(216, 92, 242, 0.12);
   --fc-primary-soft: rgba(120, 39, 230, 0.1);
+  --fc-accent-ink: #a93bc4;
+  --fc-success: #1f9d55;
+  --fc-danger: #d64545;
 
   /* One colour per dashboard metric - mirrored in dashboard.constants.ts for the charts. */
   --fc-metric-impressions: #d85cf2;
@@ -35,6 +38,13 @@
 
   --fc-deleted-stripes: repeating-linear-gradient(135deg, #d5d8df 0 2px, #eceef2 2px 4px);
   --fc-track: #eef0f3;
+  --fc-media-placeholder: linear-gradient(
+    135deg,
+    rgba(120, 39, 230, 0.14),
+    rgba(216, 92, 242, 0.1)
+  );
+  --fc-chip-bg: rgba(255, 255, 255, 0.92);
+  --fc-chip-text: #191a2e;
   --fc-shadow-tooltip: 0 8px 20px -6px rgba(25, 26, 46, 0.25);
   --fc-scrollbar-thumb: rgba(120, 39, 230, 0.32);
   --fc-scrollbar-thumb-hover: linear-gradient(180deg, #7827e6, #635ad9);
@@ -43,6 +53,7 @@
 [data-theme='dark'] {
   --fc-accent-soft: rgba(216, 92, 242, 0.18);
   --fc-primary-soft: rgba(154, 93, 236, 0.18);
+  --fc-accent-ink: #e79bf7;
   --fc-metric-completions: #7a73df;
   --fc-metric-plays: #9a5dec;
 
@@ -62,6 +73,13 @@
 
   --fc-deleted-stripes: repeating-linear-gradient(135deg, #2c313d 0 2px, #1e222c 2px 4px);
   --fc-track: #232733;
+  --fc-media-placeholder: linear-gradient(
+    135deg,
+    rgba(154, 93, 236, 0.22),
+    rgba(216, 92, 242, 0.12)
+  );
+  --fc-chip-bg: rgba(22, 25, 34, 0.85);
+  --fc-chip-text: #e8eaf0;
   --fc-shadow-tooltip: 0 8px 20px -6px rgba(0, 0, 0, 0.6);
   --fc-scrollbar-thumb: rgba(154, 93, 236, 0.45);
 }
