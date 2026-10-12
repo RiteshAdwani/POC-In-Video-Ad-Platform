@@ -1,5 +1,11 @@
 import { theme, type ThemeConfig } from 'antd';
-import { BrandColor, FONT_FAMILY_SANS, ThemeMode } from '../constants/theme.constants';
+import {
+  BrandColor,
+  BrandColorOnDark,
+  FONT_FAMILY_SANS,
+  PILL_BORDER_RADIUS,
+  ThemeMode,
+} from '../constants/theme.constants';
 
 const sharedTokens: ThemeConfig['token'] = {
   colorPrimary: BrandColor.VIOLET,
@@ -32,10 +38,35 @@ const darkTokens: ThemeConfig['token'] = {
 };
 
 /**
+ * @description Per-component overrides for the given mode - pill-shaped Segmented controls with a
+ * violet selection, and flat table headers on the card's own surface (they stick while rows scroll), and
+ * slimmer rows so more of a placements list fits on screen.
+ */
+const getComponentTokens = (mode: ThemeMode): ThemeConfig['components'] => {
+  const isDark = mode === ThemeMode.DARK;
+  return {
+    Segmented: {
+      trackBg: isDark ? '#1D212B' : '#ECEDF2',
+      itemSelectedColor: isDark ? BrandColorOnDark.VIOLET : BrandColor.VIOLET,
+      borderRadius: PILL_BORDER_RADIUS,
+      borderRadiusSM: PILL_BORDER_RADIUS,
+      borderRadiusXS: PILL_BORDER_RADIUS,
+    },
+    Table: {
+      headerBg: isDark ? '#161922' : '#FFFFFF',
+      headerColor: isDark ? '#6E7483' : '#8A8F9C',
+      headerSplitColor: 'transparent',
+      cellPaddingBlock: 10,
+    },
+  };
+};
+
+/**
  * @description antd theme for the given mode - the same brand tokens in both, with antd's dark
  * algorithm and dark neutrals swapped in for dark mode. Mirrors the CSS variables in index.css.
  */
 export const getAntdTheme = (mode: ThemeMode): ThemeConfig => ({
   algorithm: mode === ThemeMode.DARK ? theme.darkAlgorithm : theme.defaultAlgorithm,
   token: { ...sharedTokens, ...(mode === ThemeMode.DARK ? darkTokens : lightTokens) },
+  components: getComponentTokens(mode),
 });

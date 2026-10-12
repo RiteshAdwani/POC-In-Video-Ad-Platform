@@ -189,14 +189,14 @@ export const VideoDetailsPage = () => {
         onClick={() => navigate(backTo)}
         className="video-details-page__back"
       >
-        Back to videos
+        Videos
       </Button>
 
       {isDeleted && <DeletedBanner itemLabel="video" deletedAt={video.deletedAt!} />}
 
-      <VideoPreviewHeader video={video} onEdit={handleOpen} onDelete={handleDelete} />
-
-      <VideoStatsWidget videoId={video.id} />
+      <VideoPreviewHeader video={video} onEdit={handleOpen} onDelete={handleDelete}>
+        <VideoStatsWidget videoId={video.id} />
+      </VideoPreviewHeader>
 
       <AdPlacementsSection
         adPlacements={adPlacementsData?.adPlacements}

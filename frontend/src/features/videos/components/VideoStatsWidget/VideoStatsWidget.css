@@ -1,89 +1,16 @@
-.video-stats-widget {
-  margin-bottom: 24px;
+.video-stats-widget__body.ant-card-body {
+  padding: 0;
 }
 
-.video-stats-widget__tile {
-  /* Icon on the left, label over value beside it, trend/caption on the right - one compact row
-     per stat instead of a tall stack. */
+.video-stats-widget__tiles {
   display: grid;
-  grid-template-columns: auto auto 1fr;
-  grid-template-areas:
-    'icon label extra'
-    'icon value extra';
-  align-items: center;
-  column-gap: 12px;
-  flex: 1 1 220px;
-  min-width: 220px;
-  padding-right: 24px;
-  border-right: 1px solid #e2e8f0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.video-stats-widget__tile:last-child {
-  padding-right: 0;
-  border-right: none;
-}
-
-.video-stats-widget__icon {
-  grid-area: icon;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  font-size: 14px;
-}
-
-.video-stats-widget__icon--plays {
-  background: #eff6ff;
-  color: #2563eb;
-}
-
-.video-stats-widget__icon--finished {
-  background: #ecfdf5;
-  color: #059669;
-}
-
-.video-stats-widget__icon--early {
-  background: #f5f3ff;
-  color: #7c3aed;
-}
-
-.video-stats-widget__label {
-  grid-area: label;
-  font-size: 12px;
-  font-weight: 500;
-  color: #64748b;
-}
-
-.video-stats-widget__value {
-  grid-area: value;
-  font-size: 20px;
-  line-height: 1.2;
-  font-weight: 600;
-  font-family: var(--fc-font-mono);
-  color: #0f172a;
-  font-variant-numeric: tabular-nums;
-}
-
-.video-stats-widget__sparkline {
-  grid-area: extra;
-  justify-self: end;
-  width: 100%;
-  max-width: 160px;
-  height: 32px;
-}
-
-.video-stats-widget__caption {
-  grid-area: extra;
-  justify-self: end;
-  align-self: end;
-  font-size: 12px;
-}
-
-/* A slim empty state, about the height of the stat row it stands in for. */
-.video-stats-widget__empty {
-  margin-block: 0;
+/* A slim empty state, about the height of the tiles it stands in for. */
+.video-stats-widget__empty.ant-empty {
+  margin: 0;
+  padding: 16px 0;
 }
 
 .video-stats-widget__empty .ant-empty-image {

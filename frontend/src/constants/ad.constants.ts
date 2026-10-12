@@ -28,5 +28,4 @@ export const ASSET_TYPE_LABEL: Record<AssetType, string> = {
   [AssetType.VIDEO]: 'Video',
 };
 
-export const DELETE_AD_TOOLTIP = 'Delete ad';
 export const DELETE_AD_BLOCKED_TOOLTIP = 'Remove this ad from every video before deleting it';

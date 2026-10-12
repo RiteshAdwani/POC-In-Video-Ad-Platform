@@ -38,10 +38,9 @@ export const AdPlacementVideosSection = ({ adId, isDeleted }: AdPlacementVideosS
 
   return (
     <Card
-      size="small"
       title={
         <span>
-          Placed on <Text type="secondary">· {totalItems}</Text>
+          Placed on <Text type="secondary">{totalItems}</Text>
         </span>
       }
       className="ad-placement-videos-section"

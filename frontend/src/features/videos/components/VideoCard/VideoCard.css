@@ -1,0 +1,13 @@
+/* Orchid with the cue diamond - the same colour and marker ads have on the dashboard. */
+.video-card__ad-count {
+  background: var(--fc-metric-impressions);
+}
+
+.video-card__ad-count::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: currentColor;
+  transform: rotate(45deg);
+}

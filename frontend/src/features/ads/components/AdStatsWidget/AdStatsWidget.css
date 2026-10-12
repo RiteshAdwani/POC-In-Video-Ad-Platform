@@ -1,94 +1,16 @@
-.ad-stats-widget {
-  margin-bottom: 24px;
+.ad-stats-widget__body.ant-card-body {
+  padding: 0;
 }
 
-.ad-stats-widget__tile {
-  /* Icon on the left, label over value beside it, trend/caption on the right - one compact row
-     per stat instead of a tall stack. */
+.ad-stats-widget__tiles {
   display: grid;
-  grid-template-columns: auto auto 1fr;
-  grid-template-areas:
-    'icon label extra'
-    'icon value extra';
-  align-items: center;
-  column-gap: 12px;
-  flex: 1 1 220px;
-  min-width: 220px;
-  padding-right: 24px;
-  border-right: 1px solid #e2e8f0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.ad-stats-widget__tile:last-child {
-  padding-right: 0;
-  border-right: none;
-}
-
-.ad-stats-widget__icon {
-  grid-area: icon;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  font-size: 14px;
-}
-
-.ad-stats-widget__icon--impressions {
-  background: #eff6ff;
-  color: #2563eb;
-}
-
-.ad-stats-widget__icon--completion {
-  background: #ecfdf5;
-  color: #059669;
-}
-
-.ad-stats-widget__icon--skip {
-  background: #fffbeb;
-  color: #d97706;
-}
-
-.ad-stats-widget__icon--ctr {
-  background: #f5f3ff;
-  color: #7c3aed;
-}
-
-.ad-stats-widget__label {
-  grid-area: label;
-  font-size: 12px;
-  font-weight: 500;
-  color: #64748b;
-}
-
-.ad-stats-widget__value {
-  grid-area: value;
-  font-size: 20px;
-  line-height: 1.2;
-  font-weight: 600;
-  font-family: var(--fc-font-mono);
-  color: #0f172a;
-  font-variant-numeric: tabular-nums;
-}
-
-.ad-stats-widget__sparkline {
-  grid-area: extra;
-  justify-self: end;
-  width: 100%;
-  max-width: 160px;
-  height: 32px;
-}
-
-.ad-stats-widget__caption {
-  grid-area: extra;
-  justify-self: end;
-  align-self: end;
-  font-size: 12px;
-}
-
-/* A slim empty state, about the height of the stat row it stands in for. */
-.ad-stats-widget__empty {
-  margin-block: 0;
+/* A slim empty state, about the height of the tiles it stands in for. */
+.ad-stats-widget__empty.ant-empty {
+  margin: 0;
+  padding: 16px 0;
 }
 
 .ad-stats-widget__empty .ant-empty-image {

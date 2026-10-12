@@ -1,0 +1,6 @@
+.ad-preview-header__click-through {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 500;
+}

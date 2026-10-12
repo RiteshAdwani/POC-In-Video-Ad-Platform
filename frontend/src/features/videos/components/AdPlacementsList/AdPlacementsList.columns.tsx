@@ -1,5 +1,5 @@
 import { Button, Flex, Tooltip, Typography, type TableColumnsType } from 'antd';
-import { DeleteOutlined, EditOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import { AssetType } from '../../../../constants/ad.constants';
 import { PLACEMENT_STATS_WINDOW_DAYS } from '../../../../constants/dashboard.constants';
 import { formatDuration } from '../../../../lib/formatDuration';
@@ -40,14 +40,11 @@ export const getAdPlacementColumns = ({
         const { assetType, assetUrl, title } = adPlacement.advertisement;
         return (
           <Flex align="center" gap={12} className="ad-placements-list__ad">
-            <div className="ad-placements-list__thumb" data-ad-type={adPlacement.adType}>
+            <div className="ad-placements-list__thumb">
               {assetType === AssetType.IMAGE ? (
                 <img src={assetUrl} alt="" className="ad-placements-list__thumb-image" />
               ) : (
-                <>
-                  <VideoThumbnail src={assetUrl} className="ad-placements-list__thumb-image" />
-                  <PlayCircleOutlined className="ad-placements-list__play" />
-                </>
+                <VideoThumbnail src={assetUrl} className="ad-placements-list__thumb-image" />
               )}
             </div>
             <Flex vertical align="flex-start" gap={4} className="ad-placements-list__info">

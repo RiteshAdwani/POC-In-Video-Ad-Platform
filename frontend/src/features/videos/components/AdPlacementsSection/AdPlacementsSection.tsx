@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import { Button, Card, Empty, Spin, Typography } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { VideoStatus } from '../../../../constants/video.constants';
 import {
   DASHBOARD_DATE_FORMAT,
@@ -26,7 +27,7 @@ type AdPlacementsSectionProps = {
 };
 
 /**
- * @description Video details page's ad placements section - a card with a count/manage header
+ * @description Video details page's ad placements section - a card with a count and add-placement header
  * whose body scrolls the placements list (loading the next batch as its bottom comes into view),
  * with a "Showing N of M" footer - or an empty state. Managing placements is disabled until the video is
  * READY, since a placement needs a playable video to preview against. Each row in the list also
@@ -58,16 +59,19 @@ export const AdPlacementsSection = ({
 
   return (
     <Card
-      size="small"
       title={
         <span>
-          Ad placements <Text type="secondary">· {totalItems}</Text>
+          Ad placements <Text type="secondary">{totalItems}</Text>
         </span>
       }
       extra={
         !readOnly && (
-          <Button size="small" disabled={videoStatus !== VideoStatus.READY} onClick={onAdd}>
-            Manage ad placements
+          <Button
+            icon={<PlusOutlined />}
+            disabled={videoStatus !== VideoStatus.READY}
+            onClick={onAdd}
+          >
+            Add placement
           </Button>
         )
       }
