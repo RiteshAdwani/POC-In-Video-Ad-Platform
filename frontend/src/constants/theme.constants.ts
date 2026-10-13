@@ -7,10 +7,6 @@ export type ThemeMode = (typeof ThemeMode)[keyof typeof ThemeMode];
 
 export const THEME_MODE_STORAGE_KEY = 'themeMode';
 
-// Off until every page has been restyled for dark mode - until then the app always renders light
-// and the theme toggle is hidden.
-export const DARK_MODE_ENABLED = false;
-
 // Used only until the admin picks a theme themselves - after that, their choice is stored.
 export const DARK_COLOR_SCHEME_QUERY = '(prefers-color-scheme: dark)';
 

@@ -1,21 +1,21 @@
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Typography } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
 import { usePlaybackConfigQuery } from '../../features/publicPlayer/hooks/usePlaybackConfigQuery';
 import { useVideoPlaybackController } from '../../features/publicPlayer/hooks/useVideoPlaybackController';
 import { AdControls } from '../../features/publicPlayer/components/AdControls/AdControls';
 import { BannerOverlay } from '../../features/publicPlayer/components/BannerOverlay/BannerOverlay';
-import { PlaybackStatusScreen } from '../../features/publicPlayer/components/PlaybackStatusScreen';
+import { PlaybackStatusScreen } from '../../features/publicPlayer/components/PlaybackStatusScreen/PlaybackStatusScreen';
 import { PrePlayOverlay } from '../../features/publicPlayer/components/PrePlayOverlay/PrePlayOverlay';
 import { PlayerControls } from '../../features/publicPlayer/components/PlayerControls/PlayerControls';
 import { VideoStatus } from '../../constants/video.constants';
 import { PlaybackScreenStatus } from '../../constants/playback.constants';
-import { Routes } from '../../constants/routes.constants';
+import { formatDate } from '../../lib/formatDate';
 import { getVideoThumbnailUrl } from '../../lib/videoThumbnail';
+import { AllVideosLink } from '../../features/publicPlayer/components/PublicTopBar/AllVideosLink';
 import { PublicTopBar } from '../../features/publicPlayer/components/PublicTopBar/PublicTopBar';
 import './PublicPlayerPage.css';
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
 /**
  * @description The public, unauthenticated video player - fetches playback config for the
@@ -51,9 +51,7 @@ export const PublicPlayerPage = () => {
   return (
     <div className="player-page">
       <PublicTopBar>
-        <Link to={Routes.HOME} className="player-page__back">
-          <ArrowLeftOutlined /> All videos
-        </Link>
+        <AllVideosLink />
       </PublicTopBar>
 
       <main className="player-page__main">
@@ -120,6 +118,9 @@ export const PublicPlayerPage = () => {
           <Title level={1} className="player-page__title">
             {playbackConfig.title}
           </Title>
+          <Text type="secondary" className="player-page__published">
+            Published {formatDate(playbackConfig.createdAt)}
+          </Text>
           {playbackConfig.description && (
             <Paragraph type="secondary" className="player-page__description">
               {playbackConfig.description}

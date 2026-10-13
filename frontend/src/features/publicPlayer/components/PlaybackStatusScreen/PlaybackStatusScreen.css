@@ -1,0 +1,14 @@
+.playback-status-screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* The message sits in the middle of the space under the top bar. */
+.playback-status-screen__body {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}

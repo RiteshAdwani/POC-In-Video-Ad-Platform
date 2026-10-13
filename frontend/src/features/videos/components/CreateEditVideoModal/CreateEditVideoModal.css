@@ -6,7 +6,7 @@
   height: 160px;
   margin-top: 12px;
   border-radius: 8px;
-  background: #0f172a;
+  background: var(--fc-media-placeholder);
   overflow: hidden;
 }
 
@@ -18,5 +18,5 @@
 
 .create-edit-video-modal__thumbnail-placeholder {
   font-size: 32px;
-  color: #64748b;
+  color: var(--fc-primary);
 }

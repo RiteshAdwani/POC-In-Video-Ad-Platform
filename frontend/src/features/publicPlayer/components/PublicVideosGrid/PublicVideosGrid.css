@@ -36,80 +36,109 @@
 /* ---- Card ---- */
 
 .public-video-card {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  color: inherit;
-}
-
-.public-video-card__thumb {
   position: relative;
-  aspect-ratio: 16 / 9;
-  border-radius: 14px;
+  display: block;
+  min-width: 0;
+  aspect-ratio: 16 / 10;
+  border-radius: 16px;
   overflow: hidden;
   background: var(--fc-media-placeholder);
-  transition: box-shadow 0.2s ease;
+  color: #ffffff;
+  box-shadow: 0 10px 24px -18px rgba(25, 26, 46, 0.5);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
-.public-video-card__thumb > img,
-.public-video-card__thumb > video {
+.public-video-card:hover,
+.public-video-card:focus-visible {
+  color: #ffffff;
+  box-shadow: 0 22px 40px -20px rgba(120, 39, 230, 0.6);
+  transform: translateY(-4px);
+}
+
+.public-video-card:focus-visible {
+  outline: 2px solid var(--fc-primary);
+  outline-offset: 3px;
+}
+
+.public-video-card > img,
+.public-video-card > video {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
-  transition: transform 0.3s ease;
+  transition: transform 0.4s ease;
 }
 
+.public-video-card:hover > img,
+.public-video-card:hover > video {
+  transform: scale(1.06);
+}
+
+/* Darkens toward the bottom so the title reads on any frame; deepens a touch on hover. */
+.public-video-card__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(10, 8, 24, 0.05) 35%, rgba(10, 8, 24, 0.85) 100%);
+  transition: opacity 0.25s ease;
+}
+
+/* Frosted glass at rest, so every tile says "this plays" without shouting; the brand gradient on
+   hover. */
 .public-video-card__play {
   position: absolute;
-  top: 50%;
+  top: 42%;
   left: 50%;
   display: grid;
   place-items: center;
   width: 52px;
   height: 52px;
+  padding-left: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.95);
-  color: #191a2e;
-  font-size: 22px;
-  opacity: 0;
-  transform: translate(-50%, -50%) scale(0.9);
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  font-size: 20px;
+  backdrop-filter: blur(10px);
+  transform: translate(-50%, -50%);
   transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
-}
-
-/* A gap in the page colour, then a violet ring - so the ring reads clearly on any frame. */
-.public-video-card:hover .public-video-card__thumb,
-.public-video-card:focus-visible .public-video-card__thumb {
-  box-shadow:
-    0 0 0 3px var(--fc-canvas),
-    0 0 0 5px var(--fc-primary);
-}
-
-.public-video-card:hover .public-video-card__thumb > img,
-.public-video-card:hover .public-video-card__thumb > video {
-  transform: scale(1.04);
+    transform 0.25s ease,
+    background 0.25s ease,
+    border-color 0.25s ease;
 }
 
 .public-video-card:hover .public-video-card__play,
 .public-video-card:focus-visible .public-video-card__play {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
+  border-color: transparent;
+  background: var(--fc-primary-gradient);
+  box-shadow: var(--fc-primary-glow);
+  transform: translate(-50%, -50%) scale(1.1);
 }
 
-.public-video-card:focus-visible {
-  outline: none;
+.public-video-card__text {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
-.public-video-card__title.ant-typography {
-  margin-top: 12px;
-  font-size: 15px;
+.public-video-card__title {
+  overflow: hidden;
+  font-size: 15.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.public-video-card__date.ant-typography {
-  margin-top: 2px;
-  font-size: 13px;
+.public-video-card__date {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12.5px;
 }
 
 /* ---- Hero ---- */

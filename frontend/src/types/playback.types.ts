@@ -16,6 +16,7 @@ export type PlaybackConfig = {
   title: string;
   description: string | null;
   status: VideoStatus;
+  createdAt: string;
   playbackUrl: string | null;
   ads: PlaybackAd[];
 };

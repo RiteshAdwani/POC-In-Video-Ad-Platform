@@ -8,3 +8,5 @@ export const QueryKeys = {
   PLAYBACK_CONFIG: 'playbackConfig',
   DASHBOARD: 'dashboard',
 } as const;
+
+export type QueryKeys = (typeof QueryKeys)[keyof typeof QueryKeys];

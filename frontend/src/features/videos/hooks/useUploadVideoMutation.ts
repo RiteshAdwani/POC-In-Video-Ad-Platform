@@ -1,7 +1,8 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { axiosInstance } from '../../../api/axiosInstance';
 import { ApiRoutes } from '../../../constants/apiRoutes.constants';
 import { QueryKeys } from '../../../constants/queryKeys.constants';
+import { useInvalidateQueries } from '../../../hooks/useInvalidateQueries';
 import { handleAxiosError } from '../../../lib/axiosError';
 import { handleAxiosSuccess } from '../../../lib/axiosSuccess';
 import type { ApiResponseBody } from '../../../types/apiResponse.types';
@@ -17,14 +18,14 @@ type UploadVideoVariables = {
  * Refetches the video list on success so the new (PROCESSING) row shows up.
  */
 export const useUploadVideoMutation = () => {
-  const queryClient = useQueryClient();
+  const invalidateQueries = useInvalidateQueries();
 
   return useMutation({
     mutationKey: [QueryKeys.VIDEOS],
     mutationFn: ({ formData }: UploadVideoVariables) =>
       axiosInstance.post<ApiResponseBody<VideoResponseDto>>(ApiRoutes.createVideo(), formData),
     onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: [QueryKeys.VIDEOS] });
+      invalidateQueries([QueryKeys.VIDEOS]);
       handleAxiosSuccess(response);
     },
     onError: handleAxiosError,

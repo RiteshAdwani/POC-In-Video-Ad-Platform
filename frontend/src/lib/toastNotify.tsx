@@ -10,9 +10,9 @@ type ToastType = 'success' | 'error' | 'warning' | 'info';
 // Colors match the tokens in theme/antdTheme.ts (colorSuccess/colorError/colorPrimary) - kept as
 // literals here since react-hot-toast renders outside antd's ConfigProvider/theme context.
 const TOAST_ICONS: Record<ToastType, ReactElement> = {
-  success: <CheckCircleTwoTone twoToneColor={['#ffffff', '#16a34a']} />,
-  error: <CloseCircleTwoTone twoToneColor={['#ffffff', '#dc2626']} />,
-  info: <InfoCircleTwoTone twoToneColor={['#ffffff', '#0369a1']} />,
+  success: <CheckCircleTwoTone twoToneColor={['#ffffff', '#1f9d55']} />,
+  error: <CloseCircleTwoTone twoToneColor={['#ffffff', '#d64545']} />,
+  info: <InfoCircleTwoTone twoToneColor={['#ffffff', '#7827e6']} />,
   warning: <ExclamationCircleTwoTone twoToneColor={['#ffffff', '#d97706']} />,
 };
 
