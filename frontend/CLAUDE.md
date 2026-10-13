@@ -116,9 +116,10 @@ memoization adds noise without a measurable benefit.
 - Query keys are a flat `QueryKeys` const object in `constants/queryKeys.constants.ts` holding just
   the base segments (e.g. `QueryKeys.PLAYBACK_CONFIG`) — a hook builds the full key inline
   (`[QueryKeys.PLAYBACK_CONFIG, videoId]`), not a factory function per key.
-- After a mutation succeeds, invalidate the query keys it affects via
-  `queryClient.invalidateQueries` in `onSuccess` — don't manually patch cached data or duplicate
-  server state into local component state.
+- After a mutation succeeds, invalidate the query keys it affects in `onSuccess` through
+  `useInvalidateQueries` (`hooks/`), passing `QueryKeys` segments — it marks stale every query
+  whose key contains one. Don't manually patch cached data or duplicate server state into local
+  component state.
 - Errors: every mutation's `onError` calls `handleAxiosError(error)` (`lib/axiosError.ts`) to toast
   the backend's message — deliberately explicit per mutation, not a global axios interceptor,
   since TanStack Query mutations don't retry by default (unlike queries' default 3 retries), so

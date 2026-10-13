@@ -1,7 +1,8 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { axiosInstance } from '../../../api/axiosInstance';
 import { ApiRoutes } from '../../../constants/apiRoutes.constants';
 import { QueryKeys } from '../../../constants/queryKeys.constants';
+import { useInvalidateQueries } from '../../../hooks/useInvalidateQueries';
 import { handleAxiosError } from '../../../lib/axiosError';
 import { handleAxiosSuccess } from '../../../lib/axiosSuccess';
 import type { ApiResponseBody } from '../../../types/apiResponse.types';
@@ -16,7 +17,7 @@ import type {
  * placements list itself).
  */
 export const useUpdateAdPlacementMutation = (videoId: string) => {
-  const queryClient = useQueryClient();
+  const invalidateQueries = useInvalidateQueries();
 
   return useMutation({
     mutationKey: [QueryKeys.AD_PLACEMENTS, videoId],
@@ -26,7 +27,7 @@ export const useUpdateAdPlacementMutation = (videoId: string) => {
         data,
       ),
     onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: [QueryKeys.AD_PLACEMENTS, videoId] });
+      invalidateQueries([QueryKeys.AD_PLACEMENTS]);
       handleAxiosSuccess(response);
     },
     onError: handleAxiosError,

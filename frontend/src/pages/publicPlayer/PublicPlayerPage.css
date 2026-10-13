@@ -2,18 +2,6 @@
   min-height: 100%;
 }
 
-.player-page__back {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--fc-text-muted);
-  font-weight: 500;
-}
-
-.player-page__back:hover {
-  color: var(--fc-text);
-}
-
 /* As wide as fits, but never so tall that the title below drops out of view on a laptop screen -
    the 16:9 player's width follows the space left under the top bar. */
 .player-page__main {
@@ -44,14 +32,19 @@
 }
 
 .player-page__title.ant-typography {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   font-size: 28px;
   letter-spacing: -0.02em;
 }
 
+.player-page__published.ant-typography {
+  display: block;
+  font-size: 13.5px;
+}
+
 .player-page__description.ant-typography {
   max-width: 760px;
-  margin: 0;
+  margin: 12px 0 0;
   line-height: 1.6;
 }
 
@@ -110,14 +103,20 @@
   font-weight: 500;
 }
 
-.player-page__ad-button--visit.ant-btn {
-  background: #ffffff;
-  color: #191a2e;
+/* Frosted glass over the video, the same in both themes - it belongs to the player, not the page.
+   The :not(:disabled) matches antd's own hover selector, so its theme colours never win. */
+.player-page__ad-button--visit.ant-btn,
+.player-page__ad-button--visit.ant-btn:not(:disabled):hover,
+.player-page__ad-button--visit.ant-btn:not(:disabled):active {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(15, 16, 24, 0.55);
+  color: #ffffff;
+  backdrop-filter: blur(8px);
 }
 
-.player-page__ad-button--visit.ant-btn:hover {
-  background: #f2eefe;
-  color: #191a2e;
+.player-page__ad-button--visit.ant-btn:not(:disabled):hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(15, 16, 24, 0.75);
 }
 
 /* Counting down to skippable - frosted and inert, not a greyed-out button. */

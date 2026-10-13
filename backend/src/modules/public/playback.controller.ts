@@ -37,6 +37,8 @@ export const getPlaybackConfig: RequestHandler = async (req, res) => {
       title: video.title,
       description: video.description,
       status: video.status,
+      // Shown to viewers as the published date under the title.
+      createdAt: video.createdAt,
       playbackUrl: isReady ? video.playbackUrl : null,
       ads: isReady
         ? video.adPlacements.map((adPlacement) => ({

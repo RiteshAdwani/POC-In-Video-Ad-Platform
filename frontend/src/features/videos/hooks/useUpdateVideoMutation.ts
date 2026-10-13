@@ -1,7 +1,8 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { axiosInstance } from '../../../api/axiosInstance';
 import { ApiRoutes } from '../../../constants/apiRoutes.constants';
 import { QueryKeys } from '../../../constants/queryKeys.constants';
+import { useInvalidateQueries } from '../../../hooks/useInvalidateQueries';
 import { handleAxiosError } from '../../../lib/axiosError';
 import { handleAxiosSuccess } from '../../../lib/axiosSuccess';
 import type { ApiResponseBody } from '../../../types/apiResponse.types';
@@ -12,14 +13,14 @@ import type { UpdateVideoRequestDto, VideoResponseDto } from '../../../dtos/vide
  * Refetches both the list and this video's own details on success.
  */
 export const useUpdateVideoMutation = () => {
-  const queryClient = useQueryClient();
+  const invalidateQueries = useInvalidateQueries();
 
   return useMutation({
     mutationKey: [QueryKeys.VIDEOS],
     mutationFn: ({ id, data }: { id: string; data: UpdateVideoRequestDto }) =>
       axiosInstance.patch<ApiResponseBody<VideoResponseDto>>(ApiRoutes.updateVideo(id), data),
     onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: [QueryKeys.VIDEOS] });
+      invalidateQueries([QueryKeys.VIDEOS]);
       handleAxiosSuccess(response);
     },
     onError: handleAxiosError,

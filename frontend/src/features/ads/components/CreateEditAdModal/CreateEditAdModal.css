@@ -8,7 +8,7 @@
   margin-bottom: 24px;
   border-radius: 8px;
   overflow: hidden;
-  background: #0f172a;
+  background: var(--fc-media-placeholder);
 }
 
 .create-edit-ad-modal__preview img {

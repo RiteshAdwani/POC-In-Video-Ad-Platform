@@ -1,7 +1,8 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { axiosInstance } from '../../../api/axiosInstance';
 import { ApiRoutes } from '../../../constants/apiRoutes.constants';
 import { QueryKeys } from '../../../constants/queryKeys.constants';
+import { useInvalidateQueries } from '../../../hooks/useInvalidateQueries';
 import { handleAxiosError } from '../../../lib/axiosError';
 import { handleAxiosSuccess } from '../../../lib/axiosSuccess';
 import type { ApiResponseBody } from '../../../types/apiResponse.types';
@@ -14,13 +15,13 @@ import type { ApiResponseBody } from '../../../types/apiResponse.types';
  * now-broken data on screen.
  */
 export const useDeleteAdMutation = () => {
-  const queryClient = useQueryClient();
+  const invalidateQueries = useInvalidateQueries();
 
   return useMutation({
     mutationKey: [QueryKeys.ADS],
     mutationFn: (id: string) => axiosInstance.delete<ApiResponseBody<null>>(ApiRoutes.deleteAd(id)),
     onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: [QueryKeys.ADS] });
+      invalidateQueries([QueryKeys.ADS]);
       handleAxiosSuccess(response);
     },
     onError: handleAxiosError,
