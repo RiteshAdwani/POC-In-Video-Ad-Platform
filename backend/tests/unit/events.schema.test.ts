@@ -6,13 +6,11 @@ import {
   MAX_OCCURRED_AT_PAST_MS,
   MAX_SESSION_ID_LENGTH,
 } from '../../src/constants/events.constants';
-
-const VIDEO_ID = '11111111-1111-4111-8111-111111111111';
-const AD_ID = '22222222-2222-4222-8222-222222222222';
+import { TEST_AD_ID, TEST_SESSION_ID, TEST_VIDEO_ID } from '../helpers/test.constants';
 
 const baseEvent = {
-  videoId: VIDEO_ID,
-  sessionId: 'a-session-id',
+  videoId: TEST_VIDEO_ID,
+  sessionId: TEST_SESSION_ID,
   occurredAt: new Date().toISOString(),
 };
 
@@ -29,7 +27,7 @@ describe('recordPlaybackEventSchema', () => {
     const result = recordPlaybackEventSchema.safeParse({
       ...baseEvent,
       eventType: PlaybackEventType.AD_SHOWN,
-      adId: AD_ID,
+      adId: TEST_AD_ID,
     });
     expect(result.success).toBe(true);
   });
@@ -49,7 +47,7 @@ describe('recordPlaybackEventSchema', () => {
     const result = recordPlaybackEventSchema.safeParse({
       ...baseEvent,
       eventType: PlaybackEventType.VIDEO_FINISHED,
-      adId: AD_ID,
+      adId: TEST_AD_ID,
     });
     expect(result.success).toBe(false);
     if (!result.success) {

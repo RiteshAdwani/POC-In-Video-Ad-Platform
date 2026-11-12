@@ -53,7 +53,9 @@ genuinely been watched). Neither is about duplicates — they're about the raw l
 trustworthy source of _facts_, which the dedup constraint alone doesn't guarantee.
 
 **Point at:** [ARCHITECTURE.md's dedup constraint section](ARCHITECTURE.md#the-dedup-constraint-the-actual-center-of-gravity-of-this-poc)
-for the exact schema lines.
+for the exact schema lines, and `backend/tests/integration/events.dedup.test.ts` for the proof: the
+same event posted twice, re-stamped, and 10× concurrently each leave one row and a dashboard count
+of one — and those tests fail if the unique indexes are dropped.
 
 ---
 
@@ -153,7 +155,8 @@ per-resource admin route runs `requireOwnership` after `requireAuth`. A mismatch
 not 403** — deliberately, so a guessing admin can't distinguish "this id doesn't exist" from
 "this id exists but isn't yours," which a 403 would leak.
 
-**Point at:** `backend/src/middleware/requireOwnership.ts` (~20 lines, the whole mechanism).
+**Point at:** `backend/src/middleware/requireOwnership.ts` (~20 lines, the whole mechanism), and
+`backend/tests/integration/authorization.test.ts`, which tries every admin route as a second admin.
 
 ---
 
@@ -255,12 +258,6 @@ WAF).
 
 Honest, not swept under the rug — things the original brief calls for that aren't done yet:
 
-- **No integration tests for the API yet.** The backend suite covers the pure rules (placement
-  constraints, event schema, dashboard stats) and the test-database harness, but not yet the test
-  in-video-ad-platform.md's section 6 explicitly calls for, "POST the same event twice, assert
-  exactly one row exists," nor cross-admin ownership. Those behaviours were verified **manually**,
-  live, during development (Playwright-driven browser sessions, direct `curl` against the running
-  API).
 - **No fake `VideoHostingService` implementation for deterministic failure-mode tests**
   (in-video-ad-platform.md's section 6 asks for this specifically, to prove upload-slow/error/
   unavailable behavior on demand rather than trusting a real third party to fail when you need it

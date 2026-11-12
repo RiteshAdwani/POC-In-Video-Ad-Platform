@@ -315,21 +315,25 @@ Graceful shutdown on `SIGTERM`/`SIGINT`: clears both intervals, lets in-flight r
 Vitest + Supertest, run with `npm test`. `unit/` covers pure functions; `integration/` runs against
 a real Postgres:
 
-- **Test database** — `tests/support/globalSetup.ts` creates `<POSTGRES_DB>_test` on the same
+- **Test database** — `tests/setup/globalSetup.ts` creates `<POSTGRES_DB>_test` on the same
   server if it's missing and runs `prisma migrate deploy` on it, once per run; `setupEnv.ts` points
   `DATABASE_URL` there. Each integration file calls `resetDatabaseBeforeEachTest()`, which empties
   every table except Prisma's migration history before each test, reading the table list from the
   schema. Files run one at a time, since they share the DB.
-- **Factories** (`tests/support/factories.ts`) insert admins, videos, ads, placements and raw
+- **Factories** (`tests/helpers/factories.ts`) insert admins, videos, ads, placements and raw
   events directly, and `authHeaderFor(admin)` signs a real token — no login round trip.
 - **Logging** is silent under `NODE_ENV=test`, so test output shows only results.
 
-| File                                   | Proves                                                                        |
-| -------------------------------------- | ----------------------------------------------------------------------------- |
-| `unit/adPlacements.validators.test.ts` | Placement rules for every ad type: asset kind, offsets, durations, skip point |
-| `unit/events.schema.test.ts`           | Event payload shape: ad-scoped `adId`, session id bounds, clock-skew bounds   |
-| `unit/dashboard.stats.test.ts`         | Stat derivation, missing event types, and every rate's zero-denominator guard |
-| `integration/testDatabase.test.ts`     | Tests hit the `_test` database, migrations are applied, tables start empty    |
+| File                                   | Proves                                                                                                                |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `unit/adPlacements.validators.test.ts` | Placement rules for every ad type: asset kind, offsets, durations, skip point                                         |
+| `unit/events.schema.test.ts`           | Event payload shape: ad-scoped `adId`, session id bounds, clock-skew bounds                                           |
+| `unit/dashboard.stats.test.ts`         | Stat derivation, missing event types, and every rate's zero-denominator guard                                         |
+| `integration/testDatabase.test.ts`     | Tests hit the `_test` database, migrations are applied, tables start empty                                            |
+| `integration/events.dedup.test.ts`     | The same event sent twice, re-stamped, or 10× concurrently is stored and counted once; distinct events are kept apart |
+| `integration/events.ingestion.test.ts` | Out-of-order events are accepted; invalid ones are rejected and never stored                                          |
+| `integration/aggregation.test.ts`      | Day recounts are idempotent, late arrivals are picked up, the dashboard reads from `DailyCount`                       |
+| `integration/authorization.test.ts`    | 401 without a valid token; 404 on every other admin's video, ad, placement and stats, with rows unchanged             |
 
 ---
 

@@ -114,3 +114,13 @@ export const createPlaybackEvent = (
       ...overrides,
     },
   });
+
+/**
+ * @description An admin's READY video with one ad placement - everything an event or count needs.
+ */
+export const createVideoWithAdPlacement = async () => {
+  const admin = await createAdmin();
+  const video = await createVideo(admin);
+  const adPlacement = await createAdPlacement(video, await createAdvertisement(admin));
+  return { admin, video, adPlacement };
+};
