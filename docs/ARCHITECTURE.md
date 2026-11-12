@@ -284,7 +284,7 @@ placement of one owned advertisement, on any video — the per-ad view an ad's o
   clicks, plays, video completions). Retired items stay in the totals — they really happened —
   and this just says how much of each total they account for.
 
-Both get pivoted by the same function (`extractDashboardStats`) into named metrics (`impressions`,
+Both get pivoted by the same pure function (`extractDashboardStats` in `dashboard.stats.ts`) into named metrics (`impressions`,
 `completions`, `skips`, `clicks`, `videoViews`, `videoCompletions`) plus derived
 `completionRate`/`skipRate`/`ctr`/`videoCompletionRate` — each guarded against divide-by-zero
 (returns `0`, not `NaN`, with no impressions/views yet).
@@ -309,6 +309,27 @@ Graceful shutdown on `SIGTERM`/`SIGINT`: clears both intervals, lets in-flight r
 - **Opt-in DNS workaround**: if `DNS_FALLBACK_SERVERS` is set, a custom `https.Agent` routes
   hostname resolution through explicit DNS servers instead of the OS resolver — for machines whose
   configured resolver is unreliable specifically for Node's connection path. Unset by default.
+
+### Automated tests (`backend/tests/`)
+
+Vitest + Supertest, run with `npm test`. `unit/` covers pure functions; `integration/` runs against
+a real Postgres:
+
+- **Test database** — `tests/support/globalSetup.ts` creates `<POSTGRES_DB>_test` on the same
+  server if it's missing and runs `prisma migrate deploy` on it, once per run; `setupEnv.ts` points
+  `DATABASE_URL` there. Each integration file calls `resetDatabaseBeforeEachTest()`, which empties
+  every table except Prisma's migration history before each test, reading the table list from the
+  schema. Files run one at a time, since they share the DB.
+- **Factories** (`tests/support/factories.ts`) insert admins, videos, ads, placements and raw
+  events directly, and `authHeaderFor(admin)` signs a real token — no login round trip.
+- **Logging** is silent under `NODE_ENV=test`, so test output shows only results.
+
+| File                                   | Proves                                                                        |
+| -------------------------------------- | ----------------------------------------------------------------------------- |
+| `unit/adPlacements.validators.test.ts` | Placement rules for every ad type: asset kind, offsets, durations, skip point |
+| `unit/events.schema.test.ts`           | Event payload shape: ad-scoped `adId`, session id bounds, clock-skew bounds   |
+| `unit/dashboard.stats.test.ts`         | Stat derivation, missing event types, and every rate's zero-denominator guard |
+| `integration/testDatabase.test.ts`     | Tests hit the `_test` database, migrations are applied, tables start empty    |
 
 ---
 

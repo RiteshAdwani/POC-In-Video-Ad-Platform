@@ -255,12 +255,12 @@ WAF).
 
 Honest, not swept under the rug — things the original brief calls for that aren't done yet:
 
-- **No automated test suite exists.** `backend/package.json` has `vitest` wired (`npm run test`),
-  but there are currently no `*.test.ts` files in the repo — including the test in-video-ad-platform.md's
-  section 6 explicitly calls for, "POST the same event twice, assert exactly one row exists," the
-  single most important test this POC calls for. Everything described in this doc as "verified" was
-  verified **manually**, live, during development (Playwright-driven browser sessions, direct
-  `curl` against the running API) — real proof, but not a regression-proof automated suite.
+- **No integration tests for the API yet.** The backend suite covers the pure rules (placement
+  constraints, event schema, dashboard stats) and the test-database harness, but not yet the test
+  in-video-ad-platform.md's section 6 explicitly calls for, "POST the same event twice, assert
+  exactly one row exists," nor cross-admin ownership. Those behaviours were verified **manually**,
+  live, during development (Playwright-driven browser sessions, direct `curl` against the running
+  API).
 - **No fake `VideoHostingService` implementation for deterministic failure-mode tests**
   (in-video-ad-platform.md's section 6 asks for this specifically, to prove upload-slow/error/
   unavailable behavior on demand rather than trusting a real third party to fail when you need it

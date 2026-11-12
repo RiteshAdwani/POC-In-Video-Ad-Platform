@@ -113,6 +113,16 @@ npm run dev:frontend   # vite dev server, port 5173, proxies /api to :8000
 
 `npm run typecheck` / `npm run lint` run across both workspaces from the repo root.
 
+## Running the tests
+
+```bash
+docker compose up -d postgres   # the tests need the Postgres container running
+npm test                        # backend tests (Vitest)
+```
+
+The tests use their own `<POSTGRES_DB>_test` database on the same server — created and migrated
+automatically on each run, and emptied before every test, so your dev data is never touched.
+
 ## Documentation map
 
 | Doc                                                                                          | What's in it                                                                                                                   |
