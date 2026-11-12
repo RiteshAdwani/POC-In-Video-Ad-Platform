@@ -9,5 +9,9 @@ build/
 coverage/
 .vscode/*
 !.vscode/extensions.json
-requirements.md
-build-plan.md
+# Personal planning notes
+docs/phase-1/requirements.md
+docs/phase-1/build-plan.md
+docs/phase-2/fullstack-201-feature-list.md
+docs/phase-2/fullstack-201-tasks.md
+docs/phase-2/fullstack-201-zoho-tasks.md
