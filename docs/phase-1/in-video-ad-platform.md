@@ -25,14 +25,15 @@ just a `COUNT(*)` that happens to work in the demo.
 
 ## 2. Actors
 
-| Role | Can do |
-|---|---|
-| **Admin** | Upload videos, attach/edit/remove ads on a video, view the impressions/completion/CTR dashboard |
-| **Public player** *(unauthenticated by design)* | Fetch a video's playback configuration, submit playback events for that video; cannot create, edit, or delete anything |
+| Role                                            | Can do                                                                                                                 |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Admin**                                       | Upload videos, attach/edit/remove ads on a video, view the impressions/completion/CTR dashboard                        |
+| **Public player** _(unauthenticated by design)_ | Fetch a video's playback configuration, submit playback events for that video; cannot create, edit, or delete anything |
 
 ## 3. Functional requirements
 
 ### 3.1 Video upload
+
 - An admin uploads a video, which is handed off to the third-party video hosting/streaming
   service for storage and transcoding; your system stores the metadata and whatever reference
   (ID, playback URL) that service hands back.
@@ -40,17 +41,20 @@ just a `COUNT(*)` that happens to work in the demo.
   in progress — a video shouldn't appear playable before it actually is.
 
 ### 3.2 Attaching ads
+
 - A video can have one or more ads attached to it. Each ad has a type (e.g. pre-roll, mid-roll,
   banner overlay — your choice, document it) and a playback position within the video.
 - Ads can be added, edited, or removed by an admin independent of the video itself.
 
 ### 3.3 Serving playback configuration
+
 - The public player requests a video and receives it together with its full ad configuration —
   every ad and the position it should appear at.
 - The player can read this configuration but must never be able to alter it — there is no write
   path from the player into ad or video configuration, only into playback events (§3.4).
 
 ### 3.4 Recording playback events
+
 - As playback happens, the player reports events: video started, ad shown, ad skipped, ad
   completed, video finished.
 - **The same event for the same playback must never be counted twice.** This is the core hard
@@ -58,6 +62,7 @@ just a `COUNT(*)` that happens to work in the demo.
   none of that should be able to inflate a count.
 
 ### 3.5 Deriving daily counts
+
 - Daily counts per video and per ad (impressions, completions, skips) are derived from the raw
   event log — they are never edited directly by any code path.
 - Decide whether these are computed on read or aggregated ahead of time on a schedule, and be
@@ -65,6 +70,7 @@ just a `COUNT(*)` that happens to work in the demo.
   in progress.
 
 ### 3.6 Dashboard
+
 - An admin-facing dashboard shows impressions, completion rate, and click-through rate, all
   filterable by date range.
 - The dashboard reads from the derived counts (§3.5), not by re-scanning the full event log on
@@ -124,6 +130,7 @@ spirit during the walkthrough.
 ## 8. If you finish early (optional)
 
 Don't add new features — deepen what's here:
+
 - Simulate a burst of duplicate and out-of-order events for the same playback session and show
   your aggregation still lands on the correct counts.
 - Add a second dashboard breakdown (by ad type, or by video) and show it doesn't require a

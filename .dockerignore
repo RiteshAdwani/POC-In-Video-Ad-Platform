@@ -5,6 +5,4 @@ backend/src/generated
 .git
 .env
 *.log
-in-video-ad-platform.md
-requirements.md
-build-plan.md
+docs/

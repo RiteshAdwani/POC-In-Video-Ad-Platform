@@ -15,7 +15,7 @@ second look.
 This POC's center of gravity is **event integrity** — the same playback event arriving twice must
 never be counted twice, and the daily numbers on the dashboard have to be a real, defensible
 aggregate derived from a raw event log, not a `COUNT(*)` that happens to work in a demo. See
-[in-video-ad-platform.md](in-video-ad-platform.md) for the original problem brief this was built
+[in-video-ad-platform.md](docs/phase-1/in-video-ad-platform.md) for the original problem brief this was built
 against.
 
 ## What it actually does
@@ -51,9 +51,9 @@ Browser ──▶ static frontend (React SPA)
 The browser calls the backend directly, with CORS allowing the frontend's origin.
 
 The full data model, request flows, and module-by-module breakdown live in
-**[ARCHITECTURE.md](ARCHITECTURE.md)**. The reasoning behind every non-obvious choice — the
+**[ARCHITECTURE.md](docs/ARCHITECTURE.md)**. The reasoning behind every non-obvious choice — the
 event-dedup mechanism, session identity, aggregation strategy, ownership scoping, and more —
-lives in **[DECISIONS.md](DECISIONS.md)**, organized around exactly what the original spec says
+lives in **[DECISIONS.md](docs/DECISIONS.md)**, organized around exactly what the original spec says
 this POC is graded on.
 
 ## Quick start
@@ -115,9 +115,11 @@ npm run dev:frontend   # vite dev server, port 5173, proxies /api to :8000
 
 ## Documentation map
 
-| Doc                                                | What's in it                                                                                                                   |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| [README.md](README.md)                             | You are here — quick start, high-level overview                                                                                |
-| [ARCHITECTURE.md](ARCHITECTURE.md)                 | Data model, backend modules, frontend structure, key flows (upload pipeline, ad playback engine, event ingestion, aggregation) |
-| [DECISIONS.md](DECISIONS.md)                       | Why each non-obvious design choice was made — organized around what this POC is actually graded on, plus known gaps            |
-| [in-video-ad-platform.md](in-video-ad-platform.md) | The original problem brief, unmodified                                                                                         |
+| Doc                                                                                          | What's in it                                                                                                                   |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| [README.md](README.md)                                                                       | You are here — quick start, high-level overview                                                                                |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)                                                 | Data model, backend modules, frontend structure, key flows (upload pipeline, ad playback engine, event ingestion, aggregation) |
+| [docs/DECISIONS.md](docs/DECISIONS.md)                                                       | Why each non-obvious design choice was made — organized around what this POC is actually graded on, plus known gaps            |
+| [docs/phase-1/in-video-ad-platform.md](docs/phase-1/in-video-ad-platform.md)                 | The original problem brief, unmodified                                                                                         |
+| [docs/phase-2/React-to-Fullstack-201.md](docs/phase-2/React-to-Fullstack-201.md)             | The 201 learning path this project is being extended for                                                                       |
+| [docs/phase-2/fullstack-201-expansion-plan.md](docs/phase-2/fullstack-201-expansion-plan.md) | How FrameCue grows to cover the 201 syllabus, phase by phase                                                                   |

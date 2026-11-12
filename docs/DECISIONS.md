@@ -2,7 +2,7 @@
 
 The "why," not the "what" — [ARCHITECTURE.md](ARCHITECTURE.md) covers the shape of the system;
 this doc covers the reasoning behind every choice that isn't self-evident, organized around what
-[in-video-ad-platform.md](in-video-ad-platform.md) requirements actually grade this POC on. Each section
+[in-video-ad-platform.md](phase-1/in-video-ad-platform.md) requirements actually grade this POC on. Each section
 ends with what to point at if this exact thing gets probed in a walkthrough.
 
 ## Contents

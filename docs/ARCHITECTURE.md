@@ -1,6 +1,6 @@
 # Architecture
 
-Companion to [README.md](README.md) (overview/setup) and [DECISIONS.md](DECISIONS.md) (why, not
+Companion to [README.md](../README.md) (overview/setup) and [DECISIONS.md](DECISIONS.md) (why, not
 what). This doc is the "what" — the actual shape of the system.
 
 ## Contents
