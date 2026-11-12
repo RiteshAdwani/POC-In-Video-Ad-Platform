@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { Client } from 'pg';
 import { getTestDatabaseUrl } from './testDatabase';
-import { PRISMA_CLI_ENTRY, PRISMA_MIGRATE_DEPLOY_ARGS } from './test.constants';
+import { TEST_PRISMA_CLI_ENTRY, TEST_MIGRATE_DEPLOY_ARGS } from '../helpers/test.constants';
 
 /**
  * @description Runs once before the whole suite: creates the test database if it doesn't exist
@@ -30,7 +30,7 @@ const setupTestDatabase = async () => {
 
   execFileSync(
     process.execPath,
-    [require.resolve(PRISMA_CLI_ENTRY), ...PRISMA_MIGRATE_DEPLOY_ARGS],
+    [require.resolve(TEST_PRISMA_CLI_ENTRY), ...TEST_MIGRATE_DEPLOY_ARGS],
     {
       cwd: path.resolve(__dirname, '../..'),
       env: { ...process.env, DATABASE_URL: testDatabaseUrl },

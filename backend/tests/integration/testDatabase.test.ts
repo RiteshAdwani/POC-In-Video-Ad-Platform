@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { prisma } from '../../src/lib/prisma';
-import { createAdmin, createVideo } from '../support/factories';
-import { resetDatabaseBeforeEachTest } from '../support/resetDatabaseBeforeEachTest';
-import { TEST_DATABASE_SUFFIX } from '../support/test.constants';
-
-resetDatabaseBeforeEachTest();
+import { createAdmin, createVideo } from '../helpers/factories';
+import { resetDatabaseBeforeEachTest } from '../setup/resetDatabaseBeforeEachTest';
+import { TEST_DATABASE_SUFFIX } from '../helpers/test.constants';
 
 describe('test database harness', () => {
+  resetDatabaseBeforeEachTest();
+
   it('connects to the dedicated test database, never the dev one', async () => {
     const [{ current_database: databaseName }] = await prisma.$queryRaw<
       { current_database: string }[]

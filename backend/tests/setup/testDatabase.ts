@@ -1,6 +1,6 @@
 import path from 'node:path';
 import dotenv from 'dotenv';
-import { TEST_DATABASE_SUFFIX } from './test.constants';
+import { TEST_DATABASE_SUFFIX } from '../helpers/test.constants';
 
 /**
  * @description The dev DATABASE_URL from the root .env, pointed at a sibling `<name>_test`

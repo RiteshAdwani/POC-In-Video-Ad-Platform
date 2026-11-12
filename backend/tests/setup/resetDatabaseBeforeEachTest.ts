@@ -1,10 +1,10 @@
 import { afterAll, beforeAll, beforeEach } from 'vitest';
 import { prisma } from '../../src/lib/prisma';
-import { APP_SCHEMA, PRISMA_MIGRATIONS_TABLE } from './test.constants';
+import { TEST_DATABASE_SCHEMA, TEST_MIGRATIONS_TABLE } from '../helpers/test.constants';
 
 /**
- * @description Call at the top of an integration test file: every test starts from empty tables,
- * and the connection pool closes once the file is done.
+ * @description Call first inside an integration file's describe block: every test starts from
+ * empty tables, and the connection pool closes once the file is done.
  */
 export const resetDatabaseBeforeEachTest = () => {
   let truncateStatement = '';
@@ -13,8 +13,10 @@ export const resetDatabaseBeforeEachTest = () => {
   beforeAll(async () => {
     const tables = await prisma.$queryRaw<{ tablename: string }[]>`
       SELECT tablename FROM pg_tables
-      WHERE schemaname = ${APP_SCHEMA} AND tablename <> ${PRISMA_MIGRATIONS_TABLE}`;
-    const tableList = tables.map(({ tablename }) => `"${APP_SCHEMA}"."${tablename}"`).join(', ');
+      WHERE schemaname = ${TEST_DATABASE_SCHEMA} AND tablename <> ${TEST_MIGRATIONS_TABLE}`;
+    const tableList = tables
+      .map(({ tablename }) => `"${TEST_DATABASE_SCHEMA}"."${tablename}"`)
+      .join(', ');
     truncateStatement = `TRUNCATE TABLE ${tableList} CASCADE`;
   });
 
