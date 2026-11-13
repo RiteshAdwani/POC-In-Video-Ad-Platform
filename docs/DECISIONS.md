@@ -224,6 +224,17 @@ than assumed away: a transient poll failure doesn't fail the video (retried with
 genuine Cloudinary error or exceeding a max processing age does, and the admin sees a `failed`
 video with a real audit trail rather than a silently stuck one.
 
+Cloudinary sits behind a `VideoHostingService` interface, with a second, deterministic fake
+implementation selected by `VIDEO_HOSTING_PROVIDER=fake`. You can't make a real third party be
+slow or fail on demand, so the failure-mode tests script the fake instead: an upload that errors
+or can't connect answers `502` and leaves a `FAILED` row; a slow upload just waits, and no row
+exists until the host answers; failing status checks keep the video `PROCESSING` (the player sees
+"still processing," never an error) until either the host recovers or the 30-minute max age
+turns it `FAILED`.
+
+**Point at:** `backend/src/types/videoHosting.types.ts`, `backend/src/lib/fakeVideoHosting.ts`,
+`backend/tests/integration/videoHosting.*.test.ts`.
+
 ## Indexing for dashboard volume
 
 The dashboard never queries raw `PlaybackEvent` — every read goes through `DailyCount`, whose
@@ -258,10 +269,10 @@ WAF).
 
 Honest, not swept under the rug — things the original brief calls for that aren't done yet:
 
-- **No fake `VideoHostingService` implementation for deterministic failure-mode tests**
-  (in-video-ad-platform.md's section 6 asks for this specifically, to prove upload-slow/error/
-  unavailable behavior on demand rather than trusting a real third party to fail when you need it
-  to).
+- **No frontend tests.** The automated suite covers the backend only; the player's ad scheduling
+  and the admin UI were verified manually in the browser.
+- **The video poller's loop itself isn't under test** — `checkAndUpdateVideoStatus`, which every
+  poll calls, is; the interval and backoff scheduling around it are not.
 - **Section 8 of in-video-ad-platform.md (optional stretch goals)** — duplicate/out-of-order burst
   simulation, a second dashboard breakdown by ad type, a million-row load test — not attempted,
   since the brief itself marks this section optional.

@@ -1,7 +1,7 @@
 import type { RequestHandler } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { prisma } from '../../lib/prisma';
-import { initiateVideoUpload, deleteVideoResource } from '../../lib/cloudinary';
+import { videoHosting } from '../../lib/videoHosting';
 import type { Video } from '../../generated/prisma/client.js';
 import { VideoStatus } from '../../generated/prisma/client.js';
 import { UpstreamServiceError, ValidationError } from '../../errors/AppError';
@@ -19,7 +19,7 @@ const WITH_AD_PLACEMENT_COUNT = {
 } as const;
 
 /**
- * @description Uploads a video: streams it to Cloudinary and persists the resulting row.
+ * @description Uploads a video: hands it to the video host and persists the resulting row.
  */
 export const uploadVideo: RequestHandler = async (req, res) => {
   // Extract video title and description from req body
@@ -33,14 +33,14 @@ export const uploadVideo: RequestHandler = async (req, res) => {
   // requireAuth ran before this handler and throws if req.admin isn't set, so it's always present here.
   const adminId = req.admin!.id;
 
-  let publicId: string;
+  let externalId: string;
   try {
-    // Extract publicId returned by cloudinary on upload
-    ({ publicId } = await initiateVideoUpload(req.file.buffer));
+    // The host's own id for the file - used for every later status check and delete.
+    ({ externalId } = await videoHosting.initiateUpload(req.file.buffer));
   } catch (error) {
     // AppError subclasses aren't logged by errorHandler (only truly unexpected errors are) - log
-    // the real Cloudinary failure here or it's lost entirely, leaving just a generic 502.
-    req.log.error(error, 'Cloudinary upload failed');
+    // the real hosting failure here or it's lost entirely, leaving just a generic 502.
+    req.log.error(error, 'Video hosting upload failed');
     // Keep an audit trail instead of silently dropping the request - the admin can see it failed
     // and retry, rather than the upload just vanishing.
 
@@ -51,7 +51,7 @@ export const uploadVideo: RequestHandler = async (req, res) => {
   }
 
   const video = await prisma.video.create({
-    data: { title, description, adminId, status: VideoStatus.PROCESSING, externalId: publicId },
+    data: { title, description, adminId, status: VideoStatus.PROCESSING, externalId },
   });
 
   res
@@ -60,12 +60,12 @@ export const uploadVideo: RequestHandler = async (req, res) => {
 };
 
 /**
- * @description Checks a video's Cloudinary processing status and updates the DB row if it changed.
+ * @description Checks a video's processing status with the host and updates the DB row if it changed.
  * requireVideoOwnership already fetched the row and verified ownership - it's on req.resource.
  */
 export const getVideoStatus: RequestHandler = async (req, res) => {
   // externalId is always set by the time a row is reachable here - uploadVideo only creates a
-  // row without one on the FAILED path, which has no Cloudinary asset to check.
+  // row without one on the FAILED path, which has no hosted file to check.
   const video = await checkAndUpdateVideoStatus(req.resource as Video);
 
   res
@@ -144,7 +144,7 @@ export const updateVideo: RequestHandler = async (req, res) => {
 
 /**
  * @description Retires a video and its live placements together - soft deletes, so all playback
- * history stays intact. Retiring the placements frees their ads to be deleted; the Cloudinary file
+ * history stays intact. Retiring the placements frees their ads to be deleted; the hosted file
  * itself is deleted, since nothing can play it anymore.
  */
 export const deleteVideo: RequestHandler = async (req, res) => {
@@ -161,9 +161,9 @@ export const deleteVideo: RequestHandler = async (req, res) => {
 
   if (existing.externalId) {
     try {
-      await deleteVideoResource(existing.externalId);
+      await videoHosting.deleteVideo(existing.externalId);
     } catch (error) {
-      req.log.error(error, `Failed to delete Cloudinary asset for video ${existing.id}`);
+      req.log.error(error, `Failed to delete hosted video for video ${existing.id}`);
     }
   }
 

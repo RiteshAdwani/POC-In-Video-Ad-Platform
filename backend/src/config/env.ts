@@ -1,6 +1,7 @@
 import path from 'node:path';
 import dotenv from 'dotenv';
 import { z } from 'zod';
+import { VideoHostingProvider } from '../constants/videoHosting.constants';
 
 // One .env file for the whole repo, at the root - not one per workspace. Loaded by explicit path
 // so it's found regardless of which directory the process was actually started from.
@@ -10,43 +11,52 @@ dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
  * Validated once, at import time. If a required var is missing/malformed the process exits
  * immediately with a clear message instead of failing confusingly deep inside a request handler.
  */
-const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  PORT: z.coerce.number().int().positive().default(8000),
-  // Comma-separated - split into a list so both a local dev origin and a deployed frontend
-  // origin can be allowed at once. The `cors` package accepts an array for `origin` directly.
-  CORS_ORIGIN: z
-    .string()
-    .default('http://localhost:5173')
-    .transform((value) =>
-      value
-        .split(',')
-        .map((origin) => origin.trim())
-        .filter(Boolean),
-    ),
-  // Number of reverse proxies in front of the backend (e.g. 1 on Render) - 0 when clients connect
-  // directly, as in local Docker.
-  TRUST_PROXY: z.coerce.number().int().min(0).default(0),
-  DATABASE_URL: z.string().min(1),
-  JWT_SECRET: z.string().min(1),
-  CLOUDINARY_CLOUD_NAME: z.string().min(1),
-  CLOUDINARY_API_KEY: z.string().min(1),
-  CLOUDINARY_API_SECRET: z.string().min(1),
-  // Optional, comma-separated DNS server IPs - only needed on a machine
-  // whose configured DNS resolver is broken/unreliable for Node specifically (see
-  // lib/cloudinary.ts). Unset by default; most environments don't need this at all.
-  DNS_FALLBACK_SERVERS: z
-    .string()
-    .optional()
-    .transform((value) =>
-      value
-        ? value
-            .split(',')
-            .map((server) => server.trim())
-            .filter(Boolean)
-        : undefined,
-    ),
-});
+const envSchema = z
+  .object({
+    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+    PORT: z.coerce.number().int().positive().default(8000),
+    // Comma-separated - split into a list so both a local dev origin and a deployed frontend
+    // origin can be allowed at once. The `cors` package accepts an array for `origin` directly.
+    CORS_ORIGIN: z
+      .string()
+      .default('http://localhost:5173')
+      .transform((value) =>
+        value
+          .split(',')
+          .map((origin) => origin.trim())
+          .filter(Boolean),
+      ),
+    // Number of reverse proxies in front of the backend (e.g. 1 on Render) - 0 when clients connect
+    // directly, as in local Docker.
+    TRUST_PROXY: z.coerce.number().int().min(0).default(0),
+    DATABASE_URL: z.string().min(1),
+    JWT_SECRET: z.string().min(1),
+    CLOUDINARY_CLOUD_NAME: z.string().min(1),
+    CLOUDINARY_API_KEY: z.string().min(1),
+    CLOUDINARY_API_SECRET: z.string().min(1),
+    // Optional, comma-separated DNS server IPs - only needed on a machine
+    // whose configured DNS resolver is broken/unreliable for Node specifically (see
+    // lib/cloudinary.ts). Unset by default; most environments don't need this at all.
+    DNS_FALLBACK_SERVERS: z
+      .string()
+      .optional()
+      .transform((value) =>
+        value
+          ? value
+              .split(',')
+              .map((server) => server.trim())
+              .filter(Boolean)
+          : undefined,
+      ),
+    // Which host videos go to. The fake exists for automated tests and never runs in production.
+    VIDEO_HOSTING_PROVIDER: z.enum(VideoHostingProvider).default(VideoHostingProvider.CLOUDINARY),
+  })
+  .refine(
+    (config) =>
+      config.NODE_ENV !== 'production' ||
+      config.VIDEO_HOSTING_PROVIDER !== VideoHostingProvider.FAKE,
+    { path: ['VIDEO_HOSTING_PROVIDER'], message: 'The fake video host cannot run in production' },
+  );
 
 const parsed = envSchema.safeParse(process.env);
 

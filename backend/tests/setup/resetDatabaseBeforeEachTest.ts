@@ -1,10 +1,11 @@
 import { afterAll, beforeAll, beforeEach } from 'vitest';
 import { prisma } from '../../src/lib/prisma';
+import { fakeVideoHosting } from '../../src/lib/fakeVideoHosting';
 import { TEST_DATABASE_SCHEMA, TEST_MIGRATIONS_TABLE } from '../helpers/test.constants';
 
 /**
  * @description Call first inside an integration file's describe block: every test starts from
- * empty tables, and the connection pool closes once the file is done.
+ * empty tables and a healthy fake video host, and the connection pool closes once the file is done.
  */
 export const resetDatabaseBeforeEachTest = () => {
   let truncateStatement = '';
@@ -22,6 +23,7 @@ export const resetDatabaseBeforeEachTest = () => {
 
   beforeEach(async () => {
     await prisma.$executeRawUnsafe(truncateStatement);
+    fakeVideoHosting.reset();
   });
 
   afterAll(async () => {

@@ -122,6 +122,7 @@ npm test                        # backend tests (Vitest)
 
 The tests use their own `<POSTGRES_DB>_test` database on the same server — created and migrated
 automatically on each run, and emptied before every test, so your dev data is never touched.
+Video hosting runs against a deterministic fake, so no Cloudinary calls are made.
 
 ## Documentation map
 

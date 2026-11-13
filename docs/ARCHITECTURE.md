@@ -199,9 +199,11 @@ page.
 ### Video upload → ready pipeline
 
 1. Admin submits multipart form data; `multer` (memory storage, no disk write) buffers it.
-2. `initiateVideoUpload()` streams the buffer to Cloudinary as `resource_type: 'video'` with
-   `eager_async: true` — Cloudinary returns a `public_id` immediately while transcoding continues
-   in the background. Video row is created as `status: PROCESSING`, `externalId: public_id`.
+2. `videoHosting.initiateUpload()` streams the buffer to Cloudinary as `resource_type: 'video'`
+   with `eager_async: true` — Cloudinary returns a `public_id` immediately while transcoding
+   continues in the background. Video row is created as `status: PROCESSING`,
+   `externalId: public_id`. If the host errors or is unreachable, the admin gets a `502` and a
+   `FAILED` row is kept as an audit trail (no `externalId`).
 3. `startVideoPoller()` (background interval, 5s tick) re-checks every `PROCESSING` video against
    Cloudinary's Admin API, with **per-video exponential backoff** (in-memory `Map`, 5s → doubling
    → capped at 5min) so a slow video gets checked less and less often rather than hammering
@@ -299,10 +301,26 @@ Both are `setInterval` loops with an `isTickInProgress` guard against overlappin
 Graceful shutdown on `SIGTERM`/`SIGINT`: clears both intervals, lets in-flight requests finish
 (`server.close()`), disconnects Prisma, exits.
 
-### External dependency: Cloudinary (`lib/cloudinary.ts`)
+### External dependency: video hosting (`lib/videoHosting.ts`)
 
-- `initiateVideoUpload` / `uploadAdAsset` / `getVideoResource` / `deleteVideoResource` — thin
-  wrappers around the Cloudinary SDK.
+Every video upload, status check and delete goes through one `VideoHostingService` interface
+(`types/videoHosting.types.ts`: `initiateUpload`, `getStatus`, `deleteVideo`). `getStatus` returns
+the app's own `PROCESSING` / `READY` / `FAILED`, so nothing outside the implementation knows
+Cloudinary's response shape. `VIDEO_HOSTING_PROVIDER` picks the implementation:
+
+- **`cloudinary`** (default) — `lib/cloudinaryVideoHosting.ts`, built on the SDK wrappers in
+  `lib/cloudinary.ts`. READY means the eager transform's `secure_url` exists; an error on that
+  transform means FAILED.
+- **`fake`** — `lib/fakeVideoHosting.ts`, a deterministic stand-in for the automated tests.
+  `configure()` makes later calls slow (`latencyMs`), erroring, unavailable, or report a given
+  status; `reset()` restores a healthy, instant host; `calls` records what the app sent. `env.ts`
+  refuses to start with it in production.
+
+Ad creatives don't go through this seam — `uploadAdAsset` in `lib/cloudinary.ts` uploads them
+directly, since they have no processing window to track.
+
+`lib/cloudinary.ts` details:
+
 - **Timeout enforcement**: the SDK's own `timeout` option never actually aborts a hung request, so
   `getVideoResource`/`deleteVideoResource` are wrapped in a manual `Promise.race` against a
   rejecting timer.
@@ -317,23 +335,25 @@ a real Postgres:
 
 - **Test database** — `tests/setup/globalSetup.ts` creates `<POSTGRES_DB>_test` on the same
   server if it's missing and runs `prisma migrate deploy` on it, once per run; `setupEnv.ts` points
-  `DATABASE_URL` there. Each integration file calls `resetDatabaseBeforeEachTest()`, which empties
+  `DATABASE_URL` there and selects the fake video host. Each integration file calls `resetDatabaseBeforeEachTest()`, which empties
   every table except Prisma's migration history before each test, reading the table list from the
   schema. Files run one at a time, since they share the DB.
 - **Factories** (`tests/helpers/factories.ts`) insert admins, videos, ads, placements and raw
   events directly, and `authHeaderFor(admin)` signs a real token — no login round trip.
 - **Logging** is silent under `NODE_ENV=test`, so test output shows only results.
 
-| File                                   | Proves                                                                                                                |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `unit/adPlacements.validators.test.ts` | Placement rules for every ad type: asset kind, offsets, durations, skip point                                         |
-| `unit/events.schema.test.ts`           | Event payload shape: ad-scoped `adId`, session id bounds, clock-skew bounds                                           |
-| `unit/dashboard.stats.test.ts`         | Stat derivation, missing event types, and every rate's zero-denominator guard                                         |
-| `integration/testDatabase.test.ts`     | Tests hit the `_test` database, migrations are applied, tables start empty                                            |
-| `integration/events.dedup.test.ts`     | The same event sent twice, re-stamped, or 10× concurrently is stored and counted once; distinct events are kept apart |
-| `integration/events.ingestion.test.ts` | Out-of-order events are accepted; invalid ones are rejected and never stored                                          |
-| `integration/aggregation.test.ts`      | Day recounts are idempotent, late arrivals are picked up, the dashboard reads from `DailyCount`                       |
-| `integration/authorization.test.ts`    | 401 without a valid token; 404 on every other admin's video, ad, placement and stats, with rows unchanged             |
+| File                                          | Proves                                                                                                                |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `unit/adPlacements.validators.test.ts`        | Placement rules for every ad type: asset kind, offsets, durations, skip point                                         |
+| `unit/events.schema.test.ts`                  | Event payload shape: ad-scoped `adId`, session id bounds, clock-skew bounds                                           |
+| `unit/dashboard.stats.test.ts`                | Stat derivation, missing event types, and every rate's zero-denominator guard                                         |
+| `integration/testDatabase.test.ts`            | Tests hit the `_test` database, migrations are applied, tables start empty                                            |
+| `integration/events.dedup.test.ts`            | The same event sent twice, re-stamped, or 10× concurrently is stored and counted once; distinct events are kept apart |
+| `integration/events.ingestion.test.ts`        | Out-of-order events are accepted; invalid ones are rejected and never stored                                          |
+| `integration/aggregation.test.ts`             | Day recounts are idempotent, late arrivals are picked up, the dashboard reads from `DailyCount`                       |
+| `integration/authorization.test.ts`           | 401 without a valid token; 404 on every other admin's video, ad, placement and stats, with rows unchanged             |
+| `integration/videoHosting.upload.test.ts`     | What the admin sees when the host is slow, errors or is unavailable during upload                                     |
+| `integration/videoHosting.processing.test.ts` | What the admin and player see while status checks fail, recover or time out                                           |
 
 ---
 
