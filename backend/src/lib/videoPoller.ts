@@ -19,7 +19,7 @@ interface PollSchedule {
 }
 
 /**
- * @description Periodically re-checks PROCESSING videos against Cloudinary and flips their
+ * @description Periodically re-checks PROCESSING videos with the video host and flips their
  * status once ready/failed - so a video's status becomes correct on its own, without depending
  * on an admin happening to call GET /:id/status for it.
  *
@@ -79,7 +79,7 @@ export const startVideoPoller = (): NodeJS.Timeout => {
           }
 
           try {
-            // Due - actually hit Cloudinary and update the DB row if its status changed.
+            // Due - actually ask the host and update the DB row if its status changed.
             const updatedVideo = await checkAndUpdateVideoStatus(video);
             // Resolved (READY/FAILED) - done, no more scheduling needed for this video.
             if (updatedVideo.status !== VideoStatus.PROCESSING) {

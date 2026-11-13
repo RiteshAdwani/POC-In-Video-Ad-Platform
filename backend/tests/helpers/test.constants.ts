@@ -30,11 +30,12 @@ export const TEST_UNKNOWN_ID = '00000000-0000-4000-8000-000000000000';
 
 // Endpoints the integration tests call.
 export const TestApiPaths = {
-  EVENTS: '/api/v1/public/events',
-  DASHBOARD: '/api/v1/dashboard',
-  VIDEOS: '/api/v1/videos',
-  ADVERTISEMENTS: '/api/v1/advertisements',
-  AGGREGATION: '/api/v1/aggregation',
+  events: () => '/api/v1/public/events',
+  dashboard: () => '/api/v1/dashboard',
+  videos: () => '/api/v1/videos',
+  advertisements: () => '/api/v1/advertisements',
+  aggregation: () => '/api/v1/aggregation',
+  playback: (videoId: string) => `/api/v1/public/videos/${videoId}/playback`,
 } as const;
 
 // How many identical events the concurrency test fires at once.
@@ -43,3 +44,14 @@ export const TEST_DUPLICATE_BURST_SIZE = 10;
 // A fixed, already-closed day for aggregation tests, and an instant in the middle of it.
 export const TEST_AGGREGATED_DAY = '2026-01-15';
 export const TEST_AGGREGATED_DAY_NOON = new Date(`${TEST_AGGREGATED_DAY}T12:00:00.000Z`);
+
+// A tiny buffer posted as the "video" file - multer only checks its mime type, and the fake host
+// never reads its contents.
+export const TEST_VIDEO_FILE = {
+  buffer: Buffer.from('fake video bytes'),
+  filename: 'clip.mp4',
+  contentType: 'video/mp4',
+};
+
+// How long the fake host takes to answer in the "slow host" tests.
+export const TEST_SLOW_HOST_LATENCY_MS = 400;

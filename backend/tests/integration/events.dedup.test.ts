@@ -105,7 +105,7 @@ describe('POST /public/events - duplicate events', () => {
     await recomputeDailyCounts(new Date());
     const today = new Date().toISOString().slice(0, 10);
     const dashboard = await request(app)
-      .get(TestApiPaths.DASHBOARD)
+      .get(TestApiPaths.dashboard())
       .query({ startDate: today, endDate: today })
       .set('Authorization', authHeaderFor(admin))
       .expect(200);

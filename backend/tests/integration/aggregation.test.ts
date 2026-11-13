@@ -143,7 +143,7 @@ describe('daily aggregation', () => {
     await recomputeDailyCounts(TEST_AGGREGATED_DAY_NOON);
 
     const response = await request(app)
-      .get(TestApiPaths.DASHBOARD)
+      .get(TestApiPaths.dashboard())
       .query({ startDate: TEST_AGGREGATED_DAY, endDate: TEST_AGGREGATED_DAY })
       .set('Authorization', authHeaderFor(admin))
       .expect(200);
@@ -166,7 +166,7 @@ describe('daily aggregation', () => {
     await logEvents(video, PlaybackEventType.AD_SHOWN, 3, TEST_AGGREGATED_DAY_NOON, adPlacement);
 
     const response = await request(app)
-      .get(TestApiPaths.DASHBOARD)
+      .get(TestApiPaths.dashboard())
       .query({ startDate: TEST_AGGREGATED_DAY, endDate: TEST_AGGREGATED_DAY })
       .set('Authorization', authHeaderFor(admin))
       .expect(200);
@@ -179,7 +179,7 @@ describe('daily aggregation', () => {
     await logEvents(video, PlaybackEventType.AD_SHOWN, 2, TEST_AGGREGATED_DAY_NOON, adPlacement);
 
     const response = await request(app)
-      .post(`${TestApiPaths.AGGREGATION}/runs`)
+      .post(`${TestApiPaths.aggregation()}/runs`)
       .set('Authorization', authHeaderFor(admin))
       .send({ day: TEST_AGGREGATED_DAY })
       .expect(201);
