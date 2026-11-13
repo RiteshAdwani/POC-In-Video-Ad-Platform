@@ -22,18 +22,16 @@ ENV VITE_BACKEND_ORIGIN=$VITE_BACKEND_ORIGIN
 RUN npm run build --workspace=frontend
 
 # ---------- Stage 2: runtime ----------
-# A production build is just static files - `serve` is one well-known package that serves a
-# folder with SPA-fallback support built in (-s: unknown paths get index.html, so a hard refresh
-# on e.g. /videos works), instead of a whole separate web server with its own config file. The
-# backend call itself goes browser-to-backend directly (VITE_BACKEND_ORIGIN above).
-FROM node:22-alpine AS runtime
-WORKDIR /app
+# A production build is just static files, so nginx serves them - no Node or npm in this image.
+# The backend call itself goes browser-to-backend directly (VITE_BACKEND_ORIGIN above).
+# The unprivileged variant runs as a non-root user, same posture as backend/Dockerfile.
+FROM nginxinc/nginx-unprivileged:1.31-alpine-slim AS runtime
 
-# Global install needs root's default npm prefix - the running process still drops to a non-root
-# user below, same posture as backend/Dockerfile.
-RUN npm install -g serve@14 && chown node:node /app
-USER node
-COPY --from=builder --chown=node:node /repo/frontend/dist ./dist
+USER root
+RUN apk upgrade --no-cache
+USER nginx
+
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /repo/frontend/dist /usr/share/nginx/html
 
 EXPOSE 3000
-CMD ["serve", "-s", "dist", "-l", "3000"]

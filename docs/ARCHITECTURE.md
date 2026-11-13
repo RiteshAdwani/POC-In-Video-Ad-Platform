@@ -522,7 +522,7 @@ skip-or-duration chips in place of a single plain-text line.
 
 ## Deployment shape
 
-**Local:** `docker-compose.yml` — Postgres + backend (Node, compiled JS) + frontend (`serve`
+**Local:** `docker-compose.yml` — Postgres + backend (Node, compiled JS) + frontend (nginx
 serving the built SPA as static files). The
 browser calls the backend directly at `http://localhost:<port>` (the backend's port is published
 to the host).
@@ -543,7 +543,7 @@ the real client IP); locally it stays `0`.
                       docker-compose.yml (local)
 
     ┌────────┐  page load   ┌──────────┐
-    │ browser│─────────────▶│ frontend │  (serve, static files only)
+    │ browser│─────────────▶│ frontend │  (nginx, static files only)
     │        │              └──────────┘
     │        │  API calls   ┌──────────┐  ┌─────────┐
     │        │─────────────▶│ backend  │──│ postgres│
@@ -552,7 +552,7 @@ the real client IP); locally it stays `0`.
                         Render (production)
 
     ┌────────┐  page load   ┌──────────────┐
-    │ browser│─────────────▶│ frontend     │  (serve, static files only)
+    │ browser│─────────────▶│ frontend     │  (nginx, static files only)
     │        │              │ Web Service  │
     │        │              └──────────────┘
     │        │  API calls   ┌──────────────┐
