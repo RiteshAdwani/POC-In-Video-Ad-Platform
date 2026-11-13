@@ -27,26 +27,32 @@ COPY backend ./backend
 RUN npm run prisma:generate --workspace=backend
 RUN npm run build --workspace=backend
 
-# ---------- Stage 2: runtime ----------
+# ---------- Stage 2: production dependencies ----------
+# Installed in their own stage so the runtime image never needs npm itself.
+FROM node:22-alpine AS prod-deps
+WORKDIR /repo
+
+COPY package.json package-lock.json ./
+COPY backend/package.json ./backend/package.json
+COPY frontend/package.json ./frontend/package.json
+RUN npm ci --workspace=backend --ignore-scripts --omit=dev
+
+# ---------- Stage 3: runtime ----------
 # Fresh base image, production dependencies only, plus the compiled output from Stage 1.
 # No TypeScript, no dev tooling, no .ts source files end up in here.
 FROM node:22-alpine AS runtime
 WORKDIR /repo
 
-# Hand /repo off to the non-root "node" user now, while it's still empty, and switch to it before
-# anything gets installed - so npm ci (and every COPY --chown below) creates files already owned
-# by node, and node_modules never needs a later chown. Doing this chown after npm ci instead (on
-# an already-populated ~500MB node_modules) would force Docker to rewrite nearly every file's
-# metadata into a new layer, nearly doubling the image for an ownership-only change.
-RUN chown node:node /repo
+# Patch OS packages, and remove npm: the app only needs node, and npm's bundled packages carry
+# known vulnerabilities.
+RUN apk upgrade --no-cache \
+  && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx \
+  && chown node:node /repo
 USER node
 ENV NODE_ENV=production
 
-COPY --chown=node:node package.json package-lock.json ./
-COPY --chown=node:node backend/package.json ./backend/package.json
-COPY --chown=node:node frontend/package.json ./frontend/package.json
-RUN npm ci --workspace=backend --ignore-scripts --omit=dev
-
+# COPY --chown sets ownership as files land, so node_modules never needs a separate chown layer.
+COPY --chown=node:node --from=prod-deps /repo ./
 COPY --chown=node:node --from=builder /repo/backend/dist ./backend/dist
 # migrate deploy (run below, on every container start) needs the schema, migration history, and
 # prisma.config.ts (Prisma 7 reads the datasource URL from there, not schema.prisma directly) -
@@ -54,9 +60,11 @@ COPY --chown=node:node --from=builder /repo/backend/dist ./backend/dist
 COPY --chown=node:node backend/prisma ./backend/prisma
 COPY --chown=node:node backend/prisma.config.ts ./backend/prisma.config.ts
 
+WORKDIR /repo/backend
 EXPOSE 8000
 # Applies any pending migration before the server starts accepting traffic - this project has no
 # paid-tier "pre-deploy command" hook available, so this is the free-tier-compatible equivalent:
 # runs on every container start (idempotent - a no-op if nothing's pending), and a failed
 # migration fails the container's startup instead of serving against a stale schema.
-CMD ["sh", "-c", "npm run prisma:deploy --workspace=backend && node backend/dist/server.js"]
+# The Prisma CLI is called through node directly, since npm isn't in this image.
+CMD ["sh", "-c", "node ../node_modules/prisma/build/index.js migrate deploy && node dist/server.js"]

@@ -27,12 +27,12 @@ against.
 
 ## Tech stack
 
-| Layer         | Stack                                                                                                                                                                                         |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Backend       | Express + TypeScript, PostgreSQL via Prisma (`@prisma/adapter-pg`), Zod validation, Pino structured logging, JWT auth                                                                         |
-| Frontend      | React 19 + TypeScript (strict) + Vite, React Router v7, antd v6, TanStack Query + Axios, `@ant-design/plots`                                                                                  |
-| Video hosting | Cloudinary (real integration — upload + async transcode status polling), stubbed only for automated tests                                                                                     |
-| Infra         | Docker (multi-stage builds for both apps), `docker-compose` for local orchestration, `serve` serving the built frontend as static files (the browser calls the backend's own origin directly) |
+| Layer         | Stack                                                                                                                                                                                       |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backend       | Express + TypeScript, PostgreSQL via Prisma (`@prisma/adapter-pg`), Zod validation, Pino structured logging, JWT auth                                                                       |
+| Frontend      | React 19 + TypeScript (strict) + Vite, React Router v7, antd v6, TanStack Query + Axios, `@ant-design/plots`                                                                                |
+| Video hosting | Cloudinary (real integration — upload + async transcode status polling), stubbed only for automated tests                                                                                   |
+| Infra         | Docker (multi-stage builds for both apps), `docker-compose` for local orchestration, nginx serving the built frontend as static files (the browser calls the backend's own origin directly) |
 
 ## Architecture at a glance
 
