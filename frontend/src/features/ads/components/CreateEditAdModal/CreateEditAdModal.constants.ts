@@ -11,3 +11,6 @@ export type AdFormFields = (typeof AdFormFields)[keyof typeof AdFormFields];
 // the two can't drift apart.
 export const AD_TITLE_MAX_LENGTH = 150;
 export const AD_DESCRIPTION_MAX_LENGTH = 500;
+
+// The form's click-through rule: only http(s) links, never javascript:, data:, ftp: or "//host".
+export const HTTP_URL_PATTERN = /^https?:\/\//i;

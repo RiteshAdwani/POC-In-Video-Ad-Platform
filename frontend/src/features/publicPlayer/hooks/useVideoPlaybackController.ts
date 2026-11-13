@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { getOrCreateSessionId, rotateSessionId } from '../../../lib/getOrCreateSessionId';
+import { isHttpUrl } from '../../../lib/isHttpUrl';
 import { PlaybackEventType } from '../../../constants/playback.constants';
 import { AdType } from '../../../constants/ad.constants';
 import type { PlaybackAd, PlaybackConfig } from '../../../types/playback.types';
@@ -360,7 +361,7 @@ export const useVideoPlaybackController = (
    * @description Opens the current ad's click-through link and logs AD_CLICKED.
    */
   const handleAdClick = () => {
-    if (!activeAd?.clickThroughUrl) return;
+    if (!activeAd || !isHttpUrl(activeAd.clickThroughUrl)) return;
     window.open(activeAd.clickThroughUrl, '_blank', 'noopener,noreferrer');
     logEvent(PlaybackEventType.AD_CLICKED, activeAd.id);
   };
@@ -369,7 +370,7 @@ export const useVideoPlaybackController = (
    * @description Opens the current banner's click-through link and logs AD_CLICKED.
    */
   const handleBannerClick = () => {
-    if (!activeBanner?.clickThroughUrl) return;
+    if (!activeBanner || !isHttpUrl(activeBanner.clickThroughUrl)) return;
     window.open(activeBanner.clickThroughUrl, '_blank', 'noopener,noreferrer');
     logEvent(PlaybackEventType.AD_CLICKED, activeBanner.id);
   };

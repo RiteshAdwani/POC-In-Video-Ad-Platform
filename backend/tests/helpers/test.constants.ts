@@ -53,5 +53,23 @@ export const TEST_VIDEO_FILE = {
   contentType: 'video/mp4',
 };
 
+// A tiny "image" posted as an ad's creative - multer only checks its mime type.
+export const TEST_IMAGE_FILE = {
+  buffer: Buffer.from('fake image bytes'),
+  filename: 'banner.png',
+  contentType: 'image/png',
+};
+
+// Click-through links the API must refuse: only http and https are allowed.
+export const TEST_DISALLOWED_CLICK_THROUGH_URLS = [
+  'javascript:alert(1)',
+  'JavaScript:alert(1)',
+  'data:text/html,<script>alert(1)</script>',
+  'vbscript:msgbox(1)',
+  'ftp://advertiser.test/landing',
+];
+export const TEST_HTTP_CLICK_THROUGH_URL = 'http://advertiser.test/landing';
+export const TEST_NEW_AD_TITLE = 'New banner';
+
 // How long the fake host takes to answer in the "slow host" tests.
 export const TEST_SLOW_HOST_LATENCY_MS = 400;
