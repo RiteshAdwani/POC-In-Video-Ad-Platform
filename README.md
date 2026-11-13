@@ -124,6 +124,14 @@ The tests use their own `<POSTGRES_DB>_test` database on the same server — cre
 automatically on each run, and emptied before every test, so your dev data is never touched.
 Video hosting runs against a deterministic fake, so no Cloudinary calls are made.
 
+## CI
+
+Every pull request runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml): lint, typecheck
+and the backend tests against a Postgres service, `npm audit` on production dependencies, then
+both Docker images are built and scanned with Trivy. Any HIGH or CRITICAL finding with a fix
+available fails the run. Dependabot opens weekly update PRs for npm packages, base images and
+the workflow's actions.
+
 ## Documentation map
 
 | Doc                                                                                          | What's in it                                                                                                                   |
