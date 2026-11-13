@@ -5,7 +5,7 @@
 # ---------- Stage 1: builder ----------
 # Has everything needed to compile TypeScript. Nothing from this stage ships in the final image
 # except what we explicitly copy out of it below.
-FROM node:22-alpine AS builder
+FROM node:25-alpine AS builder
 WORKDIR /repo
 
 # Manifests only, first - this install layer is cached and only re-runs when a package.json or
@@ -29,7 +29,7 @@ RUN npm run build --workspace=backend
 
 # ---------- Stage 2: production dependencies ----------
 # Installed in their own stage so the runtime image never needs npm itself.
-FROM node:22-alpine AS prod-deps
+FROM node:25-alpine AS prod-deps
 WORKDIR /repo
 
 COPY package.json package-lock.json ./
@@ -40,7 +40,7 @@ RUN npm ci --workspace=backend --ignore-scripts --omit=dev
 # ---------- Stage 3: runtime ----------
 # Fresh base image, production dependencies only, plus the compiled output from Stage 1.
 # No TypeScript, no dev tooling, no .ts source files end up in here.
-FROM node:22-alpine AS runtime
+FROM node:25-alpine AS runtime
 WORKDIR /repo
 
 # Patch OS packages, and remove npm: the app only needs node, and npm's bundled packages carry
