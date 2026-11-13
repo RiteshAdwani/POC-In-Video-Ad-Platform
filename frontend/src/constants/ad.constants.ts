@@ -28,4 +28,7 @@ export const ASSET_TYPE_LABEL: Record<AssetType, string> = {
   [AssetType.VIDEO]: 'Video',
 };
 
+// The only link protocols a click-through may open - anything else could run code in the browser.
+export const CLICK_THROUGH_URL_PROTOCOLS: ReadonlySet<string> = new Set(['http:', 'https:']);
+
 export const DELETE_AD_BLOCKED_TOOLTIP = 'Remove this ad from every video before deleting it';

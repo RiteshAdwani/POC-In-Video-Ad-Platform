@@ -1,6 +1,7 @@
 import { Button } from 'antd';
 import { ExportOutlined } from '@ant-design/icons';
 import { formatDuration } from '../../../../lib/formatDuration';
+import { isHttpUrl } from '../../../../lib/isHttpUrl';
 import type { PlaybackAd } from '../../../../types/playback.types';
 import './BannerOverlay.css';
 
@@ -29,6 +30,7 @@ export const BannerOverlay = ({
   onSkip,
 }: BannerOverlayProps) => {
   const isSkippable = banner.skipAfterSeconds != null;
+  const hasClickThrough = isHttpUrl(banner.clickThroughUrl);
 
   return (
     <div className="banner-overlay">
@@ -42,9 +44,9 @@ export const BannerOverlay = ({
 
       <img src={banner.assetUrl} alt={banner.title} className="banner-overlay__image" />
 
-      {(banner.clickThroughUrl || isSkippable) && (
+      {(hasClickThrough || isSkippable) && (
         <div className="player-page__ad-controls">
-          {banner.clickThroughUrl && (
+          {hasClickThrough && (
             <Button
               icon={<ExportOutlined />}
               iconPlacement="end"

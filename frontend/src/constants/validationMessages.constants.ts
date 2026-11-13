@@ -7,4 +7,5 @@ export const ValidationMessages = {
   max: (field: string, max: number) => `${field} must be at most ${max}`,
   invalidFileType: (accepted: string) => `Only ${accepted} files are allowed`,
   invalidUrl: 'Enter a valid URL',
+  httpUrlOnly: 'Link must start with http:// or https://',
 } as const;

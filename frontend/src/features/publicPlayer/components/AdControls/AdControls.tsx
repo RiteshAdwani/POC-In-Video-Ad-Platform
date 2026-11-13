@@ -1,6 +1,7 @@
 import { Button } from 'antd';
 import { ExportOutlined } from '@ant-design/icons';
 import { formatDuration } from '../../../../lib/formatDuration';
+import { isHttpUrl } from '../../../../lib/isHttpUrl';
 import type { PlaybackAd } from '../../../../types/playback.types';
 
 type AdControlsProps = {
@@ -39,7 +40,7 @@ export const AdControls = ({
       </div>
 
       <div className="player-page__ad-controls">
-        {ad.clickThroughUrl && (
+        {isHttpUrl(ad.clickThroughUrl) && (
           <Button
             icon={<ExportOutlined />}
             iconPlacement="end"

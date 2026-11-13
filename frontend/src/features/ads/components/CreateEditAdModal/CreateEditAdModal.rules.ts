@@ -4,6 +4,7 @@ import {
   AD_DESCRIPTION_MAX_LENGTH,
   AD_TITLE_MAX_LENGTH,
   AdFormFields,
+  HTTP_URL_PATTERN,
 } from './CreateEditAdModal.constants';
 
 /**
@@ -28,5 +29,8 @@ export const adFormRules: Record<AdFormFields, FormRule[]> = {
   [AdFormFields.AssetFile]: [
     { required: true, message: ValidationMessages.required('an asset file') },
   ],
-  [AdFormFields.ClickThroughUrl]: [{ type: 'url', message: ValidationMessages.invalidUrl }],
+  [AdFormFields.ClickThroughUrl]: [
+    { type: 'url', message: ValidationMessages.invalidUrl },
+    { pattern: HTTP_URL_PATTERN, message: ValidationMessages.httpUrlOnly },
+  ],
 };

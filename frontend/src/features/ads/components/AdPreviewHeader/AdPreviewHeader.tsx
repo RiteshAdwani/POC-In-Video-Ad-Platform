@@ -5,6 +5,7 @@ import { AssetType, DELETE_AD_BLOCKED_TOOLTIP } from '../../../../constants/ad.c
 import { DetailsHeader } from '../../../../components/DetailsHeader/DetailsHeader';
 import { formatDate } from '../../../../lib/formatDate';
 import { formatUrlHost } from '../../../../lib/formatUrlHost';
+import { isHttpUrl } from '../../../../lib/isHttpUrl';
 import type { Advertisement } from '../../../../types/advertisement.types';
 import { AssetTypeTag } from '../AssetTypeTag/AssetTypeTag';
 import './AdPreviewHeader.css';
@@ -39,7 +40,7 @@ export const AdPreviewHeader = ({ ad, onEdit, onDelete, children }: AdPreviewHea
       meta={[
         <AssetTypeTag assetType={ad.assetType} />,
         `Created ${formatDate(ad.createdAt)}`,
-        ad.clickThroughUrl && (
+        isHttpUrl(ad.clickThroughUrl) && (
           <a
             href={ad.clickThroughUrl}
             target="_blank"
