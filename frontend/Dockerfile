@@ -4,7 +4,7 @@
 # ---------- Stage 1: builder ----------
 # Compiles the React app down to static HTML/CSS/JS. Nothing from this stage ships in the final
 # image except the built dist/ folder, copied out explicitly below.
-FROM node:22-alpine AS builder
+FROM node:25-alpine AS builder
 WORKDIR /repo
 
 COPY package.json package-lock.json ./
