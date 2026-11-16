@@ -5,7 +5,9 @@ import pinoHttp from 'pino-http';
 import { StatusCodes } from 'http-status-codes';
 import { env } from './config/env';
 import { logger } from './lib/logger';
+import { getRequestId } from './lib/requestContext';
 import { errorHandler } from './middleware/errorHandler';
+import { requestContext } from './middleware/requestContext';
 import { requireAuth } from './middleware/requireAuth';
 import { adminApiRateLimiter } from './middleware/rateLimit';
 import { authRouter } from './modules/auth/auth.routes';
@@ -21,7 +23,9 @@ export const app = express();
 // read from X-Forwarded-For only that many hops deep, so a client can't fake its own IP.
 app.set('trust proxy', env.TRUST_PROXY);
 
-// Security headers first, before anything else touches the request/response.
+// First of all, so every log line and error response for this request carries its id.
+app.use(requestContext);
+// Security headers next, before anything else touches the request/response.
 app.use(helmet());
 // credentials: the player records events with navigator.sendBeacon, which always sends in
 // credentials mode - without this header the browser drops every cross-origin beacon. Auth is a
@@ -31,7 +35,8 @@ app.use(express.json());
 
 // Logs every request/response (method, path, status, duration) automatically - one line per
 // request, no manual logging calls needed in each route.
-app.use(pinoHttp({ logger }));
+// genReqId: the access log's req.id is the same request id as everywhere else.
+app.use(pinoHttp({ logger, genReqId: (req) => getRequestId() ?? req.id }));
 
 app.get('/health', (_req, res) => {
   res.status(StatusCodes.OK).json({ status: 'ok' });

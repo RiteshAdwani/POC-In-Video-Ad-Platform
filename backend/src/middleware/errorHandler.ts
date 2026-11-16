@@ -4,20 +4,25 @@ import { z, ZodError } from 'zod';
 import { AppError } from '../errors/AppError';
 import { ErrorCode } from '../constants/errorCodes.constants';
 import { ErrorMessages } from '../constants/errorMessages.constants';
+import { getRequestId } from '../lib/requestContext';
 
 /**
  * @description Turns any thrown/rejected error into the API's standard JSON error shape. 4 parameters is
  * what tells Express this is an error handler, not a regular middleware - it's the only signal
  * Express uses to tell them apart. Must be registered last, after every route, so it actually
- * sits downstream of everything that can throw.
+ * sits downstream of everything that can throw. Every body carries the request's id, so a user
+ * can quote it and the matching log lines can be found.
  */
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
+  const requestId = getRequestId();
+
   if (err instanceof AppError) {
     // Exactly one entry for a plain AppError. The top-level message mirrors it so a simple client can read `message`
     // alone, while a thorough one can still iterate `errors` for full detail.
     res.status(err.statusCode).json({
       errors: [{ code: err.code, details: err.message }],
       message: err.message,
+      requestId,
     });
     return;
   }
@@ -40,6 +45,7 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
     res.status(StatusCodes.BAD_REQUEST).json({
       errors,
       message: ErrorMessages.INVALID_REQUEST_BODY,
+      requestId,
     });
     return;
   }
@@ -51,5 +57,6 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
     errors: [{ code: ErrorCode.INTERNAL_ERROR, details: ErrorMessages.INTERNAL_ERROR }],
     message: ErrorMessages.INTERNAL_ERROR,
+    requestId,
   });
 };

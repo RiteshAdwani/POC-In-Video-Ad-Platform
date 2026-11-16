@@ -1,6 +1,7 @@
 import pino from 'pino';
 import { env } from '../config/env';
 import { LOG_LEVEL_BY_ENV, LOG_REDACT_PATHS } from '../constants/logger.constants';
+import { getRequestContext } from './requestContext';
 
 /**
  * @description Shared Pino logger instance - debug-level with pretty-printing in dev, info-level
@@ -13,4 +14,6 @@ export const logger = pino({
   transport: env.NODE_ENV === 'development' ? { target: 'pino-pretty' } : undefined,
   // The access log records request headers - keep a usable admin token out of it.
   redact: { paths: LOG_REDACT_PATHS, censor: '[REDACTED]' },
+  // Stamps requestId (and clientRequestId, if any) on every line logged during a request.
+  mixin: () => ({ ...getRequestContext() }),
 });

@@ -189,7 +189,8 @@ describe('admin authorization', () => {
       const missing = await sendAs(bob, 'get', `${TestApiPaths.videos()}/${TEST_UNKNOWN_ID}`);
 
       expect(notOwned.status).toBe(missing.status);
-      expect(notOwned.body).toEqual(missing.body);
+      // Identical apart from the per-request id, which says nothing about the resource.
+      expect(notOwned.body).toEqual({ ...missing.body, requestId: notOwned.body.requestId });
     });
   });
 

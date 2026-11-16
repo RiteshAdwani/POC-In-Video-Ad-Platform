@@ -30,6 +30,7 @@ export const TEST_UNKNOWN_ID = '00000000-0000-4000-8000-000000000000';
 
 // Endpoints the integration tests call.
 export const TestApiPaths = {
+  health: () => '/health',
   events: () => '/api/v1/public/events',
   dashboard: () => '/api/v1/dashboard',
   videos: () => '/api/v1/videos',
@@ -70,6 +71,15 @@ export const TEST_DISALLOWED_CLICK_THROUGH_URLS = [
 ];
 export const TEST_HTTP_CLICK_THROUGH_URL = 'http://advertiser.test/landing';
 export const TEST_NEW_AD_TITLE = 'New banner';
+
+// Ids a caller might send as X-Request-Id - a valid one and invalid ones. The API uses neither.
+export const TEST_REQUEST_ID = '33333333-3333-4333-8333-333333333333';
+export const TEST_INVALID_REQUEST_IDS = [
+  'not-a-uuid',
+  `${TEST_REQUEST_ID}-extra`,
+  '<script>alert(1)</script>',
+];
+export const TEST_UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // How long the fake host takes to answer in the "slow host" tests.
 export const TEST_SLOW_HOST_LATENCY_MS = 400;
