@@ -124,6 +124,14 @@ The tests use their own `<POSTGRES_DB>_test` database on the same server — cre
 automatically on each run, and emptied before every test, so your dev data is never touched.
 Video hosting runs against a deterministic fake, so no Cloudinary calls are made.
 
+## Debugging
+
+`docker-compose.override.yml` runs the Docker backend with the Node inspector on
+`127.0.0.1:9229` (local only — production never reads this file). In VS Code, run the
+**Backend: attach to Docker** configuration from `.vscode/launch.json` and set breakpoints in the
+`.ts` files. There are also configs to run the backend locally under the debugger and to debug the
+open test file — see [backend/CLAUDE.md](backend/CLAUDE.md#debugging).
+
 ## CI
 
 Every pull request runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml): lint, typecheck
