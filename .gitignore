@@ -9,6 +9,7 @@ build/
 coverage/
 .vscode/*
 !.vscode/extensions.json
+!.vscode/launch.json
 # Personal planning notes
 docs/phase-1/requirements.md
 docs/phase-1/build-plan.md

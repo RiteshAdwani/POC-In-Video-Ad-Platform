@@ -1,0 +1,15 @@
+# Local-only additions. `docker compose up` merges this file into docker-compose.yml automatically;
+# production builds the Dockerfiles directly and never reads it.
+services:
+  backend:
+    # Same start command as backend/Dockerfile's CMD, plus the Node inspector for VS Code to attach
+    # to, and stack traces mapped back to the .ts sources.
+    command:
+      [
+        'sh',
+        '-c',
+        'node ../node_modules/prisma/build/index.js migrate deploy && node --inspect=0.0.0.0:9229 --enable-source-maps dist/server.js',
+      ]
+    ports:
+      # Host loopback only - anyone who can reach the inspector can run code in the process.
+      - '127.0.0.1:9229:9229'
