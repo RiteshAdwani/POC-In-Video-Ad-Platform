@@ -8,23 +8,23 @@ import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants
 import { loginSchema } from './auth.schema';
 
 /**
- * @description Verifies an admin's credentials and issues an access token.
+ * @description Verifies a user's credentials and issues an access token.
  */
 export const login: RequestHandler = async (req, res) => {
   // Extract credentials from req body
   const { email, password } = loginSchema.parse(req.body);
 
-  // Fetch admin from DB
-  const admin = await prisma.admin.findUnique({ where: { email } });
+  // Fetch user from DB
+  const user = await prisma.user.findUnique({ where: { email } });
 
   // Check if password matches
-  const passwordMatches = admin ? await bcrypt.compare(password, admin.passwordHash) : false;
+  const passwordMatches = user ? await bcrypt.compare(password, user.passwordHash) : false;
 
-  if (!admin || !passwordMatches) {
+  if (!user || !passwordMatches) {
     throw new UnauthorizedError(ErrorMessages.INVALID_CREDENTIALS);
   }
 
   // Sign the access token
-  const accessToken = signAccessToken({ adminId: admin.id });
+  const accessToken = signAccessToken({ userId: user.id });
   res.json({ data: { accessToken }, message: ApiSuccessMessages.LOGIN_SUCCESSFUL });
 };

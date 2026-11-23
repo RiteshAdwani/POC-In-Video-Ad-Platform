@@ -4,10 +4,10 @@ import { prisma } from '../src/lib/prisma';
 import { SEED_PASSWORD, SeedMessages } from '../src/constants/seed.constants';
 
 /**
- * @description Seeds 2 dev admins with a known password. Refuses to run against production.
+ * @description Seeds 2 dev users with a known password. Refuses to run against production.
  */
 const main = async () => {
-  // This creates admins with a hardcoded, publicly-known password - fine for a disposable local
+  // This creates users with a hardcoded, publicly-known password - fine for a disposable local
   // database, never acceptable against a real one. Nothing in this repo wires `npm run seed`
   // into any deploy step, but this guard makes that mistake structurally impossible too.
   if (env.NODE_ENV === 'production') {
@@ -18,21 +18,23 @@ const main = async () => {
 
   const passwordHash = await bcrypt.hash(SEED_PASSWORD, 10);
 
-  const admins = [
+  const users = [
     { email: 'alice@example.com', firstName: 'Alice', lastName: 'Anderson' },
     { email: 'bob@example.com', firstName: 'Bob', lastName: 'Brooks' },
   ];
 
-  for (const admin of admins) {
-    // upsert, not create - re-running the seed shouldn't fail on a unique constraint.
-    await prisma.admin.upsert({
-      where: { email: admin.email },
-      update: {},
-      create: { ...admin, passwordHash },
-    });
-  }
+  // upsert, not create - re-running the seed shouldn't fail on a unique constraint.
+  await prisma.$transaction(
+    users.map((user) =>
+      prisma.user.upsert({
+        where: { email: user.email },
+        update: {},
+        create: { ...user, passwordHash },
+      }),
+    ),
+  );
 
-  console.log(`Seeded ${admins.length} admins`);
+  console.log(`Seeded ${users.length} users`);
 };
 
 main()

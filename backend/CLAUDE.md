@@ -66,7 +66,7 @@ tests/
   message from `ApiSuccessMessages`. Use `http-status-codes`, never bare numbers.
 - **Ownership:** per-id admin routes go through `requireOwnership`, which 404s (never 403s) a
   resource that's missing or not the caller's; the handler reads it from `req.resource`. List
-  queries always filter by `req.admin!.id`.
+  queries always filter by `req.user!.id`.
 - **Soft delete:** videos and ads are retired with `deletedAt`, never removed. Writes look up
   `deletedAt: null`; reads can still see retired rows.
 - **Config:** read settings from `env` (`config/env.ts`), never `process.env` directly. A new
@@ -95,7 +95,7 @@ tests/
 - Integration tests call the real app with Supertest against the `_test` database. Each file calls
   `resetDatabaseBeforeEachTest()`. Files run one at a time because they share that database.
 - Build rows with the factories in `tests/helpers/factories.ts`, and sign tokens with
-  `authHeaderFor(admin)` — no login round trip.
+  `authHeaderFor(user)` — no login round trip.
 - Video hosting runs against the fake (`VIDEO_HOSTING_PROVIDER=fake`), never Cloudinary.
 - A bug fix comes with a test that fails without the fix.
 

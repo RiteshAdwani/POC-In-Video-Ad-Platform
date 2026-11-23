@@ -9,7 +9,7 @@ import { ErrorMessages } from '../../constants/errorMessages.constants';
 import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants';
 import { createVideoSchema, updateVideoSchema } from './videos.schema';
 import { checkAndUpdateVideoStatus, toVideoDto } from './videos.service';
-import { adminListQuerySchema } from '../../schemas/pagination.schema';
+import { libraryListQuerySchema } from '../../schemas/pagination.schema';
 import { ListView } from '../../constants/listView.constants';
 import { buildPaginationMeta } from '../../lib/pagination';
 
@@ -30,8 +30,8 @@ export const uploadVideo: RequestHandler = async (req, res) => {
     throw new ValidationError(ErrorMessages.MISSING_VIDEO_FILE);
   }
 
-  // requireAuth ran before this handler and throws if req.admin isn't set, so it's always present here.
-  const adminId = req.admin!.id;
+  // requireAuth ran before this handler and throws if req.user isn't set, so it's always present here.
+  const userId = req.user!.id;
 
   let externalId: string;
   try {
@@ -41,17 +41,17 @@ export const uploadVideo: RequestHandler = async (req, res) => {
     // AppError subclasses aren't logged by errorHandler (only truly unexpected errors are) - log
     // the real hosting failure here or it's lost entirely, leaving just a generic 502.
     req.log.error(error, 'Video hosting upload failed');
-    // Keep an audit trail instead of silently dropping the request - the admin can see it failed
+    // Keep an audit trail instead of silently dropping the request - the user can see it failed
     // and retry, rather than the upload just vanishing.
 
     await prisma.video.create({
-      data: { title, description, adminId, status: VideoStatus.FAILED },
+      data: { title, description, userId, status: VideoStatus.FAILED },
     });
     throw new UpstreamServiceError(ErrorMessages.VIDEO_UPLOAD_FAILED);
   }
 
   const video = await prisma.video.create({
-    data: { title, description, adminId, status: VideoStatus.PROCESSING, externalId },
+    data: { title, description, userId, status: VideoStatus.PROCESSING, externalId },
   });
 
   res
@@ -74,14 +74,14 @@ export const getVideoStatus: RequestHandler = async (req, res) => {
 };
 
 /**
- * @description Lists the calling admin's videos, paginated and searchable - active ones by
+ * @description Lists the calling user's videos, paginated and searchable - active ones by
  * default, or only retired (soft-deleted) ones with `view=deleted`, most recently deleted first.
  */
 export const listVideos: RequestHandler = async (req, res) => {
-  const { page, pageSize, search, view } = adminListQuerySchema.parse(req.query);
+  const { page, pageSize, search, view } = libraryListQuerySchema.parse(req.query);
   const deleted = view === ListView.DELETED;
   const where = {
-    adminId: req.admin!.id,
+    userId: req.user!.id,
     deletedAt: deleted ? { not: null } : null,
     ...(search ? { title: { contains: search, mode: 'insensitive' as const } } : {}),
   };

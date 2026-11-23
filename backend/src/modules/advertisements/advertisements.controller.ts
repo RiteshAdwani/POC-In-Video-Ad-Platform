@@ -9,7 +9,7 @@ import { ErrorMessages } from '../../constants/errorMessages.constants';
 import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants';
 import { createAdvertisementSchema, updateAdvertisementSchema } from './advertisements.schema';
 import { toAdvertisementDto } from './advertisements.service';
-import { adminListQuerySchema } from '../../schemas/pagination.schema';
+import { libraryListQuerySchema } from '../../schemas/pagination.schema';
 import { ListView } from '../../constants/listView.constants';
 import { buildPaginationMeta } from '../../lib/pagination';
 
@@ -19,14 +19,14 @@ const WITH_AD_PLACEMENT_COUNT = {
 } as const;
 
 /**
- * @description Creates an advertisement owned by the calling admin: uploads the creative to
+ * @description Creates an advertisement owned by the calling user: uploads the creative to
  * Cloudinary and persists the resulting URL. assetType is derived from the file's real mimetype,
  * not chosen by the client - the multer middleware (adAssetUpload) already restricts uploads to
  * image/video files, so anything reaching here is one or the other.
  */
 export const createAdvertisement: RequestHandler = async (req, res) => {
   const data = createAdvertisementSchema.parse(req.body);
-  const adminId = req.admin!.id;
+  const userId = req.user!.id;
 
   if (!req.file) {
     throw new ValidationError(ErrorMessages.MISSING_AD_ASSET_FILE);
@@ -44,7 +44,7 @@ export const createAdvertisement: RequestHandler = async (req, res) => {
   }
 
   const advertisement = await prisma.advertisement.create({
-    data: { ...data, assetUrl, assetType, adminId },
+    data: { ...data, assetUrl, assetType, userId },
   });
 
   res
@@ -53,14 +53,14 @@ export const createAdvertisement: RequestHandler = async (req, res) => {
 };
 
 /**
- * @description Lists the calling admin's ads, paginated and searchable - active ones by default,
+ * @description Lists the calling user's ads, paginated and searchable - active ones by default,
  * or only retired (soft-deleted) ones with `view=deleted`, most recently deleted first.
  */
 export const listAdvertisements: RequestHandler = async (req, res) => {
-  const { page, pageSize, search, view } = adminListQuerySchema.parse(req.query);
+  const { page, pageSize, search, view } = libraryListQuerySchema.parse(req.query);
   const deleted = view === ListView.DELETED;
   const where = {
-    adminId: req.admin!.id,
+    userId: req.user!.id,
     deletedAt: deleted ? { not: null } : null,
     ...(search ? { title: { contains: search, mode: 'insensitive' as const } } : {}),
   };

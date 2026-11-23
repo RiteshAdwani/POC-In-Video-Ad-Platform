@@ -5,7 +5,7 @@ import { prisma } from '../../src/lib/prisma';
 import { fakeVideoHosting } from '../../src/lib/fakeVideoHosting';
 import { checkAndUpdateVideoStatus } from '../../src/modules/videos/videos.service';
 import { VideoStatus } from '../../src/generated/prisma/enums';
-import type { Admin } from '../../src/generated/prisma/client.js';
+import type { User } from '../../src/generated/prisma/client.js';
 import { MAX_PROCESSING_AGE_MS } from '../../src/constants/poller.constants';
 import {
   FAKE_DURATION_SECONDS,
@@ -15,7 +15,7 @@ import {
 import { resetDatabaseBeforeEachTest } from '../setup/resetDatabaseBeforeEachTest';
 import {
   authHeaderFor,
-  createAdmin,
+  createUser,
   createAdPlacement,
   createAdvertisement,
   createVideo,
@@ -25,14 +25,14 @@ import { TestApiPaths, TEST_SLOW_HOST_LATENCY_MS } from '../helpers/test.constan
 /**
  * @description A video the host is still transcoding, with a pre-roll already placed on it.
  */
-const createProcessingVideo = async (admin: Admin, createdAt = new Date()) => {
-  const video = await createVideo(admin, {
+const createProcessingVideo = async (user: User, createdAt = new Date()) => {
+  const video = await createVideo(user, {
     status: VideoStatus.PROCESSING,
     playbackUrl: null,
     durationSeconds: null,
     createdAt,
   });
-  await createAdPlacement(video, await createAdvertisement(admin));
+  await createAdPlacement(video, await createAdvertisement(user));
   return video;
 };
 
@@ -43,7 +43,7 @@ describe('video processing - when status checks against the host misbehave', () 
   resetDatabaseBeforeEachTest();
 
   it('flips to READY with the playback URL and duration once the host is done', async () => {
-    const video = await createProcessingVideo(await createAdmin());
+    const video = await createProcessingVideo(await createUser());
 
     const updated = await checkAndUpdateVideoStatus(video);
     const playback = await getPlayback(video.id);
@@ -60,7 +60,7 @@ describe('video processing - when status checks against the host misbehave', () 
 
   it('stays PROCESSING, with no URL or ads for the player, while the host is still working', async () => {
     fakeVideoHosting.configure({ reportedStatus: VideoStatus.PROCESSING });
-    const video = await createProcessingVideo(await createAdmin());
+    const video = await createProcessingVideo(await createUser());
 
     const updated = await checkAndUpdateVideoStatus(video);
     const playback = await getPlayback(video.id);
@@ -78,15 +78,15 @@ describe('video processing - when status checks against the host misbehave', () 
     ['is unavailable', FakeHostingOutcome.UNAVAILABLE],
   ])('keeps the video PROCESSING, not FAILED, when a status check %s', async (_label, outcome) => {
     fakeVideoHosting.configure({ statusOutcome: outcome });
-    const admin = await createAdmin();
-    const video = await createProcessingVideo(admin);
+    const user = await createUser();
+    const video = await createProcessingVideo(user);
 
     const statusResponse = await request(app)
       .get(`${TestApiPaths.videos()}/${video.id}/status`)
-      .set('Authorization', authHeaderFor(admin));
+      .set('Authorization', authHeaderFor(user));
     const playback = await getPlayback(video.id);
 
-    // The admin's status check succeeds and reports the last known state, not a 5xx.
+    // The user's status check succeeds and reports the last known state, not a 5xx.
     expect(statusResponse.status).toBe(200);
     expect(statusResponse.body.data.video.status).toBe(VideoStatus.PROCESSING);
     expect(playback.body.data).toMatchObject({ status: VideoStatus.PROCESSING, playbackUrl: null });
@@ -95,7 +95,7 @@ describe('video processing - when status checks against the host misbehave', () 
 
   it('recovers on the next check once a failing host comes back', async () => {
     fakeVideoHosting.configure({ statusOutcome: FakeHostingOutcome.UNAVAILABLE });
-    const video = await createProcessingVideo(await createAdmin());
+    const video = await createProcessingVideo(await createUser());
     const afterOutage = await checkAndUpdateVideoStatus(video);
 
     fakeVideoHosting.configure({ statusOutcome: FakeHostingOutcome.SUCCEED });
@@ -107,7 +107,7 @@ describe('video processing - when status checks against the host misbehave', () 
 
   it('still resolves a video when the host answers slowly', async () => {
     fakeVideoHosting.configure({ latencyMs: TEST_SLOW_HOST_LATENCY_MS });
-    const video = await createProcessingVideo(await createAdmin());
+    const video = await createProcessingVideo(await createUser());
 
     const updated = await checkAndUpdateVideoStatus(video);
 
@@ -117,7 +117,7 @@ describe('video processing - when status checks against the host misbehave', () 
   it('gives up with FAILED once checks have kept failing past the max processing age', async () => {
     fakeVideoHosting.configure({ statusOutcome: FakeHostingOutcome.UNAVAILABLE });
     const longAgo = new Date(Date.now() - MAX_PROCESSING_AGE_MS - 60_000);
-    const video = await createProcessingVideo(await createAdmin(), longAgo);
+    const video = await createProcessingVideo(await createUser(), longAgo);
 
     const updated = await checkAndUpdateVideoStatus(video);
     const playback = await getPlayback(video.id);
@@ -134,7 +134,7 @@ describe('video processing - when status checks against the host misbehave', () 
 
   it('marks the video FAILED when the host reports the transcode failed', async () => {
     fakeVideoHosting.configure({ reportedStatus: VideoStatus.FAILED });
-    const video = await createProcessingVideo(await createAdmin());
+    const video = await createProcessingVideo(await createUser());
 
     const updated = await checkAndUpdateVideoStatus(video);
 

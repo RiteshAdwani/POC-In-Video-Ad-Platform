@@ -21,7 +21,7 @@ interface PollSchedule {
 /**
  * @description Periodically re-checks PROCESSING videos with the video host and flips their
  * status once ready/failed - so a video's status becomes correct on its own, without depending
- * on an admin happening to call GET /:id/status for it.
+ * on a user happening to call GET /:id/status for it.
  *
  * Each video is checked with exponential backoff, tracked in this in-memory map keyed by video
  * id: a freshly-seen video is checked almost immediately, and every check that comes back still

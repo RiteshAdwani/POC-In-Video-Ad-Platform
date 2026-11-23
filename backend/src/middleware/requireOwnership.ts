@@ -4,13 +4,13 @@ import { ErrorMessages } from '../constants/errorMessages.constants';
 
 /**
  * @description Builds a middleware that fetches a resource by req.params[paramName] and verifies
- * req.admin owns it - 404s (not 403) on both "doesn't exist" and "not owned", so callers can't
+ * req.user owns it - 404s (not 403) on both "doesn't exist" and "not owned", so callers can't
  * tell the two apart. Attaches the fetched resource to req.resource so the handler doesn't
  * need to query it again; must run after requireAuth. paramName defaults to "id", but nested
  * routes (e.g. /videos/:videoId/placements) need a different param name - and get every route
  * param, so they can also scope the lookup to the parent in the URL.
  */
-export const requireOwnership = <T extends { adminId: string }>(
+export const requireOwnership = <T extends { userId: string }>(
   fetchResource: (id: string, params: Record<string, string>) => Promise<T | null>,
   paramName = 'id',
 ): RequestHandler => {
@@ -19,7 +19,7 @@ export const requireOwnership = <T extends { adminId: string }>(
     const params = req.params as Record<string, string>;
     const resource = await fetchResource(params[paramName], params);
 
-    if (!resource || resource.adminId !== req.admin!.id) {
+    if (!resource || resource.userId !== req.user!.id) {
       throw new NotFoundError(ErrorMessages.RESOURCE_NOT_FOUND);
     }
 

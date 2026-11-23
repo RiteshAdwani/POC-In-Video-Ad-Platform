@@ -4,7 +4,7 @@ import { AdType, PlaybackEventType, VideoStatus } from '../../src/generated/pris
 import { ErrorMessages } from '../../src/constants/errorMessages.constants';
 import { resetDatabaseBeforeEachTest } from '../setup/resetDatabaseBeforeEachTest';
 import {
-  createAdmin,
+  createUser,
   createAdPlacement,
   createAdvertisement,
   createVideo,
@@ -28,9 +28,9 @@ describe('POST /public/events - ingestion', () => {
 
   describe('out-of-order delivery', () => {
     it('accepts an ad completion that arrives before its ad shown', async () => {
-      const admin = await createAdmin();
-      const video = await createVideo(admin);
-      const adPlacement = await createAdPlacement(video, await createAdvertisement(admin));
+      const user = await createUser();
+      const video = await createVideo(user);
+      const adPlacement = await createAdPlacement(video, await createAdvertisement(user));
 
       await postEvent(adEvent(video.id, adPlacement.id, PlaybackEventType.AD_COMPLETED)).expect(
         201,
@@ -55,7 +55,7 @@ describe('POST /public/events - ingestion', () => {
     });
 
     it('rejects an ad event that names no ad', async () => {
-      const video = await createVideo(await createAdmin());
+      const video = await createVideo(await createUser());
 
       const response = await postEvent({
         videoId: video.id,
@@ -81,7 +81,7 @@ describe('POST /public/events - ingestion', () => {
     });
 
     it('rejects an event for a deleted video', async () => {
-      const video = await createVideo(await createAdmin(), { deletedAt: new Date() });
+      const video = await createVideo(await createUser(), { deletedAt: new Date() });
 
       const response = await postEvent({
         videoId: video.id,
@@ -95,7 +95,7 @@ describe('POST /public/events - ingestion', () => {
     });
 
     it('rejects an event for a video that is still processing', async () => {
-      const video = await createVideo(await createAdmin(), {
+      const video = await createVideo(await createUser(), {
         status: VideoStatus.PROCESSING,
         playbackUrl: null,
       });
@@ -113,10 +113,10 @@ describe('POST /public/events - ingestion', () => {
     });
 
     it('rejects an ad event whose placement belongs to another video', async () => {
-      const admin = await createAdmin();
-      const video = await createVideo(admin);
-      const otherVideo = await createVideo(admin);
-      const otherPlacement = await createAdPlacement(otherVideo, await createAdvertisement(admin));
+      const user = await createUser();
+      const video = await createVideo(user);
+      const otherVideo = await createVideo(user);
+      const otherPlacement = await createAdPlacement(otherVideo, await createAdvertisement(user));
 
       const response = await postEvent(
         adEvent(video.id, otherPlacement.id, PlaybackEventType.AD_SHOWN),
@@ -128,9 +128,9 @@ describe('POST /public/events - ingestion', () => {
     });
 
     it('rejects an ad event for a removed placement', async () => {
-      const admin = await createAdmin();
-      const video = await createVideo(admin);
-      const adPlacement = await createAdPlacement(video, await createAdvertisement(admin), {
+      const user = await createUser();
+      const video = await createVideo(user);
+      const adPlacement = await createAdPlacement(video, await createAdvertisement(user), {
         deletedAt: new Date(),
       });
 
@@ -143,9 +143,9 @@ describe('POST /public/events - ingestion', () => {
     });
 
     it('rejects a skip of an ad that has no skip point', async () => {
-      const admin = await createAdmin();
-      const video = await createVideo(admin);
-      const adPlacement = await createAdPlacement(video, await createAdvertisement(admin), {
+      const user = await createUser();
+      const video = await createVideo(user);
+      const adPlacement = await createAdPlacement(video, await createAdvertisement(user), {
         adType: AdType.MID_ROLL,
         startOffsetSeconds: 30,
         skipAfterSeconds: null,

@@ -21,15 +21,15 @@ constraint and index names follow the same `{table}_{column}_{pkey|fkey|key|idx}
 
 ### Entities
 
-| Model            | Purpose                                                                                     | Key fields                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| ---------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Admin`          | Owns videos and advertisements; everything else is scoped to one of these, transitively     | `email` (unique), `passwordHash`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `Video`          | Metadata only — the file itself lives at Cloudinary                                         | `status` (PROCESSING/READY/FAILED), `externalId` (Cloudinary `public_id`), `playbackUrl` (null until READY), `durationSeconds` (captured from Cloudinary at the PROCESSING→READY transition, or on a later on-demand `GET /:id/status` call if it was still missing then — see `checkAndUpdateVideoStatus`; only ever backfilled if that endpoint happens to be hit again for the video, since the background poller stops tracking a video once it's READY), `adminId`, `deletedAt` (soft-delete only — see [Deletion behavior](#deletion-behavior)) |
-| `Advertisement`  | A reusable ad creative — an image or video asset, placeable on many videos                  | `assetType` (IMAGE/VIDEO), `assetUrl`, `clickThroughUrl` (nullable, http/https only), `adminId`, `deletedAt` (soft-delete only — see [Deletion behavior](#deletion-behavior))                                                                                                                                                                                                                                                                                                                                                                         |
-| `AdPlacement`    | One instance of an `Advertisement` on one `Video`, at one position                          | `adType` (PRE_ROLL/MID_ROLL/BANNER_OVERLAY — the placement's own role, independent of the creative's fixed asset type), `startOffsetSeconds`, `durationSeconds` (banner-only), `skipAfterSeconds` (null = not skippable), `deletedAt` (soft-delete only — see [Deletion behavior](#deletion-behavior))                                                                                                                                                                                                                                                |
-| `PlaybackEvent`  | Raw, append-only log — source of truth for every dashboard number                           | `videoId`, `adPlacementId` (nullable), `sessionId`, `eventType`, `occurredAt` (client-reported), `receivedAt` (server-set)                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `DailyCount`     | Derived, read-optimized aggregate — one row per (video, placement-or-none, event type, day) | `eventDate` (`@db.Date`), `eventCount`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `AggregationRun` | Audit trail — one row per aggregation execution                                             | `eventDate`, `status`, `startedAt`/`completedAt`, `rowsUpserted`, `error`                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Model            | Purpose                                                                                     | Key fields                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ---------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `User`           | Owns videos and advertisements; everything else is scoped to one of these, transitively     | `email` (unique), `passwordHash`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `Video`          | Metadata only — the file itself lives at Cloudinary                                         | `status` (PROCESSING/READY/FAILED), `externalId` (Cloudinary `public_id`), `playbackUrl` (null until READY), `durationSeconds` (captured from Cloudinary at the PROCESSING→READY transition, or on a later on-demand `GET /:id/status` call if it was still missing then — see `checkAndUpdateVideoStatus`; only ever backfilled if that endpoint happens to be hit again for the video, since the background poller stops tracking a video once it's READY), `userId` (column `admin_id`), `deletedAt` (soft-delete only — see [Deletion behavior](#deletion-behavior)) |
+| `Advertisement`  | A reusable ad creative — an image or video asset, placeable on many videos                  | `assetType` (IMAGE/VIDEO), `assetUrl`, `clickThroughUrl` (nullable, http/https only), `userId` (column `admin_id`), `deletedAt` (soft-delete only — see [Deletion behavior](#deletion-behavior))                                                                                                                                                                                                                                                                                                                                                                         |
+| `AdPlacement`    | One instance of an `Advertisement` on one `Video`, at one position                          | `adType` (PRE_ROLL/MID_ROLL/BANNER_OVERLAY — the placement's own role, independent of the creative's fixed asset type), `startOffsetSeconds`, `durationSeconds` (banner-only), `skipAfterSeconds` (null = not skippable), `deletedAt` (soft-delete only — see [Deletion behavior](#deletion-behavior))                                                                                                                                                                                                                                                                   |
+| `PlaybackEvent`  | Raw, append-only log — source of truth for every dashboard number                           | `videoId`, `adPlacementId` (nullable), `sessionId`, `eventType`, `occurredAt` (client-reported), `receivedAt` (server-set)                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `DailyCount`     | Derived, read-optimized aggregate — one row per (video, placement-or-none, event type, day) | `eventDate` (`@db.Date`), `eventCount`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `AggregationRun` | Audit trail — one row per aggregation execution                                             | `eventDate`, `status`, `startedAt`/`completedAt`, `rowsUpserted`, `error`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 Six `PlaybackEventType` values: `VIDEO_STARTED`, `VIDEO_FINISHED`, `AD_SHOWN`, `AD_SKIPPED`,
 `AD_COMPLETED`, `AD_CLICKED` (why a 6th event beyond the original spec's five: [DECISIONS.md](DECISIONS.md#event-vocabulary)).
@@ -115,7 +115,7 @@ requestContext  →  helmet()  →  cors({ origin: CORS_ORIGIN })  →  express.
   →  GET /health
   →  /api/v1/{auth, public}          (rate limited per route, by IP)
   →  /api/v1/{videos, advertisements, dashboard, aggregation}
-       →  requireAuth  →  adminApiRateLimiter (by admin)
+       →  requireAuth  →  authenticatedApiRateLimiter (by user)
   →  errorHandler (global, last — 4-arg signature)
 ```
 
@@ -137,10 +137,10 @@ context and never leaks its internals to the client.
 
 ### Ownership pattern
 
-`requireAuth` (verifies the JWT, attaches `req.admin`) then `requireOwnership(fetchResource,
+`requireAuth` (verifies the JWT, attaches `req.user`) then `requireOwnership(fetchResource,
 paramName)` (fetches the resource, throws `NotFoundError` — 404, not 403 — if it doesn't exist
 **or** isn't owned by the caller, so a guessing admin can't distinguish the two). A nested
-resource like `AdPlacement` has no `adminId` of its own — ownership is derived transitively
+resource like `AdPlacement` has no `userId` of its own — ownership is derived transitively
 through its parent video, and that video must be the `:videoId` in the URL (the fetcher receives
 every route param), so `/videos/A/placements/<a placement on B>` 404s rather than editing B's.
 
@@ -164,14 +164,14 @@ none.
 
 `express-rate-limit`, one limiter per kind of traffic. Limits live in `rateLimit.constants.ts`.
 
-| Limiter                     | Applied to                               | Counted by | Limit                                |
-| --------------------------- | ---------------------------------------- | ---------- | ------------------------------------ |
-| `loginRateLimiter`          | `POST /auth/login`                       | IP         | 10 failed attempts / 15 min          |
-| `playbackEventsRateLimiter` | `POST /public/events`                    | IP         | 300 / min                            |
-| `publicReadRateLimiter`     | `GET /public/videos`, `GET .../playback` | IP         | 120 / min                            |
-| `adminApiRateLimiter`       | every admin route (mounted in `app.ts`)  | admin      | 300 / min                            |
-| `uploadRateLimiter`         | `POST /videos`, `POST /advertisements`   | admin      | 20 / hour, checked before the upload |
-| `aggregationRateLimiter`    | `POST /aggregation/runs`                 | admin      | 5 / min                              |
+| Limiter                       | Applied to                                | Counted by | Limit                                |
+| ----------------------------- | ----------------------------------------- | ---------- | ------------------------------------ |
+| `loginRateLimiter`            | `POST /auth/login`                        | IP         | 10 failed attempts / 15 min          |
+| `playbackEventsRateLimiter`   | `POST /public/events`                     | IP         | 300 / min                            |
+| `publicReadRateLimiter`       | `GET /public/videos`, `GET .../playback`  | IP         | 120 / min                            |
+| `authenticatedApiRateLimiter` | every private route (mounted in `app.ts`) | user       | 300 / min                            |
+| `uploadRateLimiter`           | `POST /videos`, `POST /advertisements`    | user       | 20 / hour, checked before the upload |
+| `aggregationRateLimiter`      | `POST /aggregation/runs`                  | user       | 5 / min                              |
 
 Over a limit, the request gets a `429` with `RATE_LIMITED` in the standard error body (the message
 says how long to wait), plus `RateLimit`/`Retry-After` headers. Counters are kept in memory, so
@@ -190,7 +190,7 @@ where })` for the total, with the response carrying the array alongside a `{ pag
 totalPages }` meta block. `search` does a case-insensitive `contains` match on `title`, added to the
 same `where` clause the ownership/scope filter already builds — a search term narrows the result
 set, it never replaces the owner scoping. The two admin lists extend this with `view`
-(`adminListQuerySchema`): `deleted` swaps the `deletedAt: null` filter for `deletedAt: { not: null }`
+(`libraryListQuerySchema`): `deleted` swaps the `deletedAt: null` filter for `deletedAt: { not: null }`
 and sorts by removal date, newest first.
 The two placement lists (`/videos/:videoId/placements`, `/advertisements/:id/placements`) are
 paginated the same way, minus `search`; their details pages load them as infinite lists (10 per
@@ -286,7 +286,7 @@ page.
 
 `GET /api/v1/dashboard?startDate&endDate&videoId?&adPlacementId?&advertisementId?` runs two
 `prisma.dailyCount.groupBy` queries — never touches `PlaybackEvent` — scoped by a
-`video: { adminId }` relation filter (the actual per-admin isolation) plus the date range and
+`video: { userId }` relation filter (the actual per-user isolation) plus the date range and
 optional narrowing. `videoId`/`adPlacementId` narrow to one owned video (and, further, one of its
 placements); `advertisementId` is mutually exclusive with those two and instead sums across every
 placement of one owned advertisement, on any video — the per-ad view an ad's own detail page needs
@@ -351,8 +351,8 @@ a real Postgres:
   `DATABASE_URL` there and selects the fake video host. Each integration file calls `resetDatabaseBeforeEachTest()`, which empties
   every table except Prisma's migration history before each test, reading the table list from the
   schema. Files run one at a time, since they share the DB.
-- **Factories** (`tests/helpers/factories.ts`) insert admins, videos, ads, placements and raw
-  events directly, and `authHeaderFor(admin)` signs a real token — no login round trip.
+- **Factories** (`tests/helpers/factories.ts`) insert users, videos, ads, placements and raw
+  events directly, and `authHeaderFor(user)` signs a real token — no login round trip.
 - **Logging** is silent under `NODE_ENV=test`, so test output shows only results.
 
 | File                                                 | Proves                                                                                                                      |

@@ -12,7 +12,7 @@ export const logger = pino({
   // pino-pretty is dev-only tooling (not installed in the production image) - plain JSON lines
   // in production are what log aggregators (and pino itself) actually expect.
   transport: env.NODE_ENV === 'development' ? { target: 'pino-pretty' } : undefined,
-  // The access log records request headers - keep a usable admin token out of it.
+  // The access log records request headers - keep a usable access token out of it.
   redact: { paths: LOG_REDACT_PATHS, censor: '[REDACTED]' },
   // Stamps requestId (and clientRequestId, if any) on every line logged during a request.
   mixin: () => ({ ...getRequestContext() }),

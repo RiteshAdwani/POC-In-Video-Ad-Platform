@@ -290,13 +290,19 @@ Detail for each task is in §14. Do them in this order:
 F1 first: it replaces `Admin` with `User` + `Identity` and introduces cookie sessions, which F4,
 and later F6, build on. F4 then adds workspaces, roles and history on top.
 
+**Access is invite-only.** FrameCue is a tool for a known team, not an open platform. Signing in
+with Google or Microsoft proves who someone is; it never grants access by itself. A new person
+gets an account only by accepting an invite link from a workspace Owner or Admin, and the first Owner
+comes from the seed script.
+
 ### F1 — Sign-in: email + Google + Microsoft, with refresh tokens
 
 **Covers:** 1.3, 1.7, 1.8, 1.9, 1.10, 2.6, 2.15, 2.16 · **Slices:** 5
 
 #### Data model
 
-- [YOU] Rename `Admin` → `User` (migration with `@@map` kept stable). `passwordHash` becomes
+- [YOU] Rename `Admin` → `User`, and the `admins` table → `users` with a hand-written `RENAME`
+  migration (Prisma's generated one would drop and recreate the table). `passwordHash` becomes
   nullable, because OAuth-only users have no password. Add `emailVerifiedAt`.
 - [YOU] `Identity { id, userId, provider: GOOGLE | MICROSOFT, providerUserId, email, emailVerified,
 createdAt, lastLoginAt }`, unique on `(provider, providerUserId)`. Users are **keyed by the
@@ -316,6 +322,8 @@ userAgent, createdAt }`. Only a SHA-256 hash of the token is stored.
 | `GET /auth/oauth/:provider/callback`          | Validates `state`, exchanges the code with the PKCE verifier, validates the ID token, applies the linking rules, sets the refresh cookie, and redirects to the SPA. |
 | `POST /auth/identities/:provider/link`        | Starts the same flow while already logged in, to link an extra provider.                                                                                            |
 | `DELETE /auth/identities/:id`                 | Unlinks a provider. Blocked if it's the last way to sign in.                                                                                                        |
+| `POST /auth/password`                         | Sets a password for a user who has none (e.g. joined through Google). Requires a logged-in session.                                                                 |
+| `PUT /auth/password`                          | Changes the password. Requires the current one.                                                                                                                     |
 
 #### Token design
 
@@ -336,14 +344,15 @@ Path=/api/v1/auth` cookie. On page reload the SPA calls `/auth/refresh` to get a
 
 #### Account-linking rules [YOU]
 
-| Situation                                   | Behaviour                                                                                                                                                                        |
-| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Identity `(provider, sub)` already exists   | Sign in as its user                                                                                                                                                              |
-| New identity, no user has that email        | Create the user and identity                                                                                                                                                     |
-| New identity, a user with that email exists | **No auto-link.** Show "An account with this email exists. Sign in with your existing method to link Google." Linking happens only from a logged-in session.                     |
-| Provider email not verified                 | Never used to match or link. Google exposes `email_verified`. For Microsoft, treat `email` as unverified unless the `xms_edov` optional claim says the domain owner verified it. |
-| User changes their email at the provider    | Nothing breaks, because identities are keyed on `sub`.                                                                                                                           |
-| Unlink the last sign-in method              | Blocked with 409                                                                                                                                                                 |
+| Situation                                   | Behaviour                                                                                                                                                                            |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Identity `(provider, sub)` already exists   | Sign in as its user                                                                                                                                                                  |
+| New identity, no invite in the flow         | **Rejected with 403**: "This account hasn't been invited." Nothing is stored.                                                                                                        |
+| New identity, valid invite in the flow      | Create the user and identity, add the membership with the invite's role, and mark the invite accepted. The invite token travels through the OAuth flow in the signed `state` cookie. |
+| New identity, a user with that email exists | **No auto-link**, even with an invite. Show "An account with this email exists. Sign in with your existing method to link Google." Linking happens only from a logged-in session.    |
+| Provider email not verified                 | Never used to match or link. Google exposes `email_verified`. For Microsoft, treat `email` as unverified unless the `xms_edov` optional claim says the domain owner verified it.     |
+| User changes their email at the provider    | Nothing breaks, because identities are keyed on `sub`.                                                                                                                               |
+| Unlink the last sign-in method              | Blocked with 409                                                                                                                                                                     |
 
 #### Provider notes
 
@@ -408,10 +417,38 @@ Reusing a stolen refresh token logs out every session in that family. There's no
 #### a. Workspaces + roles [YOU]
 
 - `Workspace { id, name, timezone, currency }` and
-  `Membership { workspaceId, userId, role: OWNER | EDITOR | VIEWER }`.
-- A first-time OAuth user from F1 gets a personal workspace.
-- **Invites without email:** `Invite { workspaceId, role, tokenHash, expiresAt, acceptedAt }`. The
-  owner copies a one-time link, and accepting it requires being signed in.
+  `Membership { workspaceId, userId, role: OWNER | ADMIN | EDITOR | VIEWER }`.
+- **Roles** (per workspace; one person can hold different roles in different workspaces). They are
+  ranked OWNER > ADMIN > EDITOR > VIEWER, and `requireRole('ADMIN')` admits Admins and the Owner.
+
+  | Action                                              | Owner | Admin | Editor | Viewer |
+  | --------------------------------------------------- | :---: | :---: | :----: | :----: |
+  | See videos, ads, campaigns, dashboard               |   ✓   |   ✓   |   ✓    |   ✓    |
+  | Create, edit, delete videos, ads, placements        |   ✓   |   ✓   |   ✓    |        |
+  | Run re-aggregation                                  |   ✓   |   ✓   |   ✓    |        |
+  | Create and edit campaigns and budgets (F5)          |   ✓   |   ✓   |        |        |
+  | Workspace settings (name, timezone, currency)       |   ✓   |   ✓   |        |        |
+  | Invite, change roles of, remove Editors and Viewers |   ✓   |   ✓   |        |        |
+  | Invite, promote to, demote or remove Admins         |   ✓   |       |        |        |
+  | Transfer ownership                                  |   ✓   |       |        |        |
+
+- **Ownership rules:**
+  - Every workspace has **exactly one Owner**. Nobody can remove or demote the Owner; the seat
+    changes hands only through a transfer.
+  - **A role can't grant more than it has.** An Admin can't invite an Admin, promote anyone to
+    Admin or Owner, or touch another Admin or the Owner (403).
+  - **Transfer ownership:** `POST /workspaces/:id/transfer-ownership { userId }`. The target must
+    already be a member. In one transaction the target becomes OWNER and the old Owner becomes
+    ADMIN, so there is never zero or two Owners. A partial unique index on `(workspace_id) WHERE
+role = 'OWNER'` makes a second Owner impossible even if the code is wrong.
+  - Deleting a workspace is out of scope.
+
+- **Invites are the only way in for new people:** `Invite { workspaceId, role, tokenHash,
+expiresAt, acceptedAt }`. An Owner or Admin copies a one-time link (no email service needed). The accept
+  page lets a new person join with Google, Microsoft, or an email + password; an existing user
+  accepts while signed in and gains a second membership. A used or expired link is rejected.
+- A password sign-up's email is unverified (`emailVerifiedAt` stays null), so it is never used to
+  match or link a provider identity.
 - The session carries the active `workspaceId`. A `requireRole('EDITOR')` middleware handles route
   access, and services re-check resource-level rules.
 - Wrong workspace → **404** (keeps the 101 stance of not revealing existence). Wrong role → **403**.
@@ -468,6 +505,8 @@ currency char(3), cpmMinor bigint, dailyBudgetMinor bigint, status }`, plus
   add and multiply-and-round with one documented rounding rule. The currency exponent comes from ISO
   4217 (JPY 0, USD 2, KWD 3). Display uses `Intl.NumberFormat`.
 - CHECK constraints: `cpm_minor > 0`, `end_date >= start_date` (1.6).
+- Campaigns and budgets are real money, so only Owners and Admins create or change them; everyone can see
+  them.
 
 #### b. Auto-stop on budget [YOU] (1.8)
 
@@ -951,19 +990,21 @@ ARCHITECTURE.md and DECISIONS.md are updated with each feature to describe the s
 
 1. Someone signs in with Google using an email that already has a password account. What happens,
    and why not auto-link? (P1)
-2. Two tabs refresh the session at the same moment. Show why the user isn't logged out. (P1)
-3. A Viewer calls the edit API directly. Show the enforcement and the test. (P1)
-4. 100 impressions arrive at once against a nearly empty budget. Show the spend is exact. (P2)
-5. An admin in New York asks why Sunday had 25 hours of data. (P2)
-6. Show the query plan behind "impressions this month" at 1M events. (P2)
-7. Upload a 1 GB file. Show the server's memory, and what happens if the client disconnects
+2. A stranger signs in with Google. What do they see, and what is stored? (P1)
+3. Two tabs refresh the session at the same moment. Show why the user isn't logged out. (P1)
+4. A Viewer calls the edit API directly. Show the enforcement and the test. (P1)
+5. An Admin tries to promote themselves to Owner. Show what stops them. (P1)
+6. 100 impressions arrive at once against a nearly empty budget. Show the spend is exact. (P2)
+7. A user in New York asks why Sunday had 25 hours of data. (P2)
+8. Show the query plan behind "impressions this month" at 1M events. (P2)
+9. Upload a 1 GB file. Show the server's memory, and what happens if the client disconnects
    halfway. (P3)
-8. The worker is killed mid-transcode. Walk through the recovery. (P3)
-9. The DB commit succeeds but Redis is down when the transcode should be enqueued. What happens? (P3)
-10. How does the player know an ad is playing inside one stitched stream, and why are dashboard
+10. The worker is killed mid-transcode. Walk through the recovery. (P3)
+11. The DB commit succeeds but Redis is down when the transcode should be enqueued. What happens? (P3)
+12. How does the player know an ad is playing inside one stitched stream, and why are dashboard
     counts unaffected? (P4)
-11. A user reports a slow page at 14:02 yesterday. Find the cause from telemetry alone. (P5)
-12. Google sign-in is down. What do users see, and what keeps working? (P5)
-13. Kill one API instance during the live room demo. What does the client do? (L1)
-14. Roll back yesterday's release. What happens to the migration it ran? (L2)
-15. How does the app prove who it is to Key Vault without holding a secret? (L2)
+13. A user reports a slow page at 14:02 yesterday. Find the cause from telemetry alone. (P5)
+14. Google sign-in is down. What do users see, and what keeps working? (P5)
+15. Kill one API instance during the live room demo. What does the client do? (L1)
+16. Roll back yesterday's release. What happens to the migration it ran? (L2)
+17. How does the app prove who it is to Key Vault without holding a secret? (L2)

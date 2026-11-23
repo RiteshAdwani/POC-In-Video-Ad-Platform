@@ -18,9 +18,9 @@ export const paginationQuerySchema = z.object({
 });
 
 /**
- * @description Admin list query - pagination plus a `view` that switches the list from active
- * items (the default) to retired (soft-deleted) ones.
+ * @description Query for the video and ad library lists - pagination plus a `view` that switches
+ * from active items (the default) to retired (soft-deleted) ones.
  */
-export const adminListQuerySchema = paginationQuerySchema.extend({
+export const libraryListQuerySchema = paginationQuerySchema.extend({
   view: z.enum(ListView).default(ListView.ACTIVE),
 });

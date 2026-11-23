@@ -9,7 +9,7 @@ import { getRequestId } from './lib/requestContext';
 import { errorHandler } from './middleware/errorHandler';
 import { requestContext } from './middleware/requestContext';
 import { requireAuth } from './middleware/requireAuth';
-import { adminApiRateLimiter } from './middleware/rateLimit';
+import { authenticatedApiRateLimiter } from './middleware/rateLimit';
 import { authRouter } from './modules/auth/auth.routes';
 import { videosRouter } from './modules/videos/videos.routes';
 import { advertisementsRouter } from './modules/advertisements/advertisements.routes';
@@ -42,14 +42,14 @@ app.get('/health', (_req, res) => {
   res.status(StatusCodes.OK).json({ status: 'ok' });
 });
 
-// Every admin route needs a logged-in admin, and is rate limited per admin rather than per IP.
-const adminRouteMiddleware = [requireAuth, adminApiRateLimiter];
+// Every private route needs a logged-in user, and is rate limited per user rather than per IP.
+const authenticatedRouteMiddleware = [requireAuth, authenticatedApiRateLimiter];
 
 app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/videos', adminRouteMiddleware, videosRouter);
-app.use('/api/v1/advertisements', adminRouteMiddleware, advertisementsRouter);
-app.use('/api/v1/dashboard', adminRouteMiddleware, dashboardRouter);
-app.use('/api/v1/aggregation', adminRouteMiddleware, aggregationRouter);
+app.use('/api/v1/videos', authenticatedRouteMiddleware, videosRouter);
+app.use('/api/v1/advertisements', authenticatedRouteMiddleware, advertisementsRouter);
+app.use('/api/v1/dashboard', authenticatedRouteMiddleware, dashboardRouter);
+app.use('/api/v1/aggregation', authenticatedRouteMiddleware, aggregationRouter);
 app.use('/api/v1/public', publicRouter);
 
 // Routes go above this line - anything thrown (or rejected) in them ends up here.

@@ -6,7 +6,7 @@ import { ACCESS_TOKEN_EXPIRY } from '../constants/auth.constants';
 import type { AccessTokenPayload } from '../types/auth.types';
 
 /**
- * @description Signs a new access token for an admin, valid for {@link TACCESS_TOKEN_EXPIRY}.
+ * @description Signs a new access token for a user, valid for {@link ACCESS_TOKEN_EXPIRY}.
  */
 export const signAccessToken = (payload: AccessTokenPayload): string =>
   jwt.sign(payload, env.JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
