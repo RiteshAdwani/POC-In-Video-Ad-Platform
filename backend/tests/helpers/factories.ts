@@ -22,9 +22,10 @@ import {
 } from './test.constants';
 
 /**
- * @description A user with a unique email - rows go straight into the DB, skipping login.
+ * @description A user with a unique email - rows go straight into the DB, skipping login. Override
+ * passwordHash with a real bcrypt hash to test logging in.
  */
-export const createUser = (): Promise<User> =>
+export const createUser = (overrides: Partial<Prisma.UserCreateInput> = {}): Promise<User> =>
   prisma.user.create({
     data: {
       email: `user-${randomUUID()}@example.test`,
@@ -32,6 +33,7 @@ export const createUser = (): Promise<User> =>
       passwordHash: randomUUID(),
       firstName: 'Test',
       lastName: 'User',
+      ...overrides,
     },
   });
 

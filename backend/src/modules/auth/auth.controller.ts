@@ -17,8 +17,10 @@ export const login: RequestHandler = async (req, res) => {
   // Fetch user from DB
   const user = await prisma.user.findUnique({ where: { email } });
 
-  // Check if password matches
-  const passwordMatches = user ? await bcrypt.compare(password, user.passwordHash) : false;
+  // Check if password matches - a user without a password (e.g. joined with Google) never does
+  const passwordMatches = user?.passwordHash
+    ? await bcrypt.compare(password, user.passwordHash)
+    : false;
 
   if (!user || !passwordMatches) {
     throw new UnauthorizedError(ErrorMessages.INVALID_CREDENTIALS);

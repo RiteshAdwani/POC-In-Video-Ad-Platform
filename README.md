@@ -87,7 +87,7 @@ Once it's up:
 - Frontend: http://localhost:5173
 - Backend health check: http://localhost:8000/health
 
-Seed two admin accounts. Run this from the host, not inside the container — the backend's
+Seed two user accounts. Run this from the host, not inside the container — the backend's
 production image is built with `--omit=dev`, and seeding needs the dev-only `tsx` runner.
 `docker-compose.yml` exposes Postgres on `localhost:5432` for exactly this:
 
@@ -101,7 +101,7 @@ npm run seed --workspace=backend
 | `alice@example.com` | `password123` |
 | `bob@example.com`   | `password123` |
 
-Two accounts exist specifically so cross-admin ownership scoping is demonstrable.
+Two accounts exist specifically so cross-user ownership scoping is demonstrable.
 
 ## Local development (outside Docker)
 

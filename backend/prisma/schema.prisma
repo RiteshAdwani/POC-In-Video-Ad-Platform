@@ -53,17 +53,26 @@ enum AggregationRunStatus {
   @@map("aggregation_run_status")
 }
 
+enum IdentityProvider {
+  GOOGLE
+  MICROSOFT
+
+  @@map("identity_provider")
+}
+
 /// Owns videos and advertisements; isolated per user.
 model User {
-  id             String          @id @default(uuid(7))
-  email          String          @unique
-  passwordHash   String          @map("password_hash")
-  firstName      String          @map("first_name")
-  lastName       String          @map("last_name")
-  createdAt      DateTime        @default(now()) @map("created_at")
-  updatedAt      DateTime        @updatedAt @map("updated_at")
-  videos         Video[]
-  advertisements Advertisement[]
+  id              String          @id @default(uuid(7))
+  email           String          @unique
+  passwordHash    String?         @map("password_hash")
+  firstName       String          @map("first_name")
+  lastName        String          @map("last_name")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  emailVerifiedAt DateTime?       @map("email_verified_at")
+  videos          Video[]
+  advertisements  Advertisement[]
+  identities      Identity[]
 
   @@map("users")
 }
@@ -200,4 +209,21 @@ model AggregationRun {
   @@index([eventDate])
   @@index([status])
   @@map("aggregation_runs")
+}
+
+/// One external sign-in (Google or Microsoft) linked to a user, keyed by the provider's own id.
+model Identity {
+  id             String           @id @default(uuid(7))
+  userId         String           @map("user_id")
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider       IdentityProvider
+  providerUserId String           @map("provider_user_id")
+  email          String?
+  emailVerified  Boolean          @map("email_verified")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  lastLoginAt    DateTime?        @map("last_login_at")
+
+  @@unique([provider, providerUserId])
+  @@index([userId])
+  @@map("identities")
 }
