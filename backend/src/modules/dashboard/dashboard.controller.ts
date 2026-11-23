@@ -8,7 +8,7 @@ import { dashboardQuerySchema } from './dashboard.schema';
 import { extractDashboardStats, type EventTypeCount } from './dashboard.stats';
 
 type DashboardScopeParams = {
-  adminId: string;
+  userId: string;
   videoId?: string;
   adPlacementId?: string;
   advertisementId?: string;
@@ -16,17 +16,17 @@ type DashboardScopeParams = {
 
 /**
  * @description Confirms the caller actually owns whichever of videoId/adPlacementId/
- * advertisementId were given, throwing a 404 rather than leaking another admin's stats.
+ * advertisementId were given, throwing a 404 rather than leaking another user's stats.
  */
 const assertOwnsScope = async ({
-  adminId,
+  userId,
   videoId,
   adPlacementId,
   advertisementId,
 }: DashboardScopeParams) => {
   if (videoId) {
     const video = await prisma.video.findUnique({ where: { id: videoId } });
-    if (video?.adminId !== adminId) {
+    if (video?.userId !== userId) {
       throw new NotFoundError(ErrorMessages.VIDEO_NOT_FOUND);
     }
   }
@@ -42,7 +42,7 @@ const assertOwnsScope = async ({
     const advertisement = await prisma.advertisement.findUnique({
       where: { id: advertisementId },
     });
-    if (advertisement?.adminId !== adminId) {
+    if (advertisement?.userId !== userId) {
       throw new NotFoundError(ErrorMessages.ADVERTISEMENT_NOT_FOUND);
     }
   }
@@ -61,13 +61,13 @@ const assertOwnsScope = async ({
 export const getDashboardStats: RequestHandler = async (req, res) => {
   const { startDate, endDate, videoId, adPlacementId, advertisementId } =
     dashboardQuerySchema.parse(req.query);
-  const adminId = req.admin!.id;
+  const userId = req.user!.id;
 
-  await assertOwnsScope({ adminId, videoId, adPlacementId, advertisementId });
+  await assertOwnsScope({ userId, videoId, adPlacementId, advertisementId });
 
   const scope = {
     eventDate: { gte: startDate, lte: endDate },
-    video: { adminId },
+    video: { userId },
     ...(videoId && { videoId }),
     ...(adPlacementId && { adPlacementId }),
     ...(advertisementId && { adPlacement: { advertisementId } }),

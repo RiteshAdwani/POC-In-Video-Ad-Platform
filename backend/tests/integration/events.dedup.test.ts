@@ -91,7 +91,7 @@ describe('POST /public/events - duplicate events', () => {
   });
 
   it('counts a duplicated event once on the dashboard', async () => {
-    const { admin, video, adPlacement } = await createVideoWithAdPlacement();
+    const { user, video, adPlacement } = await createVideoWithAdPlacement();
     const payload = {
       videoId: video.id,
       sessionId: TEST_SESSION_ID,
@@ -107,7 +107,7 @@ describe('POST /public/events - duplicate events', () => {
     const dashboard = await request(app)
       .get(TestApiPaths.dashboard())
       .query({ startDate: today, endDate: today })
-      .set('Authorization', authHeaderFor(admin))
+      .set('Authorization', authHeaderFor(user))
       .expect(200);
 
     expect(dashboard.body.data.impressions).toBe(1);
@@ -144,9 +144,9 @@ describe('POST /public/events - duplicate events', () => {
     });
 
     it('records the same ad shown at two placements on one video separately', async () => {
-      const { admin, video, adPlacement } = await createVideoWithAdPlacement();
+      const { user, video, adPlacement } = await createVideoWithAdPlacement();
       const advertisement = await prisma.advertisement.findFirstOrThrow({
-        where: { adminId: admin.id },
+        where: { userId: user.id },
       });
       const secondPlacement = await createAdPlacement(video, advertisement, {
         adType: AdType.MID_ROLL,

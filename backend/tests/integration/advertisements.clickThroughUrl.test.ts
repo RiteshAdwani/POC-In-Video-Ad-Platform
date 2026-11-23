@@ -2,9 +2,9 @@ import request from 'supertest';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { app } from '../../src/app';
 import { prisma } from '../../src/lib/prisma';
-import type { Admin, Advertisement } from '../../src/generated/prisma/client.js';
+import type { User, Advertisement } from '../../src/generated/prisma/client.js';
 import { resetDatabaseBeforeEachTest } from '../setup/resetDatabaseBeforeEachTest';
-import { authHeaderFor, createAdmin, createAdvertisement } from '../helpers/factories';
+import { authHeaderFor, createUser, createAdvertisement } from '../helpers/factories';
 import {
   TestApiPaths,
   TEST_CLICK_THROUGH_URL,
@@ -14,7 +14,7 @@ import {
   TEST_NEW_AD_TITLE,
 } from '../helpers/test.constants';
 
-let admin: Admin;
+let user: User;
 let ad: Advertisement;
 
 /**
@@ -23,7 +23,7 @@ let ad: Advertisement;
 const patchClickThroughUrl = (clickThroughUrl: string | null) =>
   request(app)
     .patch(`${TestApiPaths.advertisements()}/${ad.id}`)
-    .set('Authorization', authHeaderFor(admin))
+    .set('Authorization', authHeaderFor(user))
     .send({ clickThroughUrl });
 
 /**
@@ -36,8 +36,8 @@ describe('ad click-through links', () => {
   resetDatabaseBeforeEachTest();
 
   beforeEach(async () => {
-    admin = await createAdmin();
-    ad = await createAdvertisement(admin);
+    user = await createUser();
+    ad = await createAdvertisement(user);
   });
 
   describe('updating an ad', () => {
@@ -75,7 +75,7 @@ describe('ad click-through links', () => {
       async (url) => {
         const response = await request(app)
           .post(TestApiPaths.advertisements())
-          .set('Authorization', authHeaderFor(admin))
+          .set('Authorization', authHeaderFor(user))
           .field('title', TEST_NEW_AD_TITLE)
           .field('clickThroughUrl', url)
           .attach('assetFile', TEST_IMAGE_FILE.buffer, {

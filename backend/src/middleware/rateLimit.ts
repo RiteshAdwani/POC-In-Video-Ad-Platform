@@ -3,7 +3,7 @@ import { rateLimit, type Options } from 'express-rate-limit';
 import { TooManyRequestsError } from '../errors/AppError';
 import { ErrorMessages } from '../constants/errorMessages.constants';
 import {
-  ADMIN_API_RATE_LIMIT,
+  AUTHENTICATED_API_RATE_LIMIT,
   AGGREGATION_RATE_LIMIT,
   LOGIN_RATE_LIMIT,
   PLAYBACK_EVENTS_RATE_LIMIT,
@@ -44,8 +44,8 @@ const createRateLimiter = (
     ...options,
   });
 
-// Must run after requireAuth, which sets req.admin.
-const adminKeyGenerator = (req: Request) => req.admin!.id;
+// Must run after requireAuth, which sets req.user.
+const userKeyGenerator = (req: Request) => req.user!.id;
 
 export const loginRateLimiter = createRateLimiter(
   LOGIN_RATE_LIMIT,
@@ -63,20 +63,20 @@ export const publicReadRateLimiter = createRateLimiter(
   ErrorMessages.TOO_MANY_REQUESTS,
 );
 
-export const adminApiRateLimiter = createRateLimiter(
-  ADMIN_API_RATE_LIMIT,
+export const authenticatedApiRateLimiter = createRateLimiter(
+  AUTHENTICATED_API_RATE_LIMIT,
   ErrorMessages.TOO_MANY_REQUESTS,
-  { keyGenerator: adminKeyGenerator },
+  { keyGenerator: userKeyGenerator },
 );
 
 export const uploadRateLimiter = createRateLimiter(
   UPLOAD_RATE_LIMIT,
   ErrorMessages.TOO_MANY_UPLOADS,
-  { keyGenerator: adminKeyGenerator },
+  { keyGenerator: userKeyGenerator },
 );
 
 export const aggregationRateLimiter = createRateLimiter(
   AGGREGATION_RATE_LIMIT,
   ErrorMessages.TOO_MANY_REQUESTS,
-  { keyGenerator: adminKeyGenerator },
+  { keyGenerator: userKeyGenerator },
 );

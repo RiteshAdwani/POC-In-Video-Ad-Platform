@@ -53,8 +53,8 @@ enum AggregationRunStatus {
   @@map("aggregation_run_status")
 }
 
-/// Owns videos and advertisements; isolated per admin.
-model Admin {
+/// Owns videos and advertisements; isolated per user.
+model User {
   id             String          @id @default(uuid(7))
   email          String          @unique
   passwordHash   String          @map("password_hash")
@@ -65,7 +65,7 @@ model Admin {
   videos         Video[]
   advertisements Advertisement[]
 
-  @@map("admins")
+  @@map("users")
 }
 
 /// Metadata only - the actual file lives with the hosting service.
@@ -83,8 +83,8 @@ model Video {
   // blocked by onDelete: Restrict on AdPlacement/PlaybackEvent/DailyCount the moment any of them
   // reference this video, since every video that's ever actually been watched has at least one.
   deletedAt       DateTime?       @map("deleted_at")
-  adminId         String          @map("admin_id")
-  admin           Admin           @relation(fields: [adminId], references: [id])
+  userId          String          @map("admin_id")
+  user            User            @relation(fields: [userId], references: [id])
   adPlacements    AdPlacement[]
   playbackEvents  PlaybackEvent[]
   dailyCounts     DailyCount[]
@@ -105,8 +105,8 @@ model Advertisement {
   // Soft-delete only - retired AdPlacement rows still reference this ad (onDelete: Restrict), so a
   // hard delete would be blocked forever once the ad has ever been placed.
   deletedAt       DateTime?     @map("deleted_at")
-  adminId         String        @map("admin_id")
-  admin           Admin         @relation(fields: [adminId], references: [id])
+  userId          String        @map("admin_id")
+  user            User          @relation(fields: [userId], references: [id])
   adPlacements    AdPlacement[]
 
   @@map("advertisements")
@@ -124,7 +124,7 @@ model AdPlacement {
   // Soft-delete only - a hard delete is permanently blocked by onDelete: Restrict below the moment
   // any PlaybackEvent/DailyCount row references this placement, since removing the row would
   // either destroy or silently corrupt real analytics history. "Deleting" a placement instead sets
-  // this timestamp; every admin-facing query filters deletedAt: null, while the dashboard's own
+  // this timestamp; every private-facing query filters deletedAt: null, while the dashboard's own
   // historical queries never need to (a retired placement's past events are still real facts).
   deletedAt          DateTime?       @map("deleted_at")
   videoId            String          @map("video_id")

@@ -7,12 +7,12 @@ import { paginationQuerySchema } from '../../schemas/pagination.schema';
 import { buildPaginationMeta } from '../../lib/pagination';
 
 /**
- * @description Lists every READY video, across all admins - the public catalog a viewer picks
- * from before landing on one video's player. No auth, no ownership scoping: unlike the admin
+ * @description Lists every READY video, across all users - the public catalog a viewer picks
+ * from before landing on one video's player. No auth, no ownership scoping: unlike the private
  * listing (GET /videos, which is scoped to the caller), this is meant to be browsed by anyone.
  * Paginated: page/pageSize come from the query string, defaulted and bounded by
  * paginationQuerySchema - the frontend loads further pages as the catalog is scrolled, rather
- * than jumping between numbered pages like the admin lists. Also supports an optional `search`
+ * than jumping between numbered pages like the private lists. Also supports an optional `search`
  * term, matched against the title only.
  */
 export const listPublicVideos: RequestHandler = async (req, res) => {

@@ -7,9 +7,9 @@ import { fakeVideoHosting } from '../../src/lib/fakeVideoHosting';
 import { VideoStatus } from '../../src/generated/prisma/enums';
 import { ErrorMessages } from '../../src/constants/errorMessages.constants';
 import { FakeHostingOutcome } from '../../src/constants/videoHosting.constants';
-import type { Admin } from '../../src/generated/prisma/client.js';
+import type { User } from '../../src/generated/prisma/client.js';
 import { resetDatabaseBeforeEachTest } from '../setup/resetDatabaseBeforeEachTest';
-import { authHeaderFor, createAdmin } from '../helpers/factories';
+import { authHeaderFor, createUser } from '../helpers/factories';
 import {
   TestApiPaths,
   TEST_SLOW_HOST_LATENCY_MS,
@@ -17,12 +17,12 @@ import {
 } from '../helpers/test.constants';
 
 /**
- * @description Posts a video upload the way the admin UI does - multipart, with a title.
+ * @description Posts a video upload the way the private UI does - multipart, with a title.
  */
-const uploadVideo = (admin: Admin) =>
+const uploadVideo = (user: User) =>
   request(app)
     .post(TestApiPaths.videos())
-    .set('Authorization', authHeaderFor(admin))
+    .set('Authorization', authHeaderFor(user))
     .field('title', 'Launch trailer')
     .attach('video', TEST_VIDEO_FILE.buffer, {
       filename: TEST_VIDEO_FILE.filename,
@@ -33,9 +33,9 @@ describe('POST /videos - when the video host misbehaves', () => {
   resetDatabaseBeforeEachTest();
 
   it('stores a PROCESSING video with the host id when the upload succeeds', async () => {
-    const admin = await createAdmin();
+    const user = await createUser();
 
-    const response = await uploadVideo(admin).expect(201);
+    const response = await uploadVideo(user).expect(201);
 
     expect(response.body.data.video.status).toBe(VideoStatus.PROCESSING);
     const video = await prisma.video.findUniqueOrThrow({
@@ -50,27 +50,27 @@ describe('POST /videos - when the video host misbehaves', () => {
     ['is unavailable', FakeHostingOutcome.UNAVAILABLE],
   ])('answers 502 and keeps a FAILED record when the host %s', async (_label, outcome) => {
     fakeVideoHosting.configure({ uploadOutcome: outcome });
-    const admin = await createAdmin();
+    const user = await createUser();
 
-    const response = await uploadVideo(admin);
+    const response = await uploadVideo(user);
 
     expect(response.status).toBe(502);
     expect(response.body.message).toBe(ErrorMessages.VIDEO_UPLOAD_FAILED);
-    // The admin's library shows the attempt as failed rather than losing it.
+    // The user's library shows the attempt as failed rather than losing it.
     const videos = await prisma.video.findMany();
     expect(videos).toHaveLength(1);
     expect(videos[0]).toMatchObject({ status: VideoStatus.FAILED, externalId: null });
   });
 
-  it('shows the failed upload in the admin list and as failed to viewers', async () => {
+  it('shows the failed upload in the private list and as failed to viewers', async () => {
     fakeVideoHosting.configure({ uploadOutcome: FakeHostingOutcome.UNAVAILABLE });
-    const admin = await createAdmin();
-    await uploadVideo(admin).expect(502);
+    const user = await createUser();
+    await uploadVideo(user).expect(502);
     const video = await prisma.video.findFirstOrThrow();
 
     const list = await request(app)
       .get(TestApiPaths.videos())
-      .set('Authorization', authHeaderFor(admin))
+      .set('Authorization', authHeaderFor(user))
       .expect(200);
     const playback = await request(app).get(TestApiPaths.playback(video.id)).expect(200);
 
@@ -84,10 +84,10 @@ describe('POST /videos - when the video host misbehaves', () => {
 
   it('waits for a slow host and only creates the row once it answers', async () => {
     fakeVideoHosting.configure({ latencyMs: TEST_SLOW_HOST_LATENCY_MS });
-    const admin = await createAdmin();
+    const user = await createUser();
     const startedAt = Date.now();
 
-    const pending = uploadVideo(admin).then((response) => response);
+    const pending = uploadVideo(user).then((response) => response);
     await sleep(TEST_SLOW_HOST_LATENCY_MS / 2);
     const rowsWhileWaiting = await prisma.video.count();
     const response = await pending;
@@ -99,11 +99,11 @@ describe('POST /videos - when the video host misbehaves', () => {
   });
 
   it('rejects an upload with no file before calling the host', async () => {
-    const admin = await createAdmin();
+    const user = await createUser();
 
     const response = await request(app)
       .post(TestApiPaths.videos())
-      .set('Authorization', authHeaderFor(admin))
+      .set('Authorization', authHeaderFor(user))
       .field('title', 'No file attached');
 
     expect(response.status).toBe(400);

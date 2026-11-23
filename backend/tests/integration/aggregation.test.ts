@@ -129,7 +129,7 @@ describe('daily aggregation', () => {
   });
 
   it('serves the dashboard from the stored counts, with rates derived from them', async () => {
-    const { admin, video, adPlacement } = await createVideoWithAdPlacement();
+    const { user, video, adPlacement } = await createVideoWithAdPlacement();
     await logEvents(video, PlaybackEventType.AD_SHOWN, 4, TEST_AGGREGATED_DAY_NOON, adPlacement);
     await logEvents(
       video,
@@ -145,7 +145,7 @@ describe('daily aggregation', () => {
     const response = await request(app)
       .get(TestApiPaths.dashboard())
       .query({ startDate: TEST_AGGREGATED_DAY, endDate: TEST_AGGREGATED_DAY })
-      .set('Authorization', authHeaderFor(admin))
+      .set('Authorization', authHeaderFor(user))
       .expect(200);
 
     expect(response.body.data).toMatchObject({
@@ -162,25 +162,25 @@ describe('daily aggregation', () => {
   });
 
   it('shows nothing on the dashboard until the day has been aggregated', async () => {
-    const { admin, video, adPlacement } = await createVideoWithAdPlacement();
+    const { user, video, adPlacement } = await createVideoWithAdPlacement();
     await logEvents(video, PlaybackEventType.AD_SHOWN, 3, TEST_AGGREGATED_DAY_NOON, adPlacement);
 
     const response = await request(app)
       .get(TestApiPaths.dashboard())
       .query({ startDate: TEST_AGGREGATED_DAY, endDate: TEST_AGGREGATED_DAY })
-      .set('Authorization', authHeaderFor(admin))
+      .set('Authorization', authHeaderFor(user))
       .expect(200);
 
     expect(response.body.data.impressions).toBe(0);
   });
 
-  it('re-aggregates a chosen day on demand through the admin endpoint', async () => {
-    const { admin, video, adPlacement } = await createVideoWithAdPlacement();
+  it('re-aggregates a chosen day on demand through the private endpoint', async () => {
+    const { user, video, adPlacement } = await createVideoWithAdPlacement();
     await logEvents(video, PlaybackEventType.AD_SHOWN, 2, TEST_AGGREGATED_DAY_NOON, adPlacement);
 
     const response = await request(app)
       .post(`${TestApiPaths.aggregation()}/runs`)
-      .set('Authorization', authHeaderFor(admin))
+      .set('Authorization', authHeaderFor(user))
       .send({ day: TEST_AGGREGATED_DAY })
       .expect(201);
 

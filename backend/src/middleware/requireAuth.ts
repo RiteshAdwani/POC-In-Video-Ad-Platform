@@ -5,7 +5,7 @@ import { ErrorMessages } from '../constants/errorMessages.constants';
 import { BEARER_PREFIX } from '../constants/auth.constants';
 
 /**
- * @description Verifies the request's Bearer token and attaches req.admin, or throws UnauthorizedError.
+ * @description Verifies the request's Bearer token and attaches req.user, or throws UnauthorizedError.
  */
 export const requireAuth: RequestHandler = (req, _res, next) => {
   const header = req.header('Authorization');
@@ -15,7 +15,7 @@ export const requireAuth: RequestHandler = (req, _res, next) => {
     throw new UnauthorizedError(ErrorMessages.MISSING_AUTH_HEADER);
   }
 
-  const { adminId } = verifyAuthToken(token);
-  req.admin = { id: adminId };
+  const { userId } = verifyAuthToken(token);
+  req.user = { id: userId };
   next();
 };

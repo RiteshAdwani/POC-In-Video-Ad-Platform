@@ -23,7 +23,7 @@ export const createAdPlacement: RequestHandler = async (req, res) => {
   const advertisement = await prisma.advertisement.findFirst({
     where: { id: advertisementId, deletedAt: null },
   });
-  if (advertisement?.adminId !== req.admin!.id) {
+  if (advertisement?.userId !== req.user!.id) {
     throw new NotFoundError(ErrorMessages.ADVERTISEMENT_NOT_FOUND);
   }
 
@@ -97,7 +97,7 @@ export const listAdPlacementsForAdvertisement: RequestHandler = async (req, res)
 
 /**
  * @description Updates an Ad placement's type/position/timing. requireOwnership already fetched
- * and verified it (ownership derives from the parent video's adminId), and it comes with its
+ * and verified it (ownership derives from the parent video's userId), and it comes with its
  * advertisement attached so the placement constraints can be re-checked against the resulting
  * state - a partial patch could otherwise leave a pre-roll at a nonzero offset just by not
  * touching the field a naive per-field check would have looked at.
@@ -127,7 +127,7 @@ export const updateAdPlacement: RequestHandler = async (req, res) => {
  * @description Retires an ad placement - a soft delete (sets deletedAt), never a real row
  * deletion. A hard delete would be permanently blocked by onDelete: Restrict the moment any
  * PlaybackEvent/DailyCount row references this placement, and even before that point, physically
- * removing the row is never actually necessary: every admin-facing query already filters
+ * removing the row is never actually necessary: every private-facing query already filters
  * deletedAt: null, so a retired placement simply stops appearing anywhere active, while its past
  * analytics stay exactly as valid as they were before. requireOwnership already fetched and
  * verified it.

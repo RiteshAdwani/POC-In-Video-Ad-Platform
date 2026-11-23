@@ -8,7 +8,7 @@ import { ApiSuccessMessages } from '../../constants/apiSuccessMessages.constants
 
 /**
  * @description Returns a video's status, and once it's READY, the playback URL and its ad list.
- * Public and unauthenticated - there's no admin identity here to check ownership against.
+ * Public and unauthenticated - there's no user identity here to check ownership against.
  */
 export const getPlaybackConfig: RequestHandler = async (req, res) => {
   // :id is a non-wildcard segment, so it's always a single string at runtime despite Express 5's
@@ -16,11 +16,11 @@ export const getPlaybackConfig: RequestHandler = async (req, res) => {
   const videoId = req.params.id as string;
 
   // findFirst, not findUnique - a retired (soft-deleted) video must 404 here exactly like one
-  // that never existed, same as requireOwnership already does for the admin side.
+  // that never existed, same as requireOwnership already does for the private side.
   const video = await prisma.video.findFirst({
     where: { id: videoId, deletedAt: null },
     // Excludes retired (soft-deleted) placements - a viewer should never be served an ad the
-    // admin has since taken down, even though its past playback history stays intact elsewhere.
+    // user has since taken down, even though its past playback history stays intact elsewhere.
     include: { adPlacements: { where: { deletedAt: null }, include: { advertisement: true } } },
   });
 

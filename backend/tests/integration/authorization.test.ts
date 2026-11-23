@@ -3,17 +3,12 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { app } from '../../src/app';
 import { prisma } from '../../src/lib/prisma';
 import { AdType, PlaybackEventType } from '../../src/generated/prisma/enums';
-import type {
-  Admin,
-  AdPlacement,
-  Advertisement,
-  Video,
-} from '../../src/generated/prisma/client.js';
+import type { User, AdPlacement, Advertisement, Video } from '../../src/generated/prisma/client.js';
 import { ErrorMessages } from '../../src/constants/errorMessages.constants';
 import { resetDatabaseBeforeEachTest } from '../setup/resetDatabaseBeforeEachTest';
 import {
   authHeaderFor,
-  createAdmin,
+  createUser,
   createAdPlacement,
   createAdvertisement,
   createVideo,
@@ -22,35 +17,35 @@ import { TestApiPaths, TEST_UNKNOWN_ID } from '../helpers/test.constants';
 
 type HttpMethod = 'get' | 'post' | 'patch' | 'delete';
 
-// Alice owns everything below; Bob is a second, fully authenticated admin.
-let alice: Admin;
-let bob: Admin;
+// Alice owns everything below; Bob is a second, fully authenticated user.
+let alice: User;
+let bob: User;
 let aliceVideo: Video;
 let aliceAd: Advertisement;
 let alicePlacement: AdPlacement;
 let bobAd: Advertisement;
 
 /**
- * @description Sends a request as the given admin, with a JSON body when there is one.
+ * @description Sends a request as the given user, with a JSON body when there is one.
  */
-const sendAs = (admin: Admin, method: HttpMethod, path: string, body?: object) => {
-  const pending = request(app)[method](path).set('Authorization', authHeaderFor(admin));
+const sendAs = (user: User, method: HttpMethod, path: string, body?: object) => {
+  const pending = request(app)[method](path).set('Authorization', authHeaderFor(user));
   return body ? pending.send(body) : pending;
 };
 
-describe('admin authorization', () => {
+describe('private route authorization', () => {
   resetDatabaseBeforeEachTest();
 
   beforeEach(async () => {
-    alice = await createAdmin();
-    bob = await createAdmin();
+    alice = await createUser();
+    bob = await createUser();
     aliceVideo = await createVideo(alice);
     aliceAd = await createAdvertisement(alice);
     alicePlacement = await createAdPlacement(aliceVideo, aliceAd);
     bobAd = await createAdvertisement(bob);
   });
 
-  describe('every admin route needs a valid token', () => {
+  describe('every private route needs a valid token', () => {
     it.each([
       ['get', TestApiPaths.videos()],
       ['post', TestApiPaths.videos()],
@@ -75,7 +70,7 @@ describe('admin authorization', () => {
     });
   });
 
-  describe("another admin's resources answer 404", () => {
+  describe("another user's resources answer 404", () => {
     it.each<[string, HttpMethod, () => string, () => object | undefined]>([
       ['read a video', 'get', () => `${TestApiPaths.videos()}/${aliceVideo.id}`, () => undefined],
       [
@@ -166,7 +161,7 @@ describe('admin authorization', () => {
       expect(await prisma.adPlacement.count()).toBe(1);
     });
 
-    it("cannot place another admin's ad on their own video", async () => {
+    it("cannot place another user's ad on their own video", async () => {
       const bobVideo = await createVideo(bob);
 
       const response = await sendAs(
@@ -195,7 +190,7 @@ describe('admin authorization', () => {
   });
 
   describe('lists and stats only ever include your own data', () => {
-    it("leaves another admin's videos and ads out of your lists", async () => {
+    it("leaves another user's videos and ads out of your lists", async () => {
       const bobVideo = await createVideo(bob);
 
       const videos = await sendAs(bob, 'get', TestApiPaths.videos()).expect(200);
@@ -205,7 +200,7 @@ describe('admin authorization', () => {
       expect(ads.body.data.advertisements.map((ad: Advertisement) => ad.id)).toEqual([bobAd.id]);
     });
 
-    it("answers 404 when scoping the dashboard to another admin's video or ad", async () => {
+    it("answers 404 when scoping the dashboard to another user's video or ad", async () => {
       const range = { startDate: '2026-01-01', endDate: '2026-12-31' };
 
       const byVideo = await sendAs(bob, 'get', TestApiPaths.dashboard()).query({
@@ -221,7 +216,7 @@ describe('admin authorization', () => {
       expect(byAd.status).toBe(404);
     });
 
-    it("never counts another admin's events in your dashboard totals", async () => {
+    it("never counts another user's events in your dashboard totals", async () => {
       const today = new Date().toISOString().slice(0, 10);
       await prisma.dailyCount.create({
         data: {

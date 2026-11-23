@@ -7,7 +7,7 @@ import {
   AssetType,
   PlaybackEventType,
   VideoStatus,
-  type Admin,
+  type User,
   type AdPlacement,
   type Advertisement,
   type Prisma,
@@ -22,36 +22,36 @@ import {
 } from './test.constants';
 
 /**
- * @description An admin with a unique email - rows go straight into the DB, skipping login.
+ * @description A user with a unique email - rows go straight into the DB, skipping login.
  */
-export const createAdmin = (): Promise<Admin> =>
-  prisma.admin.create({
+export const createUser = (): Promise<User> =>
+  prisma.user.create({
     data: {
-      email: `admin-${randomUUID()}@example.test`,
+      email: `user-${randomUUID()}@example.test`,
       // Never a valid bcrypt hash, so no password can log in - tests sign tokens instead.
       passwordHash: randomUUID(),
       firstName: 'Test',
-      lastName: 'Admin',
+      lastName: 'User',
     },
   });
 
 /**
- * @description The Authorization header value a logged-in admin's requests carry.
+ * @description The Authorization header value a logged-in user's requests carry.
  */
-export const authHeaderFor = (admin: Admin): string =>
-  `${BEARER_PREFIX}${signAccessToken({ adminId: admin.id })}`;
+export const authHeaderFor = (user: User): string =>
+  `${BEARER_PREFIX}${signAccessToken({ userId: user.id })}`;
 
 /**
  * @description A READY, playable video by default - override status (and friends) for others.
  */
 export const createVideo = (
-  admin: Admin,
+  user: User,
   overrides: Partial<Prisma.VideoUncheckedCreateInput> = {},
 ): Promise<Video> =>
   prisma.video.create({
     data: {
       title: 'Test video',
-      adminId: admin.id,
+      userId: user.id,
       status: VideoStatus.READY,
       externalId: `hosted-${randomUUID()}`,
       playbackUrl: TEST_PLAYBACK_URL,
@@ -64,13 +64,13 @@ export const createVideo = (
  * @description A video ad (for pre/mid-roll) by default; pass AssetType.IMAGE for a banner.
  */
 export const createAdvertisement = (
-  admin: Admin,
+  user: User,
   assetType: AssetType = AssetType.VIDEO,
 ): Promise<Advertisement> =>
   prisma.advertisement.create({
     data: {
       title: 'Test ad',
-      adminId: admin.id,
+      userId: user.id,
       assetType,
       assetUrl: assetType === AssetType.IMAGE ? TEST_IMAGE_ASSET_URL : TEST_VIDEO_ASSET_URL,
       clickThroughUrl: TEST_CLICK_THROUGH_URL,
@@ -116,11 +116,11 @@ export const createPlaybackEvent = (
   });
 
 /**
- * @description An admin's READY video with one ad placement - everything an event or count needs.
+ * @description A user's READY video with one ad placement - everything an event or count needs.
  */
 export const createVideoWithAdPlacement = async () => {
-  const admin = await createAdmin();
-  const video = await createVideo(admin);
-  const adPlacement = await createAdPlacement(video, await createAdvertisement(admin));
-  return { admin, video, adPlacement };
+  const user = await createUser();
+  const video = await createVideo(user);
+  const adPlacement = await createAdPlacement(video, await createAdvertisement(user));
+  return { user, video, adPlacement };
 };
