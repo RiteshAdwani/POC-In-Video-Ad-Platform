@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 // Appended to the dev database's name - the tests truncate every table, so they get their own.
 export const TEST_DATABASE_SUFFIX = '_test';
 
@@ -28,9 +30,17 @@ export const TEST_OTHER_SESSION_ID = 'session-2';
 // An id no row will ever have - for "doesn't exist" requests.
 export const TEST_UNKNOWN_ID = '00000000-0000-4000-8000-000000000000';
 
+// Login credentials, random per run - tests only need them consistent, never a known value.
+// Bcrypt's minimum cost keeps hashing fast; the real cost is irrelevant to tests.
+export const TEST_PASSWORD = randomUUID();
+export const TEST_WRONG_PASSWORD = randomUUID();
+export const TEST_UNKNOWN_EMAIL = 'nobody@example.test';
+export const TEST_BCRYPT_ROUNDS = 4;
+
 // Endpoints the integration tests call.
 export const TestApiPaths = {
   health: () => '/health',
+  login: () => '/api/v1/auth/login',
   events: () => '/api/v1/public/events',
   dashboard: () => '/api/v1/dashboard',
   videos: () => '/api/v1/videos',
