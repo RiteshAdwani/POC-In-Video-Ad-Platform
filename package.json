@@ -20,6 +20,11 @@
     "lint-staged": "^17.6.0",
     "prettier": "^3.9.10"
   },
+  "overrides": {
+    "@prisma/config": {
+      "effect": "^3.22.5"
+    }
+  },
   "lint-staged": {
     "backend/**/*.{ts,tsx}": [
       "eslint --fix --config backend/eslint.config.js",

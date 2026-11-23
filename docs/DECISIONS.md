@@ -19,7 +19,8 @@ ends with what to point at if this exact thing gets probed in a walkthrough.
 10. [Video hosting integration](#video-hosting-integration)
 11. [Indexing for dashboard volume](#indexing-for-dashboard-volume)
 12. [Rate limiting](#rate-limiting)
-13. [Known gaps](#known-gaps)
+13. [Dependency override for `effect`](#dependency-override-for-effect)
+14. [Known gaps](#known-gaps)
 
 ---
 
@@ -262,6 +263,30 @@ attack spread over many IPs, or a raw traffic flood — those belong in front of
 WAF).
 
 **Point at:** `backend/src/middleware/rateLimit.ts`, `backend/src/constants/rateLimit.constants.ts`.
+
+---
+
+## Dependency override for `effect`
+
+**The question:** why does the root `package.json` force a version of a package we never install
+directly?
+
+**The answer:** `@prisma/config`, which the Prisma CLI uses to load `prisma.config.ts`, pins
+`effect` to 3.20.0. That version has a HIGH-severity ReDoS advisory (CVE-2026-121707, fixed in
+3.22.1), and the Prisma CLI ships in the production image because the container runs
+`migrate deploy` on start. CI fails both the dependency audit and the image scan on it, and no
+Prisma release depends on a fixed `effect` yet. An npm override, scoped to `@prisma/config`,
+installs `effect` `^3.22.5` instead. It stays within the same major version, and Prisma's
+`generate` and `migrate deploy` run with it in the test suite.
+
+The real exposure was low, since only our own config file reaches that code, but CI blocks every
+HIGH finding rather than judging reachability case by case.
+
+**Remove the override** once `npm view @prisma/config dependencies.effect` shows 3.22.1 or later.
+If it's left behind and Prisma moves to `effect` 4.x, the Prisma update PR fails CI rather than
+anything breaking silently.
+
+**Point at:** `overrides` in the root `package.json`.
 
 ---
 
